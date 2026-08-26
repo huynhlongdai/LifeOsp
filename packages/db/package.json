@@ -17,7 +17,7 @@
     "dev": "tsc -p tsconfig.json --watch --preserveWatchOutput",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "drizzle-kit generate --config=drizzle.config.ts --name=ci_check && node -e \"const fs=require('node:fs'); console.log('===SQL===\\n'+fs.readFileSync('drizzle/0003_ci_check.sql','utf8')); console.log('===SNAPSHOT===\\n'+fs.readFileSync('drizzle/meta/0003_snapshot.json','utf8')); console.log('===JOURNAL===\\n'+fs.readFileSync('drizzle/meta/_journal.json','utf8'))\"",
+    "test": "node --test",
     "test:integration": "tsx --test src/db.integration.ts",
     "db:generate": "drizzle-kit generate --config=drizzle.config.ts",
     "db:migrate": "tsx src/migrate.ts"
