@@ -194,7 +194,7 @@ export async function appendCaptureInterpretation(
           : "capture.interpretation.corrected";
 
     await transaction.insert(schema.lifeEvents).values({
-      userId,
+      userId: params.userId,
       type: eventType,
       source: params.author === "ai" ? "ai" : "user",
       entityType: "capture_interpretation",
