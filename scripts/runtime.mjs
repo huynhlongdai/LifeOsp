@@ -41,7 +41,7 @@ export function start(command, args, options = {}) {
 }
 
 export async function stop(child) {
-  if (!child || child.exitCode !== null || child.killed) return;
+  if (!child || child.exitCode !== null) return;
 
   child.kill("SIGTERM");
   await Promise.race([
@@ -49,5 +49,11 @@ export async function stop(child) {
     new Promise((resolve) => setTimeout(resolve, 2_000))
   ]);
 
-  if (child.exitCode === null && !child.killed) child.kill("SIGKILL");
+  if (child.exitCode === null) {
+    child.kill("SIGKILL");
+    await Promise.race([
+      new Promise((resolve) => child.once("exit", resolve)),
+      new Promise((resolve) => setTimeout(resolve, 1_000))
+    ]);
+  }
 }
