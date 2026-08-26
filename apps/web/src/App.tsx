@@ -1,6 +1,7 @@
 import { useEffect, useState, type MouseEvent } from "react";
 import type { HealthStatus } from "@lifeos/domain";
 import { createApiClient } from "./api";
+import { ClarityReset } from "./ClarityReset";
 import { APP_ROUTES, resolveRoute, type AppRoute } from "./routes";
 import { EmptyState, ErrorState, LoadingState, type AsyncState } from "./ui-states";
 
@@ -36,7 +37,7 @@ export function App() {
   const navigate = (event: MouseEvent<HTMLAnchorElement>, nextPath: string) => {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
-    if (window.location.pathname === nextPath) return;
+    if (window.location.pathname === nextPath && window.location.search === "") return;
     window.history.pushState({}, "", nextPath);
     setPathname(nextPath);
   };
@@ -60,40 +61,54 @@ export function App() {
             </a>
           ))}
         </nav>
-        <div className="secondary-links" aria-label="Foundation status">
-          <span>Foundation Milestone</span>
-          <span>Product data: not seeded</span>
+        <div className="secondary-links" aria-label="Product status">
+          <span>Vertical Slice A</span>
+          <a href="/clarity">Clarity Reset mới</a>
         </div>
       </aside>
 
       <main className="content">
         <header className="topbar">
           <div>
-            <p className="eyebrow">FOUNDATION / {route?.label ?? "UNKNOWN"}</p>
+            <p className="eyebrow">{route?.key === "clarity" ? "VERTICAL SLICE A" : "LIFEOS"} / {route?.label ?? "UNKNOWN"}</p>
             <h1>{route?.key === "now" ? "Biết điều gì quan trọng. Biết việc cần làm tiếp theo." : route?.label ?? "Route không tồn tại"}</h1>
           </div>
           <ApiBadge state={apiState} />
         </header>
 
-        {route ? <RouteContent route={route} /> : <UnknownRoute />}
+        {route ? <RouteContent route={route} apiUrl={apiUrl} navigate={navigate} /> : <UnknownRoute />}
       </main>
     </div>
   );
 }
 
-function RouteContent({ route }: { route: AppRoute }) {
+function RouteContent({
+  route,
+  apiUrl,
+  navigate
+}: {
+  route: AppRoute;
+  apiUrl: string;
+  navigate: (event: MouseEvent<HTMLAnchorElement>, nextPath: string) => void;
+}) {
+  if (route.key === "clarity") return <ClarityReset apiUrl={apiUrl} />;
+
   if (route.key === "now") {
     return (
       <>
-        <section className="hero-card">
+        <section className="hero-card now-entry">
           <p className="eyebrow">RIGHT NOW</p>
-          <h2>NOW shell đã sẵn sàng</h2>
+          <h2>Chưa đủ context để chọn việc quan trọng nhất.</h2>
           <p>
-            Web ↔ API contract đang hoạt động. Recommendation thật chỉ xuất hiện khi Vertical Slice A sở hữu dữ liệu và semantics tương ứng.
+            Thay vì tạo một danh sách giả, LifeOS bắt đầu bằng những gì đang thực sự có trong đầu bạn.
           </p>
+          <a className="primary-button link-button" href="/clarity" onClick={(event) => navigate(event, "/clarity")}>
+            Bắt đầu Clarity Reset
+          </a>
+          <small>Brain Dump được lưu trước. AI là bước hỗ trợ, không phải điều kiện để tiếp tục.</small>
         </section>
         <EmptyState title="Chưa có recommendation">
-          LifeOS không tạo goal, action hay direction giả chỉ để lấp đầy màn hình.
+          Recommendation thật chỉ xuất hiện sau khi bạn xác nhận đủ context ở các vertical slice tương ứng.
         </EmptyState>
       </>
     );
@@ -109,7 +124,7 @@ function RouteContent({ route }: { route: AppRoute }) {
 function UnknownRoute() {
   return (
     <ErrorState title="Route không tồn tại">
-      Dùng navigation của LifeOS để quay về một khu vực foundation đã được định nghĩa.
+      Dùng navigation của LifeOS để quay về một khu vực đã được định nghĩa.
     </ErrorState>
   );
 }
