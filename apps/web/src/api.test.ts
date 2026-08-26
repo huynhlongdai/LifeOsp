@@ -49,7 +49,7 @@ test("typed API client accepts canonical health and rejects malformed payloads",
 
 test("Clarity client uses cookie-owned session and canonical Capture/Interpretation endpoints", async () => {
   const originalFetch = globalThis.fetch;
-  const calls: Array<{ url: string; init?: RequestInit }> = [];
+  const calls: Array<{ url: string; init: RequestInit | undefined }> = [];
   const responses: unknown[] = [
     { status: "active", expiresAt: "2026-09-25T00:00:00.000Z" },
     {
