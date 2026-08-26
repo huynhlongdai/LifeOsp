@@ -40,14 +40,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Typecheck
-        run: pnpm typecheck
+      - name: Verify local secret ignore contract
+        run: |
+          test ! -e .env
+          test -f .env.example
+          git check-ignore -q .env
 
-      - name: Test
-        run: pnpm test
-
-      - name: Build
-        run: pnpm build
+      - name: Core verification (same entry point as local)
+        run: pnpm verify
 
       - name: Verify Web PWA build assets
         run: |
