@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { resolveRoute } from "./routes";
+import { APP_ROUTES, resolveRoute } from "./routes";
 
 test("NOW is the default root route", () => {
   assert.equal(resolveRoute("/")?.key, "now");
@@ -12,4 +12,9 @@ test("foundation routes resolve deterministically", () => {
   assert.equal(resolveRoute("/reflect")?.key, "reflect");
   assert.equal(resolveRoute("/me")?.key, "me");
   assert.equal(resolveRoute("/unknown"), null);
+});
+
+test("Clarity Reset resolves without becoming primary navigation", () => {
+  assert.equal(resolveRoute("/clarity")?.key, "clarity");
+  assert.equal(APP_ROUTES.some((route) => route.path === "/clarity"), false);
 });
