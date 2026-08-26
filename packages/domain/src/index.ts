@@ -7,11 +7,14 @@ export type {
   DirectionId,
   IncubatorItemId,
   LifeEventId,
+  OutcomeId,
+  ProjectId,
   RecommendationEvidenceId,
   RecommendationId,
   SeasonId,
   UserId
 } from "./ids.js";
+export * from "./execution-context.js";
 export * from "./interpretation.js";
 export * from "./promotion.js";
 
