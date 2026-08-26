@@ -1,8 +1,7 @@
 import { buildApp } from "./app.js";
 
-const app = buildApp({
-  databaseUrl: process.env.DATABASE_URL
-});
+const databaseUrl = process.env.DATABASE_URL;
+const app = buildApp(databaseUrl ? { databaseUrl } : {});
 
 const port = Number(process.env.PORT ?? 4000);
 const host = process.env.HOST ?? "0.0.0.0";
