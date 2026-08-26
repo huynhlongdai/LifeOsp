@@ -85,7 +85,7 @@ Run the essential local checks with:
 pnpm verify
 ```
 
-This executes strict typecheck, tests and production builds across the workspace.
+This executes strict typecheck, tests and production builds across the workspace. CI invokes this exact same `pnpm verify` entry point before adding infrastructure-specific gates.
 
 With PostgreSQL available, run the complete foundation exit smoke with:
 
@@ -100,7 +100,7 @@ The foundation smoke:
 - requests `/health` through the Web origin;
 - requests `/ready` through the Web origin and requires the API database check to be `ok`.
 
-GitHub CI runs the same essential checks and adds destructive/isolated infrastructure gates that are inappropriate for normal local development: malformed environment startup, unavailable-database readiness, migration drift, transaction rollback, PostgreSQL named-volume persistence across container recreation, and built Web → API → DB smoke.
+GitHub CI adds destructive/isolated infrastructure gates that are inappropriate for normal local development: local-secret ignore enforcement, malformed environment startup, unavailable-database readiness, migration drift, transaction rollback, PostgreSQL named-volume persistence across container recreation, and built Web → API → DB smoke.
 
 ## Product guardrails
 
