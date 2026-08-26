@@ -6,6 +6,15 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
 });
 
+export const sessions = pgTable("sessions", {
+  tokenHash: text("token_hash").primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull()
+});
+
 export const lifeEvents = pgTable(
   "life_events",
   {
@@ -31,5 +40,7 @@ export const lifeEvents = pgTable(
 
 export type UserRow = typeof users.$inferSelect;
 export type NewUserRow = typeof users.$inferInsert;
+export type SessionRow = typeof sessions.$inferSelect;
+export type NewSessionRow = typeof sessions.$inferInsert;
 export type LifeEventRow = typeof lifeEvents.$inferSelect;
 export type NewLifeEventRow = typeof lifeEvents.$inferInsert;
