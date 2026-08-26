@@ -10,6 +10,7 @@ import {
   type NeedState
 } from "@lifeos/domain";
 import { ApiRequestError, createApiClient } from "./api";
+import { ClarityPromotion } from "./ClarityPromotion";
 import {
   INTERPRETATION_CATEGORY_COPY,
   NEED_STATE_OPTIONS,
@@ -27,7 +28,7 @@ type Stage =
   | "generating"
   | "review"
   | "manual"
-  | "done";
+  | "promotion";
 
 export function ClarityReset({ apiUrl }: { apiUrl: string }) {
   const api = useMemo(() => createApiClient(apiUrl), [apiUrl]);
@@ -368,7 +369,7 @@ export function ClarityReset({ apiUrl }: { apiUrl: string }) {
         {draftHasBlankItem ? <InlineError message="Hoàn tất hoặc xóa các mục đang để trống trước khi lưu." /> : null}
         <div className="flow-actions split-actions">
           {stage === "review" && interpretation && !draftChanged ? (
-            <button className="primary-button" type="button" onClick={() => setStage("done")}>
+            <button className="primary-button" type="button" onClick={() => setStage("promotion")}>
               Phần làm rõ này đúng
             </button>
           ) : (
@@ -391,17 +392,23 @@ export function ClarityReset({ apiUrl }: { apiUrl: string }) {
     );
   }
 
+  if (stage === "promotion" && capture && interpretation) {
+    return (
+      <ClarityPromotion
+        apiUrl={apiUrl}
+        capture={capture}
+        interpretation={interpretation}
+        onBack={() => setStage("review")}
+      />
+    );
+  }
+
   return (
-    <section className="clarity-flow clarity-done">
-      <p className="eyebrow">CLARITY RESET · COMPLETE</p>
-      <h2>Phần làm rõ đã sẵn sàng.</h2>
-      <p>
-        Brain Dump gốc vẫn được giữ nguyên. Bước tiếp theo của Vertical Slice A sẽ là chọn Active / Maintain / Not Now trước khi xác nhận Direction.
-      </p>
-      <SavedCapture capture={capture} compact />
-      <div className="flow-actions">
-        <a className="primary-button link-button" href="/">Về NOW</a>
-      </div>
+    <section className="clarity-flow">
+      <InlineError message="Không thể tiếp tục trade-off vì Capture hoặc interpretation chưa sẵn sàng." />
+      <button className="secondary-button" type="button" onClick={() => setStage("review")}>
+        Quay lại phần làm rõ
+      </button>
     </section>
   );
 }

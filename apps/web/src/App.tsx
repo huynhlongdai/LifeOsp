@@ -2,6 +2,7 @@ import { useEffect, useState, type MouseEvent } from "react";
 import type { HealthStatus } from "@lifeos/domain";
 import { createApiClient } from "./api";
 import { ClarityReset } from "./ClarityReset";
+import { DirectionPage } from "./DirectionPage";
 import { APP_ROUTES, resolveRoute, type AppRoute } from "./routes";
 import { EmptyState, ErrorState, LoadingState, type AsyncState } from "./ui-states";
 
@@ -63,7 +64,7 @@ export function App() {
         </nav>
         <div className="secondary-links" aria-label="Product status">
           <span>Vertical Slice A</span>
-          <a href="/clarity">Clarity Reset mới</a>
+          <a href="/clarity" onClick={(event) => navigate(event, "/clarity")}>Clarity Reset mới</a>
         </div>
       </aside>
 
@@ -92,6 +93,7 @@ function RouteContent({
   navigate: (event: MouseEvent<HTMLAnchorElement>, nextPath: string) => void;
 }) {
   if (route.key === "clarity") return <ClarityReset apiUrl={apiUrl} />;
+  if (route.key === "direction") return <DirectionPage apiUrl={apiUrl} />;
 
   if (route.key === "now") {
     return (

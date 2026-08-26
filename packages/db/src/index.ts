@@ -227,4 +227,5 @@ export async function findLatestCaptureInterpretation(
   return interpretation ?? null;
 }
 
+export * from "./promotion.js";
 export * from "./schema.js";

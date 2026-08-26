@@ -1,7 +1,19 @@
 import type { CaptureId, LifeEventId, UserId } from "./ids.js";
 
-export type { Brand, CaptureId, CaptureInterpretationId, LifeEventId, UserId } from "./ids.js";
+export type {
+  Brand,
+  CaptureId,
+  CaptureInterpretationId,
+  DirectionId,
+  IncubatorItemId,
+  LifeEventId,
+  RecommendationEvidenceId,
+  RecommendationId,
+  SeasonId,
+  UserId
+} from "./ids.js";
 export * from "./interpretation.js";
+export * from "./promotion.js";
 
 export const NEED_STATES = [
   "unclear_direction",

@@ -2,12 +2,23 @@ import {
   CAPTURE_INTERPRETATION_CONTRACT_ID,
   CAPTURE_INTERPRETATION_CONTRACT_VERSION,
   CAPTURE_PROCESSING_STATUSES,
+  DIRECTION_STATUSES,
+  INCUBATOR_KINDS,
+  INCUBATOR_STATUSES,
   INTERPRETATION_CATEGORIES,
   INTERPRETATION_CONFIDENCE_CLASSES,
+  RECOMMENDATION_STATUSES,
+  SEASON_STATUSES,
   type CaptureInterpretationContentV1,
   type CaptureInterpretationView,
   type CaptureView,
+  type ClarityPromotionDraftInput,
+  type ClarityPromotionDraftView,
+  type CurrentDirectionView,
+  type DirectionView,
   type HealthStatus,
+  type IncubatorItemView,
+  type SeasonView,
   type SessionView
 } from "@lifeos/domain";
 
@@ -17,6 +28,17 @@ export type InterpretationFailure = {
   manualFallback?: boolean;
   validationErrors?: string[];
   latestVersion?: number;
+};
+
+export type FinalPromotionInput = Pick<ClarityPromotionDraftInput, "direction" | "season">;
+
+export type PromotionConfirmedView = CurrentDirectionView & {
+  incubatorItems: IncubatorItemView[];
+};
+
+export type PromotionResolutionView = {
+  status: "rejected" | "not_now";
+  incubatorItem?: IncubatorItemView;
 };
 
 export class ApiRequestError extends Error {
@@ -54,6 +76,19 @@ export type ApiClient = {
     content: CaptureInterpretationContentV1,
     signal?: AbortSignal
   ): Promise<CaptureInterpretationView>;
+  prepareClarityPromotion(
+    captureId: string,
+    input: ClarityPromotionDraftInput,
+    signal?: AbortSignal
+  ): Promise<ClarityPromotionDraftView>;
+  confirmClarityPromotion(
+    recommendationId: string,
+    input: FinalPromotionInput,
+    signal?: AbortSignal
+  ): Promise<PromotionConfirmedView>;
+  rejectClarityPromotion(recommendationId: string, signal?: AbortSignal): Promise<PromotionResolutionView>;
+  deferClarityPromotion(recommendationId: string, signal?: AbortSignal): Promise<PromotionResolutionView>;
+  getCurrentDirection(signal?: AbortSignal): Promise<CurrentDirectionView | null>;
 };
 
 export function createApiClient(baseUrl = ""): ApiClient {
@@ -141,6 +176,51 @@ export function createApiClient(baseUrl = ""): ApiClient {
 
     async correctInterpretation(captureId, baseVersion, content, signal) {
       return writeUserInterpretation(request, "correct", captureId, baseVersion, content, signal);
+    },
+
+    async prepareClarityPromotion(captureId, input, signal) {
+      const value = await request(`/v1/captures/${encodeURIComponent(captureId)}/promotion/prepare`, {
+        method: "POST",
+        body: JSON.stringify(input),
+        ...(signal ? { signal } : {})
+      });
+      if (!isClarityPromotionDraftView(value)) {
+        throw new Error("Clarity promotion response does not match the LifeOS contract");
+      }
+      return value;
+    },
+
+    async confirmClarityPromotion(recommendationId, input, signal) {
+      const value = await request(`/v1/clarity-promotions/${encodeURIComponent(recommendationId)}/confirm`, {
+        method: "POST",
+        body: JSON.stringify(input),
+        ...(signal ? { signal } : {})
+      });
+      if (!isPromotionConfirmedView(value)) {
+        throw new Error("Confirmed Direction response does not match the LifeOS contract");
+      }
+      return value;
+    },
+
+    async rejectClarityPromotion(recommendationId, signal) {
+      return resolvePromotion(request, recommendationId, "reject", signal);
+    },
+
+    async deferClarityPromotion(recommendationId, signal) {
+      return resolvePromotion(request, recommendationId, "not-now", signal);
+    },
+
+    async getCurrentDirection(signal) {
+      try {
+        const value = await request("/v1/direction/current", signal ? { signal } : {});
+        if (!isCurrentDirectionView(value)) {
+          throw new Error("Current Direction response does not match the LifeOS contract");
+        }
+        return value;
+      } catch (error) {
+        if (error instanceof ApiRequestError && error.status === 404) return null;
+        throw error;
+      }
     }
   };
 }
@@ -165,6 +245,25 @@ async function writeUserInterpretation(
     throw new Error("Interpretation response does not match the LifeOS contract");
   }
   return value;
+}
+
+async function resolvePromotion(
+  request: (path: string, init?: RequestInit) => Promise<unknown>,
+  recommendationId: string,
+  resolution: "reject" | "not-now",
+  signal?: AbortSignal
+): Promise<PromotionResolutionView> {
+  const value = await request(`/v1/clarity-promotions/${encodeURIComponent(recommendationId)}/${resolution}`, {
+    method: "POST",
+    ...(signal ? { signal } : {})
+  });
+  if (!isRecord(value) || (value.status !== "rejected" && value.status !== "not_now")) {
+    throw new Error("Clarity promotion resolution does not match the LifeOS contract");
+  }
+  if (value.incubatorItem !== undefined && !isIncubatorItemView(value.incubatorItem)) {
+    throw new Error("Clarity promotion resolution does not match the LifeOS contract");
+  }
+  return value as PromotionResolutionView;
 }
 
 function isHealthStatus(value: unknown): value is HealthStatus {
@@ -225,6 +324,102 @@ function isInterpretationView(value: unknown): value is CaptureInterpretationVie
   }
 
   return true;
+}
+
+function isClarityPromotionDraftView(value: unknown): value is ClarityPromotionDraftView {
+  return (
+    isRecord(value) &&
+    typeof value.recommendationId === "string" &&
+    typeof value.captureId === "string" &&
+    Number.isInteger(value.interpretationVersion) &&
+    isDirectionView(value.direction) &&
+    isSeasonView(value.season) &&
+    typeof value.activeText === "string" &&
+    isStringArray(value.maintainTexts) &&
+    isNotNowItems(value.notNowItems) &&
+    typeof value.recommendationStatus === "string" &&
+    (RECOMMENDATION_STATUSES as readonly string[]).includes(value.recommendationStatus)
+  );
+}
+
+function isPromotionConfirmedView(value: unknown): value is PromotionConfirmedView {
+  return (
+    isRecord(value) &&
+    isDirectionView(value.direction) &&
+    isSeasonView(value.season) &&
+    Array.isArray(value.incubatorItems) &&
+    value.incubatorItems.every(isIncubatorItemView)
+  );
+}
+
+function isCurrentDirectionView(value: unknown): value is CurrentDirectionView {
+  return isRecord(value) && isDirectionView(value.direction) && isSeasonView(value.season);
+}
+
+function isDirectionView(value: unknown): value is DirectionView {
+  if (!isRecord(value)) return false;
+  return (
+    typeof value.id === "string" &&
+    typeof value.title === "string" &&
+    typeof value.status === "string" &&
+    (DIRECTION_STATUSES as readonly string[]).includes(value.status) &&
+    (value.description === undefined || typeof value.description === "string") &&
+    (value.sourceCaptureId === undefined || typeof value.sourceCaptureId === "string") &&
+    (value.confirmedAt === undefined || typeof value.confirmedAt === "string") &&
+    typeof value.createdAt === "string" &&
+    typeof value.updatedAt === "string"
+  );
+}
+
+function isSeasonView(value: unknown): value is SeasonView {
+  if (!isRecord(value)) return false;
+  return (
+    typeof value.id === "string" &&
+    (value.directionId === undefined || typeof value.directionId === "string") &&
+    typeof value.title === "string" &&
+    typeof value.purpose === "string" &&
+    typeof value.status === "string" &&
+    (SEASON_STATUSES as readonly string[]).includes(value.status) &&
+    (value.startsOn === undefined || typeof value.startsOn === "string") &&
+    (value.targetEndsOn === undefined || typeof value.targetEndsOn === "string") &&
+    (value.primaryFocusText === undefined || typeof value.primaryFocusText === "string") &&
+    typeof value.createdAt === "string" &&
+    typeof value.updatedAt === "string"
+  );
+}
+
+function isIncubatorItemView(value: unknown): value is IncubatorItemView {
+  if (!isRecord(value)) return false;
+  return (
+    typeof value.id === "string" &&
+    (value.sourceCaptureId === undefined || typeof value.sourceCaptureId === "string") &&
+    typeof value.title === "string" &&
+    (value.notes === undefined || typeof value.notes === "string") &&
+    typeof value.kind === "string" &&
+    (INCUBATOR_KINDS as readonly string[]).includes(value.kind) &&
+    typeof value.status === "string" &&
+    (INCUBATOR_STATUSES as readonly string[]).includes(value.status) &&
+    (value.revisitOn === undefined || typeof value.revisitOn === "string") &&
+    typeof value.createdAt === "string" &&
+    typeof value.updatedAt === "string"
+  );
+}
+
+function isNotNowItems(value: unknown): value is ClarityPromotionDraftInput["notNowItems"] {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (item) =>
+        isRecord(item) &&
+        typeof item.text === "string" &&
+        typeof item.kind === "string" &&
+        (INCUBATOR_KINDS as readonly string[]).includes(item.kind)
+    )
+  );
+}
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === "string");
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
