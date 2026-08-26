@@ -29,7 +29,6 @@ export type CaptureInterpretationRunResult =
     };
 
 const confidenceClasses = new Set<string>(INTERPRETATION_CONFIDENCE_CLASSES);
-const categoryKeys = new Set<string>(CAPTURE_INTERPRETATION_CATEGORIES);
 const topLevelKeys = new Set<string>(["contractVersion", ...CAPTURE_INTERPRETATION_CATEGORIES]);
 const itemKeys = new Set<string>(["text", "confidenceClass", "source"]);
 const sourceKeys = new Set<string>(["start", "end"]);
@@ -51,8 +50,8 @@ function parseItem(value: unknown, rawText: string): CaptureInterpretationItemV1
 
   const start = value.source.start;
   const end = value.source.end;
-  if (!Number.isInteger(start) || !Number.isInteger(end)) return null;
   if (typeof start !== "number" || typeof end !== "number") return null;
+  if (!Number.isInteger(start) || !Number.isInteger(end)) return null;
   if (start < 0 || end <= start || end > rawText.length) return null;
   if (rawText.slice(start, end).trim().length === 0) return null;
 
@@ -84,7 +83,6 @@ export function validateCaptureInterpretationV1(
 
   const categories = {} as Record<CaptureInterpretationCategory, CaptureInterpretationItemV1[]>;
   for (const category of CAPTURE_INTERPRETATION_CATEGORIES) {
-    if (!categoryKeys.has(category)) return null;
     const parsed = parseCategory(value[category], rawText);
     if (!parsed) return null;
     categories[category] = parsed;
