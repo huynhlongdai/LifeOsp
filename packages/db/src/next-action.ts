@@ -184,9 +184,10 @@ export async function generateNextActionRecommendation(
             ...factor.value,
             rulesetVersion: NEXT_ACTION_RULESET_VERSION
           },
-          strength: factor.key === "active_context" || factor.key === "user_priority" || factor.key === "urgency"
-            ? "direct"
-            : "supporting"
+          strength:
+            factor.key === "active_context" || factor.key === "user_priority" || factor.key === "urgency"
+              ? "direct"
+              : "supporting"
         }))
       )
       .returning();
@@ -247,6 +248,9 @@ function toRankingCandidate(
   project: schema.ProjectRow | null
 ): NextActionRankingCandidate {
   if (!action.outcomeId) throw new Error("B2 cannot rank an Action without an Outcome");
+  if (action.projectId !== null && !project) {
+    throw new Error("B2 cannot rank an Action whose Project relation is missing or not owned by the user");
+  }
   return {
     actionId: action.id as ActionId,
     outcomeId: action.outcomeId as OutcomeId,
@@ -262,7 +266,7 @@ function toRankingCandidate(
     outcomeStatus: outcome.status as NextActionRankingCandidate["outcomeStatus"],
     ...(action.projectId === null
       ? {}
-      : { projectStatus: project?.status as NextActionRankingCandidate["projectStatus"] }),
+      : { projectStatus: project!.status as NextActionRankingCandidate["projectStatus"] }),
     seasonStatus: season.status as NextActionRankingCandidate["seasonStatus"]
   };
 }
