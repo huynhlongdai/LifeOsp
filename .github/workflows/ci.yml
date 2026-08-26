@@ -67,16 +67,10 @@ jobs:
           test "$STATUS" -ne 0
           echo "$OUTPUT" | grep -F "[lifeos-api] configuration error: PORT"
 
-      - name: Capture Drizzle identity migration artifacts
+      - name: Verify Drizzle migration is current
         run: |
-          pnpm --filter @lifeos/db exec drizzle-kit generate --config=drizzle.config.ts --name=identity_sessions
-          echo '--- GENERATED SQL ---'
-          cat packages/db/drizzle/0001_identity_sessions.sql
-          echo '--- GENERATED SNAPSHOT ---'
-          cat packages/db/drizzle/meta/0001_snapshot.json
-          echo '--- GENERATED JOURNAL ---'
-          cat packages/db/drizzle/meta/_journal.json
-          exit 1
+          pnpm --filter @lifeos/db exec drizzle-kit generate --config=drizzle.config.ts --name=ci_check
+          git diff --exit-code -- packages/db/drizzle
 
       - name: Apply database migrations
         run: pnpm --filter @lifeos/db db:migrate
