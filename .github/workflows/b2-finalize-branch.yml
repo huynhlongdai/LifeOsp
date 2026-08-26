@@ -1,0 +1,75 @@
+name: B2 Finalize Branch
+
+on:
+  push:
+    branches: [feat/b2-next-action-engine]
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout B2 branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/b2-next-action-engine
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Preserve compact ranking factors in LifeEvent history
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('packages/db/src/next-action.ts')
+          text = path.read_text()
+          old = '''        totalScore: winner.totalScore,\n        eligibleCount: ranking.eligibleCount,\n        refreshed\n'''
+          new = '''        totalScore: winner.totalScore,\n        eligibleCount: ranking.eligibleCount,\n        factors: winner.factors.map((factor) => ({\n          key: factor.key,\n          score: factor.score,\n          label: factor.label,\n          value: factor.value\n        })),\n        refreshed\n'''
+          if old in text:
+              path.write_text(text.replace(old, new, 1))
+          elif new not in text:
+              raise SystemExit('Expected recommendation.shown payload block not found')
+          PY
+
+      - name: Lock historical evidence assertion
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('apps/api/src/next-action.integration.ts')
+          text = path.read_text()
+          old_type = '''    const shownEvents = await database.pool.query<{ payload: { actionId?: string; refreshed?: boolean } }>(\n'''
+          new_type = '''    const shownEvents = await database.pool.query<{\n      payload: { actionId?: string; refreshed?: boolean; factors?: Array<{ key?: string; score?: number }> };\n    }>(\n'''
+          if old_type in text:
+              text = text.replace(old_type, new_type, 1)
+          elif new_type not in text:
+              raise SystemExit('Expected shownEvents type not found')
+          old_assert = '''    assert.equal(shownEvents.rows[0]?.payload.refreshed, false);\n    assert.equal(shownEvents.rows[1]?.payload.actionId, priorityActionId);\n'''
+          new_assert = '''    assert.equal(shownEvents.rows[0]?.payload.refreshed, false);\n    assert.ok(shownEvents.rows[0]?.payload.factors?.some((factor) => factor.key === "urgency"));\n    assert.equal(shownEvents.rows[1]?.payload.actionId, priorityActionId);\n'''
+          if old_assert in text:
+              text = text.replace(old_assert, new_assert, 1)
+          elif new_assert not in text:
+              raise SystemExit('Expected shownEvents assertion block not found')
+          path.write_text(text)
+          PY
+
+      - name: Synchronize workspace lockfile
+        run: pnpm install --lockfile-only --no-frozen-lockfile
+
+      - name: Commit final B2 branch state
+        run: |
+          if git diff --quiet && [ -z "$(git status --porcelain)" ]; then
+            echo "B2 branch already finalized"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add packages/db/src/next-action.ts apps/api/src/next-action.integration.ts pnpm-lock.yaml
+          git commit -m "chore(b2): finalize audit evidence and lockfile"
+          git push origin HEAD:feat/b2-next-action-engine
