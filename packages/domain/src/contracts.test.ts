@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  ACTION_STATUSES,
   CAPTURE_INTERPRETATION_CONTRACT_ID,
   CAPTURE_INTERPRETATION_CONTRACT_VERSION,
   CAPTURE_KINDS,
@@ -8,6 +9,8 @@ import {
   INTERPRETATION_CATEGORIES,
   INTERPRETATION_CONFIDENCE_CLASSES,
   LIFE_EVENT_SOURCES,
+  MISSING_NEXT_ACTION_CONTRACT_ID,
+  MISSING_NEXT_ACTION_CONTRACT_VERSION,
   NEED_STATES,
   OUTCOME_STATUSES,
   PROJECT_STATUSES
@@ -56,4 +59,19 @@ test("LifeEvent sources match the canonical producers", () => {
 test("B0 Outcome and Project states stay aligned with the canonical execution model", () => {
   assert.deepEqual(OUTCOME_STATUSES, ["active", "achieved", "paused", "dropped"]);
   assert.deepEqual(PROJECT_STATUSES, ["candidate", "active", "paused", "completed", "dropped"]);
+});
+
+test("B1 Action states and missing-next-action contract stay canonical", () => {
+  assert.deepEqual(ACTION_STATUSES, [
+    "candidate",
+    "ready",
+    "active",
+    "completed",
+    "partial",
+    "postponed",
+    "blocked",
+    "dropped"
+  ]);
+  assert.equal(MISSING_NEXT_ACTION_CONTRACT_ID, "missing-next-action-v1");
+  assert.equal(MISSING_NEXT_ACTION_CONTRACT_VERSION, 1);
 });
