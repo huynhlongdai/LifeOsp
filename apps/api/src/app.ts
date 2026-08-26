@@ -3,10 +3,12 @@ import { checkDatabase, createDatabaseClient } from "@lifeos/db";
 import type { HealthStatus, ReadinessStatus } from "@lifeos/domain";
 import { registerCaptureRoutes } from "./capture.js";
 import { registerIdentityRoutes, type IdentityOptions } from "./identity.js";
+import { registerInterpretationRoutes, type InterpretationOptions } from "./interpretation.js";
 
 export type BuildAppOptions = {
   databaseUrl?: string;
   identity?: IdentityOptions;
+  interpretation?: InterpretationOptions;
 };
 
 export function buildApp(options: BuildAppOptions = {}) {
@@ -40,6 +42,7 @@ export function buildApp(options: BuildAppOptions = {}) {
 
   registerIdentityRoutes(app, database, options.identity);
   registerCaptureRoutes(app, database);
+  registerInterpretationRoutes(app, database, options.interpretation);
 
   app.addHook("onClose", async () => {
     if (database) {
