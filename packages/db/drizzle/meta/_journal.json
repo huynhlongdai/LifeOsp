@@ -22,6 +22,13 @@
       "when": 1787714086096,
       "tag": "0002_capture_core",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1787714934111,
+      "tag": "0003_interpretation_contract",
+      "breakpoints": true
     }
   ]
 }
