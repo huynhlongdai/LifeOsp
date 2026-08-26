@@ -1,0 +1,45 @@
+name: A4 Wire Clarity UI
+
+on:
+  push:
+    branches: [feat/a4-clarity-promotion]
+    paths: [.github/workflows/a4-wire-clarity-ui.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  wire:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/a4-clarity-promotion
+      - name: Wire A3 into A4 and add styles
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('apps/web/src/ClarityReset.tsx')
+          s = p.read_text()
+          s = s.replace('import { ApiRequestError, createApiClient } from "./api";\n', 'import { ApiRequestError, createApiClient } from "./api";\nimport { ClarityPromotion } from "./ClarityPromotion";\n')
+          s = s.replace('  | "manual"\n  | "done";', '  | "manual"\n  | "promotion";')
+          s = s.replace('onClick={() => setStage("done")}', 'onClick={() => setStage("promotion")}')
+          old = '''  return (\n    <section className="clarity-flow clarity-done">\n      <p className="eyebrow">CLARITY RESET · COMPLETE</p>\n      <h2>Phần làm rõ đã sẵn sàng.</h2>\n      <p>\n        Brain Dump gốc vẫn được giữ nguyên. Bước tiếp theo của Vertical Slice A sẽ là chọn Active / Maintain / Not Now trước khi xác nhận Direction.\n      </p>\n      <SavedCapture capture={capture} compact />\n      <div className="flow-actions">\n        <a className="primary-button link-button" href="/">Về NOW</a>\n      </div>\n    </section>\n  );\n}'''
+          new = '''  if (stage === "promotion" && capture && interpretation) {\n    return (\n      <ClarityPromotion\n        apiUrl={apiUrl}\n        capture={capture}\n        interpretation={interpretation}\n        onBack={() => setStage("review")}\n      />\n    );\n  }\n\n  return (\n    <section className="clarity-flow">\n      <InlineError message="Không thể tiếp tục trade-off vì Capture hoặc interpretation chưa sẵn sàng." />\n      <button className="secondary-button" type="button" onClick={() => setStage("review")}>\n        Quay lại phần làm rõ\n      </button>\n    </section>\n  );\n}'''
+          if old not in s:
+              raise SystemExit('Expected A3 completion block not found')
+          p.write_text(s.replace(old, new))
+
+          css = Path('apps/web/src/styles.css')
+          current = css.read_text()
+          marker = '/* A4 clarity promotion */'
+          if marker not in current:
+              current += r'''\n\n/* A4 clarity promotion */\n.tradeoff-list { display: grid; gap: 14px; margin: 24px 0; }\n.tradeoff-card { border: 1px solid #263251; border-radius: 16px; padding: 18px; background: rgba(14,20,36,.84); display: grid; gap: 14px; }\n.tradeoff-copy { display: grid; gap: 5px; }\n.tradeoff-copy span, .tradeoff-lane > span, .promotion-summary-card > span { color: #7f8ba9; font-size: .7rem; font-weight: 800; letter-spacing: .11em; }\n.tradeoff-copy strong { font-size: 1.02rem; }\n.bucket-buttons { display: flex; flex-wrap: wrap; gap: 8px; }\n.bucket-button { border: 1px solid #34405f; background: #11182b; color: #a8b1c7; border-radius: 999px; padding: 9px 13px; cursor: pointer; font-size: .72rem; font-weight: 800; letter-spacing: .06em; }\n.bucket-button:hover, .bucket-button:focus-visible { border-color: #667594; color: #fff; outline: none; }\n.bucket-button.selected.active { border-color: #62d7a5; color: #9df0cb; background: #123126; }\n.bucket-button.selected.maintain { border-color: #7b87b2; color: #d4daf0; background: #252b43; }\n.bucket-button.selected.not_now { border-color: #a586d8; color: #e0ccff; background: #2b2141; }\n.incubator-kind-field { display: flex; gap: 10px; align-items: center; color: #98a3bc; font-size: .82rem; }\n.incubator-kind-field select, .direction-season-form input, .direction-season-form textarea { border: 1px solid #34405f; background: #0e1526; color: #f7f8fc; border-radius: 10px; padding: 10px 12px; width: 100%; }\n.incubator-kind-field select { width: auto; }\n.promotion-form-block, .why-card { border: 1px solid #2a3657; border-radius: 18px; padding: 20px; background: linear-gradient(145deg, rgba(24,31,52,.88), rgba(13,18,32,.82)); margin: 18px 0; }\n.why-card strong { display: block; margin: 8px 0; }\n.direction-season-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 18px 0; }\n.form-section { border: 1px solid #25314f; border-radius: 16px; padding: 18px; display: grid; gap: 12px; background: rgba(10,16,29,.56); }\n.form-section .field-label { display: grid; gap: 7px; }\n.date-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }\n.promotion-review-lanes { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; margin: 20px 0; }\n.tradeoff-lane { border: 1px solid #263251; border-radius: 14px; padding: 15px; display: grid; gap: 8px; align-content: start; min-height: 120px; background: rgba(12,18,32,.68); }\n.tradeoff-lane strong { font-size: .86rem; line-height: 1.4; }\n.tradeoff-lane small { color: #68748f; }\n.promotion-confirm-actions { align-items: center; }\n.danger-text { color: #e7a2a2; }\n.promotion-summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; margin: 20px 0; }\n.promotion-summary-card { border: 1px solid #2a3657; border-radius: 16px; padding: 20px; display: grid; gap: 8px; background: rgba(16,23,40,.8); }\n.promotion-summary-card strong { font-size: 1.05rem; }\n.promotion-summary-card small { color: #98a3bc; line-height: 1.5; }\n@media (max-width: 760px) {\n  .direction-season-form, .promotion-review-lanes, .promotion-summary-grid, .date-grid { grid-template-columns: 1fr; }\n  .bucket-buttons { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); }\n  .bucket-button { padding-inline: 7px; }\n}\n'''
+          css.write_text(current)
+          PY
+          git rm .github/workflows/a4-wire-clarity-ui.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/web/src/ClarityReset.tsx apps/web/src/styles.css
+          git commit -m "Wire A3 interpretation review into A4 trade-off UI"
+          git push origin HEAD:feat/a4-clarity-promotion
