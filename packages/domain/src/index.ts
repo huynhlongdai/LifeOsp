@@ -19,6 +19,7 @@ export * from "./action.js";
 export * from "./execution-context.js";
 export * from "./interpretation.js";
 export * from "./next-action.js";
+export * from "./now.js";
 export * from "./promotion.js";
 
 export const NEED_STATES = [
@@ -80,8 +81,4 @@ export type LifeEventEnvelope<TPayload = unknown> = {
   payload: TPayload;
   correlationId?: string;
   causationId?: string;
-};
-
-export type NowView = {
-  generatedAt: string;
 };
