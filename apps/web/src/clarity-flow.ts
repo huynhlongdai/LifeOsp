@@ -76,9 +76,11 @@ export function createEmptyInterpretation(): CaptureInterpretationContentV1 {
   };
 }
 
-export function composeCaptureText(quickContext: string, brainDump: string): string {
-  if (quickContext.trim().length === 0) return brainDump;
-  return `Bối cảnh hiện tại:\n${quickContext}\n\nBrain dump:\n${brainDump}`;
+export function composeCaptureText(needLabel: string, quickContext: string, brainDump: string): string {
+  const sections = [`Điều tôi muốn LifeOS giúp lúc này:\n${needLabel}`];
+  if (quickContext.trim().length > 0) sections.push(`Bối cảnh hiện tại:\n${quickContext}`);
+  sections.push(`Brain dump:\n${brainDump}`);
+  return sections.join("\n\n");
 }
 
 export function captureIdFromSearch(search: string): string | null {
