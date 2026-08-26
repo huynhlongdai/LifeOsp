@@ -7,7 +7,7 @@ permissions:
   contents: write
 
 jobs:
-  generate:
+  sync-lockfile:
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
@@ -19,16 +19,14 @@ jobs:
           node-version: 24
       - run: corepack enable
       - run: pnpm install --no-frozen-lockfile
-      - name: Generate migration
-        run: pnpm --filter @lifeos/db exec drizzle-kit generate --config=drizzle.config.ts --name=capture_interpretation_v1
-      - name: Commit generated artifacts when changed
+      - name: Commit lockfile when changed
         run: |
-          if git status --porcelain -- packages/db/drizzle | grep -q .; then
+          if git status --porcelain -- pnpm-lock.yaml | grep -q .; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add packages/db/drizzle
-            git commit -m "chore(db): add Capture Interpretation V1 migration"
+            git add pnpm-lock.yaml
+            git commit -m "chore: sync A2 workspace lockfile"
             git push origin HEAD:${{ github.event.pull_request.head.ref }}
           else
-            echo "Migration artifacts already current"
+            echo "Lockfile already current"
           fi
