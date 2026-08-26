@@ -1,0 +1,35 @@
+name: A4 Fix CSS
+
+on:
+  push:
+    branches: [feat/a4-clarity-promotion]
+    paths: [.github/workflows/a4-fix-css.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/a4-clarity-promotion
+      - name: Normalize generated CSS and style Direction
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('apps/web/src/styles.css')
+          s = p.read_text()
+          s = s.replace('\\\\n', '\n')
+          marker = '/* A4 current direction */'
+          if marker not in s:
+              s += '''\n\n/* A4 current direction */\n.direction-current { display: grid; gap: 18px; }\n.direction-hero { position: relative; overflow: hidden; }\n.direction-hero::after { content: ''; position: absolute; width: 220px; height: 220px; border-radius: 50%; right: -90px; top: -110px; background: rgba(95,117,255,.12); pointer-events: none; }\n.direction-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }\n.direction-meta span { border: 1px solid #34405f; border-radius: 999px; padding: 7px 10px; color: #9faac2; font-size: .72rem; }\n.current-season-card { border: 1px solid #2b3859; border-radius: 20px; padding: clamp(22px,4vw,34px); background: linear-gradient(145deg, rgba(24,31,52,.92), rgba(12,18,32,.9)); display: grid; grid-template-columns: minmax(0,1.4fr) minmax(240px,.6fr); gap: 26px; }\n.current-season-card h3 { font-size: clamp(1.35rem,2.8vw,2rem); }\n.season-facts { display: grid; gap: 10px; align-content: start; }\n.season-facts > div { border: 1px solid #25314f; border-radius: 13px; padding: 13px; display: grid; gap: 5px; background: rgba(9,15,28,.55); }\n.season-facts span { color: #71809f; font-size: .66rem; font-weight: 800; letter-spacing: .1em; }\n.season-facts strong { font-size: .9rem; }\n.direction-principle-note { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; border: 1px solid #274c43; background: #102821; border-radius: 14px; padding: 14px 16px; color: #a5dac5; }\n.direction-principle-note span { color: #8ca99f; }\n@media (max-width: 760px) { .current-season-card { grid-template-columns: 1fr; } }\n'''
+          p.write_text(s)
+          PY
+          git rm .github/workflows/a4-fix-css.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/web/src/styles.css
+          git commit -m "Fix A4 CSS source and style Current Direction"
+          git push origin HEAD:feat/a4-clarity-promotion
