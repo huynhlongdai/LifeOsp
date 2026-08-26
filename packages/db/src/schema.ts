@@ -127,6 +127,50 @@ export const seasons = pgTable(
   ]
 );
 
+export const outcomes = pgTable(
+  "outcomes",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    seasonId: uuid("season_id").references(() => seasons.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    successDefinition: text("success_definition"),
+    status: text("status").default("active").notNull(),
+    priority: integer("priority"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("outcomes_user_season_status_idx").on(table.userId, table.seasonId, table.status),
+    check("outcomes_title_non_blank_check", sql`length(btrim(${table.title})) > 0`),
+    check("outcomes_status_check", sql`${table.status} in ('active', 'achieved', 'paused', 'dropped')`)
+  ]
+);
+
+export const projects = pgTable(
+  "projects",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    outcomeId: uuid("outcome_id").references(() => outcomes.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    description: text("description"),
+    status: text("status").default("active").notNull(),
+    priority: integer("priority"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("projects_user_outcome_status_idx").on(table.userId, table.outcomeId, table.status),
+    check("projects_title_non_blank_check", sql`length(btrim(${table.title})) > 0`),
+    check("projects_status_check", sql`${table.status} in ('candidate', 'active', 'paused', 'completed', 'dropped')`)
+  ]
+);
+
 export const incubatorItems = pgTable(
   "incubator_items",
   {
@@ -248,6 +292,10 @@ export type DirectionRow = typeof directions.$inferSelect;
 export type NewDirectionRow = typeof directions.$inferInsert;
 export type SeasonRow = typeof seasons.$inferSelect;
 export type NewSeasonRow = typeof seasons.$inferInsert;
+export type OutcomeRow = typeof outcomes.$inferSelect;
+export type NewOutcomeRow = typeof outcomes.$inferInsert;
+export type ProjectRow = typeof projects.$inferSelect;
+export type NewProjectRow = typeof projects.$inferInsert;
 export type IncubatorItemRow = typeof incubatorItems.$inferSelect;
 export type NewIncubatorItemRow = typeof incubatorItems.$inferInsert;
 export type RecommendationRow = typeof recommendations.$inferSelect;

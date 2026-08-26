@@ -8,7 +8,9 @@ import {
   INTERPRETATION_CATEGORIES,
   INTERPRETATION_CONFIDENCE_CLASSES,
   LIFE_EVENT_SOURCES,
-  NEED_STATES
+  NEED_STATES,
+  OUTCOME_STATUSES,
+  PROJECT_STATUSES
 } from "./index.js";
 
 test("NeedState values match the canonical contract", () => {
@@ -49,4 +51,9 @@ test("Capture Interpretation V1 identifiers and categories remain canonical", ()
 
 test("LifeEvent sources match the canonical producers", () => {
   assert.deepEqual(LIFE_EVENT_SOURCES, ["user", "system", "ai", "import"]);
+});
+
+test("B0 Outcome and Project states stay aligned with the canonical execution model", () => {
+  assert.deepEqual(OUTCOME_STATUSES, ["active", "achieved", "paused", "dropped"]);
+  assert.deepEqual(PROJECT_STATUSES, ["candidate", "active", "paused", "completed", "dropped"]);
 });
