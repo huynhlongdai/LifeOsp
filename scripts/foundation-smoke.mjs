@@ -4,7 +4,8 @@ import { loadLifeOSEnv, pnpmCommand, run, start, stop } from "./runtime.mjs";
 
 loadLifeOSEnv();
 process.env.HOST = "127.0.0.1";
-process.env.PORT = "4000";
+process.env.PORT = "4400";
+process.env.LIFEOS_API_PROXY_TARGET = "http://127.0.0.1:4400";
 
 const requiredArtifacts = ["apps/api/dist/server.js", "apps/web/dist/index.html"];
 for (const artifact of requiredArtifacts) {
@@ -56,16 +57,16 @@ try {
   process.stdout.write("[foundation-smoke] applying migrations (idempotency check)\n");
   run(pnpmCommand, ["--filter", "@lifeos/db", "db:migrate"]);
 
-  process.stdout.write("[foundation-smoke] starting built API\n");
+  process.stdout.write("[foundation-smoke] starting built API on 127.0.0.1:4400\n");
   apiProcess = start(process.execPath, ["apps/api/dist/server.js"], { stdio: "inherit" });
 
   await waitForJson(
-    "http://127.0.0.1:4000/ready",
+    "http://127.0.0.1:4400/ready",
     (response, body) => response.ok && body?.status === "ready" && body?.checks?.database === "ok",
     "API readiness"
   );
 
-  process.stdout.write("[foundation-smoke] starting built Web preview\n");
+  process.stdout.write("[foundation-smoke] starting built Web preview on 127.0.0.1:4322\n");
   webProcess = start(pnpmCommand, ["--filter", "@lifeos/web", "preview"], { stdio: "inherit" });
   await waitForWeb();
 
