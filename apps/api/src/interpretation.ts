@@ -140,13 +140,20 @@ export function registerInterpretationRoutes(
       }
 
       const persisted = await appendCaptureInterpretation(database, userId, captureId, "ai", result.content);
-      if (!persisted) {
+      if (persisted.status === "not_found") {
         reply.code(404);
         return { error: "not_found", message: "Capture not found" };
       }
+      if (persisted.status === "interpretation_exists") {
+        reply.code(409);
+        return {
+          error: "interpretation_exists",
+          message: "Use the user correction flow to create a new interpretation version"
+        };
+      }
 
       reply.code(201);
-      return toView(persisted, result.content);
+      return toView(persisted.interpretation, result.content);
     }
   );
 
@@ -188,13 +195,20 @@ export function registerInterpretationRoutes(
       }
 
       const persisted = await appendCaptureInterpretation(database, userId, captureId, "user", content);
-      if (!persisted) {
+      if (persisted.status === "not_found") {
         reply.code(404);
         return { error: "not_found", message: "Capture not found" };
       }
+      if (persisted.status === "interpretation_exists") {
+        reply.code(409);
+        return {
+          error: "interpretation_exists",
+          message: "An AI-only first-version constraint was violated"
+        };
+      }
 
       reply.code(201);
-      return toView(persisted, content);
+      return toView(persisted.interpretation, content);
     }
   );
 
