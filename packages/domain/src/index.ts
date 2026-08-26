@@ -1,6 +1,7 @@
 import type { CaptureId, LifeEventId, UserId } from "./ids.js";
 
-export type { Brand, CaptureId, LifeEventId, UserId } from "./ids.js";
+export type { Brand, CaptureId, CaptureInterpretationId, LifeEventId, UserId } from "./ids.js";
+export * from "./interpretation.js";
 
 export const NEED_STATES = [
   "unclear_direction",
@@ -43,16 +44,9 @@ export type ReadinessStatus = {
 };
 
 export type SessionView =
-  | {
-      status: "active";
-      expiresAt: string;
-    }
-  | {
-      status: "unauthenticated";
-    }
-  | {
-      status: "unavailable";
-    };
+  | { status: "active"; expiresAt: string }
+  | { status: "unauthenticated" }
+  | { status: "unavailable" };
 
 export const LIFE_EVENT_SOURCES = ["user", "system", "ai", "import"] as const;
 export type LifeEventSource = (typeof LIFE_EVENT_SOURCES)[number];
@@ -70,11 +64,6 @@ export type LifeEventEnvelope<TPayload = unknown> = {
   causationId?: string;
 };
 
-/**
- * Foundation read-model boundary for the default NOW surface.
- * Product recommendations/actions are intentionally absent until their
- * vertical slice owns those semantics.
- */
 export type NowView = {
   generatedAt: string;
 };

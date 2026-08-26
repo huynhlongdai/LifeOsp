@@ -8,9 +8,10 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "tsx --test src/*.test.ts",
-    "test:integration": "tsx --test src/*.integration.ts"
+    "test:integration": "tsx --test --test-concurrency=1 src/*.integration.ts"
   },
   "dependencies": {
+    "@lifeos/ai": "workspace:*",
     "@lifeos/db": "workspace:*",
     "@lifeos/domain": "workspace:*",
     "fastify": "5.12.1"
