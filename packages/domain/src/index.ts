@@ -1,6 +1,6 @@
-import type { LifeEventId, UserId } from "./ids.js";
+import type { CaptureId, LifeEventId, UserId } from "./ids.js";
 
-export type { Brand, LifeEventId, UserId } from "./ids.js";
+export type { Brand, CaptureId, LifeEventId, UserId } from "./ids.js";
 
 export const NEED_STATES = [
   "unclear_direction",
@@ -14,6 +14,20 @@ export const NEED_STATES = [
 ] as const;
 
 export type NeedState = (typeof NEED_STATES)[number];
+
+export const CAPTURE_KINDS = ["text", "voice_transcript", "quick_note", "distraction"] as const;
+export type CaptureKind = (typeof CAPTURE_KINDS)[number];
+
+export const CAPTURE_PROCESSING_STATUSES = ["unprocessed", "interpreted", "corrected", "promoted", "archived"] as const;
+export type CaptureProcessingStatus = (typeof CAPTURE_PROCESSING_STATUSES)[number];
+
+export type CaptureView = {
+  id: CaptureId;
+  kind: CaptureKind;
+  rawText: string;
+  processingStatus: CaptureProcessingStatus;
+  createdAt: string;
+};
 
 export type HealthStatus = {
   status: "ok";
