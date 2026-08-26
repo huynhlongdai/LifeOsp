@@ -3,6 +3,7 @@ import type { HealthStatus } from "@lifeos/domain";
 import { createApiClient } from "./api";
 import { ClarityReset } from "./ClarityReset";
 import { DirectionPage } from "./DirectionPage";
+import { NowPage } from "./NowPage";
 import { APP_ROUTES, resolveRoute, type AppRoute } from "./routes";
 import { EmptyState, ErrorState, LoadingState, type AsyncState } from "./ui-states";
 
@@ -63,8 +64,8 @@ export function App() {
           ))}
         </nav>
         <div className="secondary-links" aria-label="Product status">
-          <span>Vertical Slice A</span>
-          <a href="/clarity" onClick={(event) => navigate(event, "/clarity")}>Clarity Reset mới</a>
+          <span>Vertical Slice B</span>
+          <a href="/clarity" onClick={(event) => navigate(event, "/clarity")}>Clarity Reset</a>
         </div>
       </aside>
 
@@ -77,44 +78,16 @@ export function App() {
           <ApiBadge state={apiState} />
         </header>
 
-        {route ? <RouteContent route={route} apiUrl={apiUrl} navigate={navigate} /> : <UnknownRoute />}
+        {route ? <RouteContent route={route} apiUrl={apiUrl} /> : <UnknownRoute />}
       </main>
     </div>
   );
 }
 
-function RouteContent({
-  route,
-  apiUrl,
-  navigate
-}: {
-  route: AppRoute;
-  apiUrl: string;
-  navigate: (event: MouseEvent<HTMLAnchorElement>, nextPath: string) => void;
-}) {
+function RouteContent({ route, apiUrl }: { route: AppRoute; apiUrl: string }) {
   if (route.key === "clarity") return <ClarityReset apiUrl={apiUrl} />;
   if (route.key === "direction") return <DirectionPage apiUrl={apiUrl} />;
-
-  if (route.key === "now") {
-    return (
-      <>
-        <section className="hero-card now-entry">
-          <p className="eyebrow">RIGHT NOW</p>
-          <h2>Chưa đủ context để chọn việc quan trọng nhất.</h2>
-          <p>
-            Thay vì tạo một danh sách giả, LifeOS bắt đầu bằng những gì đang thực sự có trong đầu bạn.
-          </p>
-          <a className="primary-button link-button" href="/clarity" onClick={(event) => navigate(event, "/clarity")}>
-            Bắt đầu Clarity Reset
-          </a>
-          <small>Brain Dump được lưu trước. AI là bước hỗ trợ, không phải điều kiện để tiếp tục.</small>
-        </section>
-        <EmptyState title="Chưa có recommendation">
-          Recommendation thật chỉ xuất hiện sau khi bạn xác nhận đủ context ở các vertical slice tương ứng.
-        </EmptyState>
-      </>
-    );
-  }
+  if (route.key === "now") return <NowPage apiUrl={apiUrl} />;
 
   return (
     <EmptyState title={`${route.label} chưa có dữ liệu`}>
