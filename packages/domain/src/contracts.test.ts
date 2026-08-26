@@ -1,6 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CAPTURE_KINDS, CAPTURE_PROCESSING_STATUSES, LIFE_EVENT_SOURCES, NEED_STATES } from "./index.js";
+import {
+  CAPTURE_INTERPRETATION_CONTRACT_ID,
+  CAPTURE_INTERPRETATION_CONTRACT_VERSION,
+  CAPTURE_KINDS,
+  CAPTURE_PROCESSING_STATUSES,
+  INTERPRETATION_CATEGORIES,
+  INTERPRETATION_CONFIDENCE_CLASSES,
+  LIFE_EVENT_SOURCES,
+  NEED_STATES
+} from "./index.js";
 
 test("NeedState values match the canonical contract", () => {
   assert.deepEqual(NEED_STATES, [
@@ -21,6 +30,21 @@ test("Capture kinds match the canonical contract", () => {
 
 test("Capture processing statuses match the canonical contract", () => {
   assert.deepEqual(CAPTURE_PROCESSING_STATUSES, ["unprocessed", "interpreted", "corrected", "promoted", "archived"]);
+});
+
+test("Capture Interpretation V1 identifiers and categories remain canonical", () => {
+  assert.equal(CAPTURE_INTERPRETATION_CONTRACT_ID, "capture-interpretation-v1");
+  assert.equal(CAPTURE_INTERPRETATION_CONTRACT_VERSION, 1);
+  assert.deepEqual(INTERPRETATION_CATEGORIES, [
+    "concerns",
+    "ideas",
+    "commitments",
+    "possibleProjects",
+    "possibleDirections",
+    "questions",
+    "uncertainties"
+  ]);
+  assert.deepEqual(INTERPRETATION_CONFIDENCE_CLASSES, ["low", "medium", "high"]);
 });
 
 test("LifeEvent sources match the canonical producers", () => {
