@@ -50,6 +50,13 @@
       "when": 1787732735840,
       "tag": "0006_b1_action_candidate",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1787732971268,
+      "tag": "0007_b1_action_schedule_foundation",
+      "breakpoints": true
     }
   ]
 }

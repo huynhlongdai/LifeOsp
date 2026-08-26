@@ -186,6 +186,7 @@ export const actions = pgTable(
     status: text("status").default("candidate").notNull(),
     priority: integer("priority"),
     blockedReason: text("blocked_reason"),
+    scheduledFor: timestamp("scheduled_for", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     completedAt: timestamp("completed_at", { withTimezone: true })

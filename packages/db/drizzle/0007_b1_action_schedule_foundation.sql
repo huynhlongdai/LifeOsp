@@ -1,0 +1,1 @@
+ALTER TABLE "actions" ADD COLUMN "scheduled_for" timestamp with time zone;
