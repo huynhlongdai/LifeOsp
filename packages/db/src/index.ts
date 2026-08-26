@@ -1,4 +1,4 @@
-import { and, eq, gt } from "drizzle-orm";
+import { and, desc, eq, gt } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as schema from "./schema.js";
@@ -113,6 +113,118 @@ export async function findCaptureById(
     .limit(1);
 
   return capture ?? null;
+}
+
+type InterpretationAppendKind = "generated" | "manual" | "correction";
+
+type AppendCaptureInterpretationParams = {
+  userId: string;
+  captureId: string;
+  contractId: string;
+  contractVersion: number;
+  author: "ai" | "user";
+  content: unknown;
+  kind: InterpretationAppendKind;
+  expectedBaseVersion?: number;
+};
+
+export type AppendCaptureInterpretationResult =
+  | { status: "created"; interpretation: schema.CaptureInterpretationRow }
+  | { status: "not_found" }
+  | { status: "version_conflict"; latestVersion: number };
+
+export async function appendCaptureInterpretation(
+  database: DatabaseClient,
+  params: AppendCaptureInterpretationParams
+): Promise<AppendCaptureInterpretationResult> {
+  return database.db.transaction(async (transaction) => {
+    const [capture] = await transaction
+      .select({ id: schema.captures.id })
+      .from(schema.captures)
+      .where(and(eq(schema.captures.id, params.captureId), eq(schema.captures.userId, params.userId)))
+      .limit(1)
+      .for("update");
+
+    if (!capture) return { status: "not_found" };
+
+    const [latest] = await transaction
+      .select({ version: schema.captureInterpretations.version })
+      .from(schema.captureInterpretations)
+      .where(
+        and(
+          eq(schema.captureInterpretations.captureId, params.captureId),
+          eq(schema.captureInterpretations.userId, params.userId)
+        )
+      )
+      .orderBy(desc(schema.captureInterpretations.version))
+      .limit(1);
+
+    const latestVersion = latest?.version ?? 0;
+    if (params.expectedBaseVersion !== undefined && latestVersion !== params.expectedBaseVersion) {
+      return { status: "version_conflict", latestVersion };
+    }
+
+    const version = latestVersion + 1;
+    const [interpretation] = await transaction
+      .insert(schema.captureInterpretations)
+      .values({
+        userId: params.userId,
+        captureId: params.captureId,
+        version,
+        contractId: params.contractId,
+        contractVersion: params.contractVersion,
+        author: params.author,
+        content: params.content
+      })
+      .returning();
+
+    if (!interpretation) throw new Error("Failed to append Capture interpretation");
+
+    const processingStatus = params.kind === "correction" ? "corrected" : "interpreted";
+    await transaction
+      .update(schema.captures)
+      .set({ processingStatus })
+      .where(and(eq(schema.captures.id, params.captureId), eq(schema.captures.userId, params.userId)));
+
+    const eventType =
+      params.kind === "generated"
+        ? "capture.interpretation.generated"
+        : params.kind === "manual"
+          ? "capture.interpretation.manual"
+          : "capture.interpretation.corrected";
+
+    await transaction.insert(schema.lifeEvents).values({
+      userId: params.userId,
+      type: eventType,
+      source: params.author === "ai" ? "ai" : "user",
+      entityType: "capture_interpretation",
+      entityId: interpretation.id,
+      payload: {
+        captureId: params.captureId,
+        version,
+        contractId: params.contractId,
+        contractVersion: params.contractVersion,
+        processingStatus
+      }
+    });
+
+    return { status: "created", interpretation };
+  });
+}
+
+export async function findLatestCaptureInterpretation(
+  database: DatabaseClient,
+  userId: string,
+  captureId: string
+): Promise<schema.CaptureInterpretationRow | null> {
+  const [interpretation] = await database.db
+    .select()
+    .from(schema.captureInterpretations)
+    .where(and(eq(schema.captureInterpretations.captureId, captureId), eq(schema.captureInterpretations.userId, userId)))
+    .orderBy(desc(schema.captureInterpretations.version))
+    .limit(1);
+
+  return interpretation ?? null;
 }
 
 export * from "./schema.js";
