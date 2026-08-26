@@ -11,7 +11,12 @@ const config = (() => {
   }
 })();
 
-const app = buildApp(config.databaseUrl ? { databaseUrl: config.databaseUrl } : {});
+const app = buildApp({
+  ...(config.databaseUrl ? { databaseUrl: config.databaseUrl } : {}),
+  identity: {
+    cookieSecure: process.env.NODE_ENV === "production"
+  }
+});
 
 const start = async () => {
   try {
