@@ -266,7 +266,7 @@ function toRankingCandidate(
     outcomeStatus: outcome.status as NextActionRankingCandidate["outcomeStatus"],
     ...(action.projectId === null
       ? {}
-      : { projectStatus: project!.status as NextActionRankingCandidate["projectStatus"] }),
+      : { projectStatus: project!.status as NonNullable<NextActionRankingCandidate["projectStatus"]> }),
     seasonStatus: season.status as NextActionRankingCandidate["seasonStatus"]
   };
 }
