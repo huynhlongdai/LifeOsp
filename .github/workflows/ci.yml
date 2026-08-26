@@ -78,6 +78,9 @@ jobs:
       - name: Database transaction integration
         run: pnpm --filter @lifeos/db test:integration
 
+      - name: API identity integration
+        run: pnpm --filter @lifeos/api test:integration
+
       - name: API built-artifact database readiness smoke
         run: |
           node apps/api/dist/server.js > /tmp/lifeos-api.log 2>&1 &
