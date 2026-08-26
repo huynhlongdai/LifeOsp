@@ -207,7 +207,6 @@ export type FinalizeClarityPromotionParams = {
     startsOn?: string;
     targetEndsOn?: string;
   };
-  notNowItems: PromotionNotNowItem[];
 };
 
 export type FinalizeClarityPromotionResult =
@@ -288,11 +287,11 @@ export async function confirmClarityPromotion(
       .returning();
     if (!season) return { status: "invalid_payload" };
 
-    const incubatorItems = params.notNowItems.length
+    const incubatorItems = payload.notNowItems.length
       ? await transaction
           .insert(schema.incubatorItems)
           .values(
-            params.notNowItems.map((item) => ({
+            payload.notNowItems.map((item) => ({
               userId: params.userId,
               sourceCaptureId: payload.captureId,
               title: item.text,
@@ -316,7 +315,7 @@ export async function confirmClarityPromotion(
         title: params.direction.title,
         proposedEntityPayload: {
           ...payload,
-          notNowItems: params.notNowItems,
+          notNowItems: payload.notNowItems,
           finalDirectionTitle: params.direction.title,
           finalSeasonTitle: params.season.title
         },

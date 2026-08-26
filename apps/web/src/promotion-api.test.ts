@@ -78,7 +78,6 @@ test("A4 Web client prepares, confirms and reloads Direction using cookie-owned 
     const confirmed = await api.confirmClarityPromotion(draft.recommendationId, {
       direction: input.direction,
       season: input.season,
-      notNowItems: input.notNowItems
     });
     assert.equal(confirmed.direction.status, "active");
     assert.equal(confirmed.season.status, "active");

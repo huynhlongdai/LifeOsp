@@ -30,7 +30,7 @@ export type InterpretationFailure = {
   latestVersion?: number;
 };
 
-export type FinalPromotionInput = Pick<ClarityPromotionDraftInput, "direction" | "season" | "notNowItems">;
+export type FinalPromotionInput = Pick<ClarityPromotionDraftInput, "direction" | "season">;
 
 export type PromotionConfirmedView = CurrentDirectionView & {
   incubatorItems: IncubatorItemView[];
@@ -344,7 +344,9 @@ function isClarityPromotionDraftView(value: unknown): value is ClarityPromotionD
 
 function isPromotionConfirmedView(value: unknown): value is PromotionConfirmedView {
   return (
-    isCurrentDirectionView(value) &&
+    isRecord(value) &&
+    isDirectionView(value.direction) &&
+    isSeasonView(value.season) &&
     Array.isArray(value.incubatorItems) &&
     value.incubatorItems.every(isIncubatorItemView)
   );

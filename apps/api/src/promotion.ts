@@ -178,8 +178,7 @@ export function registerPromotionRoutes(app: FastifyInstance, database: Database
         userId,
         recommendationId,
         direction: parsed.direction,
-        season: parsed.season,
-        notNowItems: parsed.notNowItems
+        season: parsed.season
       });
 
       if (result.status === "not_found") {
@@ -272,7 +271,7 @@ export function registerPromotionRoutes(app: FastifyInstance, database: Database
   );
 }
 
-type FinalPromotionInput = Pick<ClarityPromotionDraftInput, "direction" | "season" | "notNowItems">;
+type FinalPromotionInput = Pick<ClarityPromotionDraftInput, "direction" | "season">;
 
 function parsePromotionDraftInput(value: unknown): ClarityPromotionDraftInput | null {
   if (!isRecord(value)) return null;
@@ -300,12 +299,11 @@ function parsePromotionDraftInput(value: unknown): ClarityPromotionDraftInput | 
 
 function parseFinalPromotionInput(value: unknown): FinalPromotionInput | null {
   if (!isRecord(value)) return null;
-  if (Object.keys(value).some((key) => key !== "direction" && key !== "season" && key !== "notNowItems")) return null;
+  if (Object.keys(value).some((key) => key !== "direction" && key !== "season")) return null;
   const direction = parseDirection(value.direction);
   const season = parseSeason(value.season);
-  const notNowItems = parseNotNowItems(value.notNowItems);
-  if (!direction || !season || !notNowItems || notNowItems.length > MAX_TRADE_OFF_ITEMS) return null;
-  return { direction, season, notNowItems };
+  if (!direction || !season) return null;
+  return { direction, season };
 }
 
 function parseDirection(value: unknown): ClarityPromotionDraftInput["direction"] | null {

@@ -197,7 +197,6 @@ test("A4 prepares from reviewed evidence, keeps ownership private, confirms atom
       payload: {
         direction: { title: "steal" },
         season: { title: "steal", purpose: "steal" },
-        notNowItems: []
       }
     });
     assert.equal(crossOwnerConfirm.statusCode, 404);
@@ -218,7 +217,6 @@ test("A4 prepares from reviewed evidence, keeps ownership private, confirms atom
           startsOn: "2026-08-26",
           targetEndsOn: "2026-11-30"
         },
-        notNowItems: [{ text: "AOP", kind: "project_candidate" }]
       }
     });
     assert.equal(confirmed.statusCode, 200);
@@ -305,7 +303,6 @@ test("A4 refuses a second active Current Season and preserves the first confirme
       payload: {
         direction: { title: "First active Direction" },
         season: { title: "First Season", purpose: "Protect the first active season." },
-        notNowItems: [{ text: "AOP", kind: "project_candidate" }]
       }
     });
     assert.equal(firstConfirm.statusCode, 200);
@@ -324,7 +321,6 @@ test("A4 refuses a second active Current Season and preserves the first confirme
       payload: {
         direction: { title: "Second Direction" },
         season: { title: "Second Season", purpose: "This must not silently replace the active season." },
-        notNowItems: []
       }
     });
     assert.equal(secondConfirm.statusCode, 409);
@@ -491,7 +487,6 @@ test("A4 confirmation rolls back Direction, Season, Capture, Recommendation and 
       payload: {
         direction: { title: "Rollback Direction" },
         season: { title: "Rollback Season", purpose: "The event failure must roll everything back." },
-        notNowItems: [{ text: "AOP", kind: "project_candidate" }]
       }
     });
     assert.equal(confirmation.statusCode, 500);

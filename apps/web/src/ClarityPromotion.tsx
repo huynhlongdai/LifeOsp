@@ -139,11 +139,7 @@ export function ClarityPromotion({
           ...(primaryFocusText.trim() ? { primaryFocusText: primaryFocusText.trim() } : {}),
           ...(startsOn ? { startsOn } : {}),
           ...(targetEndsOn ? { targetEndsOn } : {})
-        },
-        notNowItems: notNow.map((candidate) => ({
-          text: candidate.text,
-          kind: incubatorKinds[candidate.text] ?? candidate.defaultIncubatorKind
-        }))
+        }
       });
       setConfirmed({ direction: result.direction, season: result.season });
       setMessage(
