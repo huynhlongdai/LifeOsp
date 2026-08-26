@@ -6,10 +6,14 @@ export const APP_ROUTES = [
   { key: "me", label: "ME", path: "/me" }
 ] as const;
 
-export type AppRoute = (typeof APP_ROUTES)[number];
+export const CLARITY_ROUTE = { key: "clarity", label: "CLARITY RESET", path: "/clarity" } as const;
+
+export type AppRoute = (typeof APP_ROUTES)[number] | typeof CLARITY_ROUTE;
 export type AppRouteKey = AppRoute["key"];
+
+const ALL_ROUTES: readonly AppRoute[] = [...APP_ROUTES, CLARITY_ROUTE];
 
 export function resolveRoute(pathname: string): AppRoute | null {
   const normalized = pathname !== "/" ? pathname.replace(/\/+$/, "") : pathname;
-  return APP_ROUTES.find((route) => route.path === normalized) ?? null;
+  return ALL_ROUTES.find((route) => route.path === normalized) ?? null;
 }
