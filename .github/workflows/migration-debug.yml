@@ -3,22 +3,32 @@ name: Migration Debug
 on:
   pull_request:
 
+permissions:
+  contents: write
+
 jobs:
-  inspect:
+  generate:
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
       - uses: actions/setup-node@v4
         with:
           node-version: 24
       - run: corepack enable
       - run: pnpm install --no-frozen-lockfile
-      - name: Generate and print migration artifacts
+      - name: Generate migration
+        run: pnpm --filter @lifeos/db exec drizzle-kit generate --config=drizzle.config.ts --name=capture_interpretation_v1
+      - name: Commit generated artifacts when changed
         run: |
-          pnpm --filter @lifeos/db exec drizzle-kit generate --config=drizzle.config.ts --name=ci_check
-          echo '===SQL===' 
-          cat packages/db/drizzle/0003_ci_check.sql
-          echo '===SNAPSHOT===' 
-          cat packages/db/drizzle/meta/0003_snapshot.json
-          echo '===JOURNAL===' 
-          cat packages/db/drizzle/meta/_journal.json
+          if git status --porcelain -- packages/db/drizzle | grep -q .; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add packages/db/drizzle
+            git commit -m "chore(db): add Capture Interpretation V1 migration"
+            git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          else
+            echo "Migration artifacts already current"
+          fi
