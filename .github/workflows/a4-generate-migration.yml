@@ -1,0 +1,37 @@
+name: A4 Generate Migration
+
+on:
+  push:
+    branches:
+      - feat/a4-clarity-promotion
+    paths:
+      - packages/db/src/schema.ts
+      - .github/workflows/a4-generate-migration.yml
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/a4-clarity-promotion
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --dir packages/db exec drizzle-kit generate --config=drizzle.config.ts --name=a4_clarity_promotion
+      - name: Commit generated migration
+        run: |
+          if git diff --quiet -- packages/db/drizzle; then
+            echo "No migration diff generated"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add packages/db/drizzle
+          git commit -m "Generate A4 clarity promotion migration"
+          git push origin HEAD:feat/a4-clarity-promotion
