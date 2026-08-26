@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { check, index, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { check, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -41,6 +41,34 @@ export const captures = pgTable(
   ]
 );
 
+export const captureInterpretations = pgTable(
+  "capture_interpretations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    captureId: uuid("capture_id")
+      .notNull()
+      .references(() => captures.id, { onDelete: "cascade" }),
+    version: integer("version").notNull(),
+    contractVersion: text("contract_version").default("capture_interpretation.v1").notNull(),
+    source: text("source").notNull(),
+    content: jsonb("content").$type<unknown>().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    uniqueIndex("capture_interpretations_capture_version_uidx").on(table.captureId, table.version),
+    index("capture_interpretations_user_capture_version_idx").on(table.userId, table.captureId, table.version),
+    check("capture_interpretations_version_check", sql`${table.version} > 0`),
+    check(
+      "capture_interpretations_contract_version_check",
+      sql`${table.contractVersion} = 'capture_interpretation.v1'`
+    ),
+    check("capture_interpretations_source_check", sql`${table.source} in ('ai', 'user')`)
+  ]
+);
+
 export const lifeEvents = pgTable(
   "life_events",
   {
@@ -70,5 +98,7 @@ export type SessionRow = typeof sessions.$inferSelect;
 export type NewSessionRow = typeof sessions.$inferInsert;
 export type CaptureRow = typeof captures.$inferSelect;
 export type NewCaptureRow = typeof captures.$inferInsert;
+export type CaptureInterpretationRow = typeof captureInterpretations.$inferSelect;
+export type NewCaptureInterpretationRow = typeof captureInterpretations.$inferInsert;
 export type LifeEventRow = typeof lifeEvents.$inferSelect;
 export type NewLifeEventRow = typeof lifeEvents.$inferInsert;
