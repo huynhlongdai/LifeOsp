@@ -18,10 +18,12 @@ import {
   type CaptureInterpretationId,
   type CaptureInterpretationView
 } from "@lifeos/domain";
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { resolveActorUserId } from "./identity.js";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+type InterpretationRouteRequest = FastifyRequest<{ Params: { captureId: string } }>;
 
 export type InterpretationOptions = {
   provider?: CaptureInterpretationProvider;
@@ -224,8 +226,8 @@ export function registerInterpretationRoutes(
 }
 
 async function persistUserInterpretation(
-  request: Parameters<Parameters<FastifyInstance["post"]>[1]>[0] & { params: { captureId: string } },
-  reply: Parameters<Parameters<FastifyInstance["post"]>[1]>[1],
+  request: InterpretationRouteRequest,
+  reply: FastifyReply,
   database: DatabaseClient | null,
   kind: "manual" | "correction"
 ): Promise<CaptureInterpretationView | InterpretationErrorView> {
