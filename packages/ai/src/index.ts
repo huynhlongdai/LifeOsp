@@ -162,3 +162,5 @@ function rejectUnknownKeys(
     if (!allowedKeys.includes(key)) errors.push(`${path}.${key} is not allowed`);
   }
 }
+
+export * from "./action.js";
