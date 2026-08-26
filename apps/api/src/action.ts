@@ -333,7 +333,7 @@ function parseCreateActionCandidateInput(value: unknown): CreateActionCandidateI
   if (!ids || !isRequiredText(value.title, MAX_TITLE_LENGTH)) return null;
   if (value.doneCondition !== undefined && !isRequiredText(value.doneCondition, MAX_DONE_CONDITION_LENGTH)) return null;
   if (value.estimatedMinutes !== undefined && !isEstimatedMinutes(value.estimatedMinutes)) return null;
-  if (value.priority !== undefined && !Number.isSafeInteger(value.priority)) return null;
+  if (value.priority !== undefined && !isPriority(value.priority)) return null;
 
   return {
     outcomeId: ids.outcomeId as OutcomeId,
@@ -369,7 +369,7 @@ function parseConfirmActionCandidateInput(value: unknown): ConfirmActionCandidat
   if (value.title !== undefined && !isRequiredText(value.title, MAX_TITLE_LENGTH)) return null;
   if (value.doneCondition !== undefined && !isRequiredText(value.doneCondition, MAX_DONE_CONDITION_LENGTH)) return null;
   if (value.estimatedMinutes !== undefined && !isEstimatedMinutes(value.estimatedMinutes)) return null;
-  if (value.priority !== undefined && !Number.isSafeInteger(value.priority)) return null;
+  if (value.priority !== undefined && !isPriority(value.priority)) return null;
 
   return {
     ...(value.title === undefined ? {} : { title: value.title }),
@@ -397,6 +397,10 @@ function toActionView(row: ActionRow): ActionView {
 
 function isEstimatedMinutes(value: unknown): value is number {
   return Number.isInteger(value) && (value as number) >= 1 && (value as number) <= MAX_ESTIMATED_MINUTES;
+}
+
+function isPriority(value: unknown): value is number {
+  return typeof value === "number" && Number.isSafeInteger(value);
 }
 
 function isRequiredText(value: unknown, maxLength: number): value is string {
