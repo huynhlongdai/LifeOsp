@@ -1,5 +1,16 @@
 import { sql } from "drizzle-orm";
-import { check, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import {
+  check,
+  date,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid
+} from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -68,6 +79,140 @@ export const captureInterpretations = pgTable(
   ]
 );
 
+export const directions = pgTable(
+  "directions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    description: text("description"),
+    status: text("status").default("draft").notNull(),
+    sourceCaptureId: uuid("source_capture_id").references(() => captures.id, { onDelete: "set null" }),
+    confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("directions_user_status_idx").on(table.userId, table.status),
+    check("directions_title_non_blank_check", sql`length(btrim(${table.title})) > 0`),
+    check("directions_status_check", sql`${table.status} in ('draft', 'active', 'inactive')`)
+  ]
+);
+
+export const seasons = pgTable(
+  "seasons",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    directionId: uuid("direction_id").references(() => directions.id, { onDelete: "set null" }),
+    title: text("title").notNull(),
+    purpose: text("purpose").notNull(),
+    startsOn: date("starts_on"),
+    targetEndsOn: date("target_ends_on"),
+    status: text("status").default("draft").notNull(),
+    primaryFocusText: text("primary_focus_text"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("seasons_user_status_idx").on(table.userId, table.status),
+    uniqueIndex("seasons_one_active_per_user_uidx").on(table.userId).where(sql`${table.status} = 'active'`),
+    check("seasons_title_non_blank_check", sql`length(btrim(${table.title})) > 0`),
+    check("seasons_purpose_non_blank_check", sql`length(btrim(${table.purpose})) > 0`),
+    check("seasons_status_check", sql`${table.status} in ('draft', 'active', 'paused', 'completed', 'abandoned')`)
+  ]
+);
+
+export const incubatorItems = pgTable(
+  "incubator_items",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    sourceCaptureId: uuid("source_capture_id").references(() => captures.id, { onDelete: "set null" }),
+    title: text("title").notNull(),
+    notes: text("notes"),
+    kind: text("kind").notNull(),
+    status: text("status").default("incubated").notNull(),
+    revisitOn: date("revisit_on"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("incubator_items_user_status_idx").on(table.userId, table.status),
+    check("incubator_items_title_non_blank_check", sql`length(btrim(${table.title})) > 0`),
+    check("incubator_items_kind_check", sql`${table.kind} in ('idea', 'project_candidate', 'someday', 'reference')`),
+    check("incubator_items_status_check", sql`${table.status} in ('incubated', 'promoted', 'archived')`)
+  ]
+);
+
+export const recommendations = pgTable(
+  "recommendations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    title: text("title").notNull(),
+    rationale: text("rationale").notNull(),
+    confidenceClass: text("confidence_class").notNull(),
+    status: text("status").default("draft").notNull(),
+    proposedEntityType: text("proposed_entity_type"),
+    proposedEntityPayload: jsonb("proposed_entity_payload").$type<unknown>(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    shownAt: timestamp("shown_at", { withTimezone: true }),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true })
+  },
+  (table) => [
+    index("recommendations_user_status_idx").on(table.userId, table.status),
+    check("recommendations_title_non_blank_check", sql`length(btrim(${table.title})) > 0`),
+    check("recommendations_rationale_non_blank_check", sql`length(btrim(${table.rationale})) > 0`),
+    check(
+      "recommendations_kind_check",
+      sql`${table.kind} in ('next_action', 'direction', 'friction_intervention', 'weekly_adjustment')`
+    ),
+    check(
+      "recommendations_confidence_check",
+      sql`${table.confidenceClass} in ('direct', 'strong_pattern', 'possible_pattern', 'suggestion')`
+    ),
+    check(
+      "recommendations_status_check",
+      sql`${table.status} in ('draft', 'shown', 'accepted', 'edited', 'rejected', 'not_now', 'wrong_assumption')`
+    )
+  ]
+);
+
+export const recommendationEvidence = pgTable(
+  "recommendation_evidence",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    recommendationId: uuid("recommendation_id")
+      .notNull()
+      .references(() => recommendations.id, { onDelete: "cascade" }),
+    evidenceType: text("evidence_type").notNull(),
+    entityType: text("entity_type"),
+    entityId: uuid("entity_id"),
+    label: text("label").notNull(),
+    valueJson: jsonb("value_json").$type<unknown>().notNull(),
+    strength: text("strength").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("recommendation_evidence_recommendation_idx").on(table.recommendationId),
+    check("recommendation_evidence_label_non_blank_check", sql`length(btrim(${table.label})) > 0`),
+    check(
+      "recommendation_evidence_strength_check",
+      sql`${table.strength} in ('direct', 'strong', 'supporting', 'tentative')`
+    )
+  ]
+);
+
 export const lifeEvents = pgTable(
   "life_events",
   {
@@ -99,5 +244,15 @@ export type CaptureRow = typeof captures.$inferSelect;
 export type NewCaptureRow = typeof captures.$inferInsert;
 export type CaptureInterpretationRow = typeof captureInterpretations.$inferSelect;
 export type NewCaptureInterpretationRow = typeof captureInterpretations.$inferInsert;
+export type DirectionRow = typeof directions.$inferSelect;
+export type NewDirectionRow = typeof directions.$inferInsert;
+export type SeasonRow = typeof seasons.$inferSelect;
+export type NewSeasonRow = typeof seasons.$inferInsert;
+export type IncubatorItemRow = typeof incubatorItems.$inferSelect;
+export type NewIncubatorItemRow = typeof incubatorItems.$inferInsert;
+export type RecommendationRow = typeof recommendations.$inferSelect;
+export type NewRecommendationRow = typeof recommendations.$inferInsert;
+export type RecommendationEvidenceRow = typeof recommendationEvidence.$inferSelect;
+export type NewRecommendationEvidenceRow = typeof recommendationEvidence.$inferInsert;
 export type LifeEventRow = typeof lifeEvents.$inferSelect;
 export type NewLifeEventRow = typeof lifeEvents.$inferInsert;
