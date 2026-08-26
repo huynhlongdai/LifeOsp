@@ -171,6 +171,41 @@ export const projects = pgTable(
   ]
 );
 
+export const actions = pgTable(
+  "actions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    projectId: uuid("project_id").references(() => projects.id, { onDelete: "set null" }),
+    outcomeId: uuid("outcome_id").references(() => outcomes.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    doneCondition: text("done_condition"),
+    estimatedMinutes: integer("estimated_minutes"),
+    status: text("status").default("candidate").notNull(),
+    priority: integer("priority"),
+    blockedReason: text("blocked_reason"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    completedAt: timestamp("completed_at", { withTimezone: true })
+  },
+  (table) => [
+    index("actions_user_status_idx").on(table.userId, table.status),
+    index("actions_user_outcome_status_idx").on(table.userId, table.outcomeId, table.status),
+    index("actions_user_project_status_idx").on(table.userId, table.projectId, table.status),
+    check("actions_title_non_blank_check", sql`length(btrim(${table.title})) > 0`),
+    check(
+      "actions_status_check",
+      sql`${table.status} in ('candidate', 'ready', 'active', 'completed', 'partial', 'postponed', 'blocked', 'dropped')`
+    ),
+    check(
+      "actions_estimated_minutes_check",
+      sql`${table.estimatedMinutes} is null or (${table.estimatedMinutes} >= 1 and ${table.estimatedMinutes} <= 480)`
+    )
+  ]
+);
+
 export const incubatorItems = pgTable(
   "incubator_items",
   {
@@ -296,6 +331,8 @@ export type OutcomeRow = typeof outcomes.$inferSelect;
 export type NewOutcomeRow = typeof outcomes.$inferInsert;
 export type ProjectRow = typeof projects.$inferSelect;
 export type NewProjectRow = typeof projects.$inferInsert;
+export type ActionRow = typeof actions.$inferSelect;
+export type NewActionRow = typeof actions.$inferInsert;
 export type IncubatorItemRow = typeof incubatorItems.$inferSelect;
 export type NewIncubatorItemRow = typeof incubatorItems.$inferInsert;
 export type RecommendationRow = typeof recommendations.$inferSelect;
