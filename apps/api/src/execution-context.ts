@@ -112,8 +112,13 @@ function parseExecutionContextInput(value: unknown): CreateExecutionContextInput
 
   const outcome = parseOutcome(value.outcome);
   if (!outcome) return null;
-  const project = value.project === undefined ? undefined : parseProject(value.project);
-  if (value.project !== undefined && !project) return null;
+
+  let project: NonNullable<CreateExecutionContextInput["project"]> | undefined;
+  if (value.project !== undefined) {
+    const parsedProject = parseProject(value.project);
+    if (!parsedProject) return null;
+    project = parsedProject;
+  }
 
   return {
     seasonId: value.seasonId as SeasonId,
