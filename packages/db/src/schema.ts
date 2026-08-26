@@ -15,6 +15,32 @@ export const sessions = pgTable("sessions", {
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull()
 });
 
+export const captures = pgTable(
+  "captures",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    rawText: text("raw_text").notNull(),
+    processingStatus: text("processing_status").default("unprocessed").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("captures_user_created_idx").on(table.userId, table.createdAt),
+    check(
+      "captures_kind_check",
+      sql`${table.kind} in ('text', 'voice_transcript', 'quick_note', 'distraction')`
+    ),
+    check(
+      "captures_processing_status_check",
+      sql`${table.processingStatus} in ('unprocessed', 'interpreted', 'corrected', 'promoted', 'archived')`
+    ),
+    check("captures_raw_text_non_blank_check", sql`length(btrim(${table.rawText})) > 0`)
+  ]
+);
+
 export const lifeEvents = pgTable(
   "life_events",
   {
@@ -42,5 +68,7 @@ export type UserRow = typeof users.$inferSelect;
 export type NewUserRow = typeof users.$inferInsert;
 export type SessionRow = typeof sessions.$inferSelect;
 export type NewSessionRow = typeof sessions.$inferInsert;
+export type CaptureRow = typeof captures.$inferSelect;
+export type NewCaptureRow = typeof captures.$inferInsert;
 export type LifeEventRow = typeof lifeEvents.$inferSelect;
 export type NewLifeEventRow = typeof lifeEvents.$inferInsert;
