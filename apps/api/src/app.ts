@@ -1,9 +1,11 @@
 import Fastify from "fastify";
 import { checkDatabase, createDatabaseClient } from "@lifeos/db";
 import type { HealthStatus, ReadinessStatus } from "@lifeos/domain";
+import { registerIdentityRoutes, type IdentityOptions } from "./identity.js";
 
 export type BuildAppOptions = {
   databaseUrl?: string;
+  identity?: IdentityOptions;
 };
 
 export function buildApp(options: BuildAppOptions = {}) {
@@ -34,6 +36,8 @@ export function buildApp(options: BuildAppOptions = {}) {
 
     return status;
   });
+
+  registerIdentityRoutes(app, database, options.identity);
 
   app.addHook("onClose", async () => {
     if (database) {
