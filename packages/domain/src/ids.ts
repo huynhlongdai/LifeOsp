@@ -7,3 +7,4 @@ export type Brand<TValue, TBrand extends string> = TValue & {
 export type UserId = Brand<string, "UserId">;
 export type LifeEventId = Brand<string, "LifeEventId">;
 export type CaptureId = Brand<string, "CaptureId">;
+export type CaptureInterpretationId = Brand<string, "CaptureInterpretationId">;
