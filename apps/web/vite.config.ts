@@ -1,9 +1,10 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
+const apiProxyTarget = process.env.LIFEOS_API_PROXY_TARGET ?? "http://127.0.0.1:4000";
 const apiProxy = {
-  "/health": "http://127.0.0.1:4000",
-  "/ready": "http://127.0.0.1:4000"
+  "/health": apiProxyTarget,
+  "/ready": apiProxyTarget
 };
 
 export default defineConfig({
