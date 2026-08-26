@@ -374,7 +374,7 @@ function toDirectionView(row: DirectionRow): DirectionView {
     title: row.title,
     status: row.status as DirectionView["status"],
     ...(row.description === null ? {} : { description: row.description }),
-    ...(row.sourceCaptureId === null ? {} : { sourceCaptureId: row.sourceCaptureId as DirectionView["sourceCaptureId"] }),
+    ...(row.sourceCaptureId === null ? {} : { sourceCaptureId: row.sourceCaptureId as NonNullable<DirectionView["sourceCaptureId"]> }),
     ...(row.confirmedAt === null ? {} : { confirmedAt: row.confirmedAt.toISOString() }),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString()
@@ -402,7 +402,7 @@ function toIncubatorView(row: IncubatorItemRow): IncubatorItemView {
     title: row.title,
     kind: row.kind as IncubatorItemView["kind"],
     status: row.status as IncubatorItemView["status"],
-    ...(row.sourceCaptureId === null ? {} : { sourceCaptureId: row.sourceCaptureId as IncubatorItemView["sourceCaptureId"] }),
+    ...(row.sourceCaptureId === null ? {} : { sourceCaptureId: row.sourceCaptureId as NonNullable<IncubatorItemView["sourceCaptureId"]> }),
     ...(row.notes === null ? {} : { notes: row.notes }),
     ...(row.revisitOn === null ? {} : { revisitOn: row.revisitOn }),
     createdAt: row.createdAt.toISOString(),
