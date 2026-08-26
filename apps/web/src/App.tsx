@@ -63,7 +63,7 @@ export function App() {
         </nav>
         <div className="secondary-links" aria-label="Product status">
           <span>Vertical Slice A</span>
-          <a href="/clarity" onClick={(event) => navigate(event, "/clarity")}>Clarity Reset</a>
+          <a href="/clarity">Clarity Reset mới</a>
         </div>
       </aside>
 
