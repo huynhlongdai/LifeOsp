@@ -1,22 +1,7 @@
-import Fastify from "fastify";
-import type { HealthStatus, ReadinessStatus } from "@lifeos/domain";
+import { buildApp } from "./app.js";
 
-const app = Fastify({ logger: true });
-
-app.get("/health", async (): Promise<HealthStatus> => ({
-  status: "ok",
-  service: "lifeos-api",
-  timestamp: new Date().toISOString()
-}));
-
-app.get("/ready", async (): Promise<ReadinessStatus> => ({
-  status: "ready",
-  service: "lifeos-api",
-  checks: {
-    api: "ok"
-  },
-  timestamp: new Date().toISOString()
-}));
+const databaseUrl = process.env.DATABASE_URL;
+const app = buildApp(databaseUrl ? { databaseUrl } : {});
 
 const port = Number(process.env.PORT ?? 4000);
 const host = process.env.HOST ?? "0.0.0.0";
