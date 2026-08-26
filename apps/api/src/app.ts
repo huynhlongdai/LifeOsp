@@ -7,6 +7,7 @@ import { registerExecutionContextRoutes } from "./execution-context.js";
 import { registerIdentityRoutes, type IdentityOptions } from "./identity.js";
 import { registerInterpretationRoutes, type InterpretationOptions } from "./interpretation.js";
 import { registerNextActionRoutes } from "./next-action.js";
+import { registerNowRoutes } from "./now.js";
 import { registerPromotionRoutes } from "./promotion.js";
 
 export type BuildAppOptions = {
@@ -52,6 +53,7 @@ export function buildApp(options: BuildAppOptions = {}) {
   registerExecutionContextRoutes(app, database);
   registerActionRoutes(app, database, options.action);
   registerNextActionRoutes(app, database);
+  registerNowRoutes(app, database);
 
   app.addHook("onClose", async () => {
     if (database) {
