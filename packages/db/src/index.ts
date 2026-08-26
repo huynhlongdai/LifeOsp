@@ -194,7 +194,7 @@ export async function appendCaptureInterpretation(
           : "capture.interpretation.corrected";
 
     await transaction.insert(schema.lifeEvents).values({
-      userId: params.userId,
+      userId,
       type: eventType,
       source: params.author === "ai" ? "ai" : "user",
       entityType: "capture_interpretation",
@@ -227,6 +227,7 @@ export async function findLatestCaptureInterpretation(
   return interpretation ?? null;
 }
 
+export * from "./action.js";
 export * from "./execution-context.js";
 export * from "./promotion.js";
 export * from "./schema.js";
