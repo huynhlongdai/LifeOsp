@@ -1,92 +1,131 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
 import type { HealthStatus } from "@lifeos/domain";
-
-const NAV_ITEMS = ["NOW", "DIRECTION", "EXECUTE", "REFLECT", "ME"] as const;
-
-type ApiState =
-  | { kind: "checking" }
-  | { kind: "online"; health: HealthStatus }
-  | { kind: "offline" };
+import { createApiClient } from "./api";
+import { APP_ROUTES, resolveRoute, type AppRoute } from "./routes";
+import { EmptyState, ErrorState, LoadingState, type AsyncState } from "./ui-states";
 
 export function App() {
-  const [apiState, setApiState] = useState<ApiState>({ kind: "checking" });
+  const [pathname, setPathname] = useState(() => window.location.pathname);
+  const [apiState, setApiState] = useState<AsyncState<HealthStatus>>({ kind: "loading" });
   const apiUrl = import.meta.env.VITE_API_URL ?? "";
+  const route = resolveRoute(pathname);
+
+  useEffect(() => {
+    const onPopState = () => setPathname(window.location.pathname);
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
+    const api = createApiClient(apiUrl);
 
-    fetch(`${apiUrl}/health`, { signal: controller.signal })
-      .then(async (response) => {
-        if (!response.ok) throw new Error("API health check failed");
-        return (await response.json()) as HealthStatus;
-      })
-      .then((health) => setApiState({ kind: "online", health }))
+    setApiState({ kind: "loading" });
+    api
+      .getHealth(controller.signal)
+      .then((health) => setApiState({ kind: "success", data: health }))
       .catch((error: unknown) => {
         if (error instanceof DOMException && error.name === "AbortError") return;
-        setApiState({ kind: "offline" });
+        const message = error instanceof Error ? error.message : "API health check failed";
+        setApiState({ kind: "error", message });
       });
 
     return () => controller.abort();
   }, [apiUrl]);
 
+  const navigate = (event: MouseEvent<HTMLAnchorElement>, nextPath: string) => {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    if (window.location.pathname === nextPath) return;
+    window.history.pushState({}, "", nextPath);
+    setPathname(nextPath);
+  };
+
   return (
     <div className="app-shell">
       <aside className="sidebar" aria-label="LifeOS navigation">
-        <div className="brand">LifeOS</div>
+        <a className="brand" href="/" onClick={(event) => navigate(event, "/")}>
+          LifeOS
+        </a>
         <nav>
-          {NAV_ITEMS.map((item, index) => (
-            <button className={index === 0 ? "nav-item active" : "nav-item"} key={item} type="button">
-              {item}
-            </button>
+          {APP_ROUTES.map((item) => (
+            <a
+              className={route?.key === item.key ? "nav-item active" : "nav-item"}
+              href={item.path}
+              key={item.key}
+              aria-current={route?.key === item.key ? "page" : undefined}
+              onClick={(event) => navigate(event, item.path)}
+            >
+              {item.label}
+            </a>
           ))}
         </nav>
-        <div className="secondary-links">
-          <span>Inbox</span>
-          <span>Not Now</span>
-          <span>Ask LifeOS</span>
+        <div className="secondary-links" aria-label="Foundation status">
+          <span>Foundation Milestone</span>
+          <span>Product data: not seeded</span>
         </div>
       </aside>
 
       <main className="content">
         <header className="topbar">
           <div>
-            <p className="eyebrow">FOUNDATION / NOW</p>
-            <h1>Biết điều gì quan trọng. Biết việc cần làm tiếp theo.</h1>
+            <p className="eyebrow">FOUNDATION / {route?.label ?? "UNKNOWN"}</p>
+            <h1>{route?.key === "now" ? "Biết điều gì quan trọng. Biết việc cần làm tiếp theo." : route?.label ?? "Route không tồn tại"}</h1>
           </div>
           <ApiBadge state={apiState} />
         </header>
 
-        <section className="hero-card">
-          <p className="eyebrow">RIGHT NOW</p>
-          <h2>Foundation đang được xây dựng</h2>
-          <p>
-            Màn hình này chỉ chứng minh Web ↔ API wiring. Recommendation thật sẽ xuất hiện sau Vertical Slice
-            Capture → Clarify → Direction.
-          </p>
-          <button type="button" disabled>
-            Start focus — coming next
-          </button>
-        </section>
-
-        <section className="grid">
-          <article className="panel">
-            <p className="eyebrow">CURRENT DIRECTION</p>
-            <h3>Chưa có dữ liệu</h3>
-            <p>LifeOS sẽ không giả lập mục tiêu chỉ để dashboard trông đầy.</p>
-          </article>
-          <article className="panel">
-            <p className="eyebrow">NOT NOW</p>
-            <h3>Protected space</h3>
-            <p>Ý tưởng chưa cần làm sẽ được giữ an toàn, không cạnh tranh với focus hiện tại.</p>
-          </article>
-        </section>
+        {route ? <RouteContent route={route} /> : <UnknownRoute />}
       </main>
     </div>
   );
 }
 
-function ApiBadge({ state }: { state: ApiState }) {
-  if (state.kind === "checking") return <span className="status checking">API checking</span>;
-  if (state.kind === "offline") return <span className="status offline">API offline</span>;
-  return <span className="status online">API online</span>;
+function RouteContent({ route }: { route: AppRoute }) {
+  if (route.key === "now") {
+    return (
+      <>
+        <section className="hero-card">
+          <p className="eyebrow">RIGHT NOW</p>
+          <h2>NOW shell đã sẵn sàng</h2>
+          <p>
+            Web ↔ API contract đang hoạt động. Recommendation thật chỉ xuất hiện khi Vertical Slice A sở hữu dữ liệu và semantics tương ứng.
+          </p>
+        </section>
+        <EmptyState title="Chưa có recommendation">
+          LifeOS không tạo goal, action hay direction giả chỉ để lấp đầy màn hình.
+        </EmptyState>
+      </>
+    );
+  }
+
+  return (
+    <EmptyState title={`${route.label} chưa có dữ liệu`}>
+      Route đã có ownership trong app shell, nhưng feature và dữ liệu chỉ được thêm khi vertical slice tương ứng bắt đầu.
+    </EmptyState>
+  );
+}
+
+function UnknownRoute() {
+  return (
+    <ErrorState title="Route không tồn tại">
+      Dùng navigation của LifeOS để quay về một khu vực foundation đã được định nghĩa.
+    </ErrorState>
+  );
+}
+
+function ApiBadge({ state }: { state: AsyncState<HealthStatus> }) {
+  if (state.kind === "loading") return <LoadingState label="API checking" />;
+  if (state.kind === "error") {
+    return (
+      <span className="status offline" title={state.message} role="status">
+        API offline
+      </span>
+    );
+  }
+  return (
+    <span className="status online" title={`Healthy at ${state.data.timestamp}`} role="status">
+      API online
+    </span>
+  );
 }
