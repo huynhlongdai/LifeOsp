@@ -1,6 +1,6 @@
-import type { CaptureId, LifeEventId, UserId } from "./ids.js";
+import type { CaptureId, CaptureInterpretationId, LifeEventId, UserId } from "./ids.js";
 
-export type { Brand, CaptureId, LifeEventId, UserId } from "./ids.js";
+export type { Brand, CaptureId, CaptureInterpretationId, LifeEventId, UserId } from "./ids.js";
 
 export const NEED_STATES = [
   "unclear_direction",
@@ -26,6 +26,57 @@ export type CaptureView = {
   kind: CaptureKind;
   rawText: string;
   processingStatus: CaptureProcessingStatus;
+  createdAt: string;
+};
+
+export const CAPTURE_INTERPRETATION_CONTRACT_VERSION = "capture_interpretation.v1" as const;
+export type CaptureInterpretationContractVersion = typeof CAPTURE_INTERPRETATION_CONTRACT_VERSION;
+
+export const CAPTURE_INTERPRETATION_CATEGORIES = [
+  "concerns",
+  "ideas",
+  "commitments",
+  "possibleProjects",
+  "possibleDirections",
+  "questions",
+  "uncertainties"
+] as const;
+export type CaptureInterpretationCategory = (typeof CAPTURE_INTERPRETATION_CATEGORIES)[number];
+
+export const INTERPRETATION_CONFIDENCE_CLASSES = ["explicit", "inferred", "uncertain"] as const;
+export type InterpretationConfidenceClass = (typeof INTERPRETATION_CONFIDENCE_CLASSES)[number];
+
+export type InterpretationSourceSpan = {
+  start: number;
+  end: number;
+};
+
+export type CaptureInterpretationItemV1 = {
+  text: string;
+  confidenceClass: InterpretationConfidenceClass;
+  source: InterpretationSourceSpan;
+};
+
+export type CaptureInterpretationContentV1 = {
+  contractVersion: CaptureInterpretationContractVersion;
+  concerns: CaptureInterpretationItemV1[];
+  ideas: CaptureInterpretationItemV1[];
+  commitments: CaptureInterpretationItemV1[];
+  possibleProjects: CaptureInterpretationItemV1[];
+  possibleDirections: CaptureInterpretationItemV1[];
+  questions: CaptureInterpretationItemV1[];
+  uncertainties: CaptureInterpretationItemV1[];
+};
+
+export const CAPTURE_INTERPRETATION_SOURCES = ["ai", "user"] as const;
+export type CaptureInterpretationSource = (typeof CAPTURE_INTERPRETATION_SOURCES)[number];
+
+export type CaptureInterpretationView = {
+  id: CaptureInterpretationId;
+  captureId: CaptureId;
+  version: number;
+  source: CaptureInterpretationSource;
+  content: CaptureInterpretationContentV1;
   createdAt: string;
 };
 
