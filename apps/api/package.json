@@ -11,6 +11,7 @@
     "test:integration": "tsx --test src/*.integration.ts"
   },
   "dependencies": {
+    "@lifeos/ai": "workspace:*",
     "@lifeos/db": "workspace:*",
     "@lifeos/domain": "workspace:*",
     "fastify": "5.12.1"
