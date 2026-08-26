@@ -18,11 +18,9 @@ function databaseReady() {
       "exec",
       "-T",
       "postgres",
-      "pg_isready",
-      "-U",
-      process.env.POSTGRES_USER,
-      "-d",
-      process.env.POSTGRES_DB
+      "sh",
+      "-c",
+      'test "$(cat /proc/1/comm)" = postgres && pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
     ],
     { stdio: "ignore", env: process.env }
   );

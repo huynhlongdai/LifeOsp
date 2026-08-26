@@ -18,7 +18,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U lifeos -d lifeos_test"
+          --health-cmd "test \"$(cat /proc/1/comm)\" = postgres && pg_isready -U lifeos -d lifeos_test"
           --health-interval 5s
           --health-timeout 3s
           --health-retries 10
@@ -77,6 +77,9 @@ jobs:
 
       - name: Database transaction integration
         run: pnpm --filter @lifeos/db test:integration
+
+      - name: API identity integration
+        run: pnpm --filter @lifeos/api test:integration
 
       - name: API built-artifact database readiness smoke
         run: |
@@ -148,11 +151,14 @@ jobs:
 
           wait_for_compose_db() {
             for attempt in {1..30}; do
-              if docker compose -f compose.dev.yml exec -T postgres pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" >/dev/null 2>&1; then
+              CONTAINER_ID=$(docker compose -f compose.dev.yml ps -q postgres)
+              HEALTH_STATUS=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$CONTAINER_ID" 2>/dev/null || true)
+              if [ "$HEALTH_STATUS" = "healthy" ]; then
                 return 0
               fi
               sleep 1
             done
+            docker compose -f compose.dev.yml ps
             docker compose -f compose.dev.yml logs postgres
             return 1
           }

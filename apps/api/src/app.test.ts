@@ -32,3 +32,19 @@ test("GET /ready reports not ready when database is not configured", async () =>
     await app.close();
   }
 });
+
+test("session bootstrap reports unavailable without database while health remains live", async () => {
+  const app = buildApp();
+
+  try {
+    const response = await app.inject({ method: "POST", url: "/v1/session/bootstrap" });
+    assert.equal(response.statusCode, 503);
+    assert.deepEqual(response.json(), { status: "unavailable" });
+    assert.equal(response.headers["cache-control"], "no-store");
+
+    const health = await app.inject({ method: "GET", url: "/health" });
+    assert.equal(health.statusCode, 200);
+  } finally {
+    await app.close();
+  }
+});

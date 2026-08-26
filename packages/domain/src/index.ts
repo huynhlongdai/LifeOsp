@@ -28,6 +28,18 @@ export type ReadinessStatus = {
   timestamp: string;
 };
 
+export type SessionView =
+  | {
+      status: "active";
+      expiresAt: string;
+    }
+  | {
+      status: "unauthenticated";
+    }
+  | {
+      status: "unavailable";
+    };
+
 export const LIFE_EVENT_SOURCES = ["user", "system", "ai", "import"] as const;
 export type LifeEventSource = (typeof LIFE_EVENT_SOURCES)[number];
 
