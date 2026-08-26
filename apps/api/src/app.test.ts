@@ -48,3 +48,24 @@ test("session bootstrap reports unavailable without database while health remain
     await app.close();
   }
 });
+
+test("Capture create reports unavailable without database", async () => {
+  const app = buildApp();
+
+  try {
+    const response = await app.inject({
+      method: "POST",
+      url: "/v1/captures",
+      payload: { rawText: "A thought I do not want to lose" }
+    });
+
+    assert.equal(response.statusCode, 503);
+    assert.deepEqual(response.json(), {
+      error: "unavailable",
+      message: "Capture storage is unavailable"
+    });
+    assert.equal(response.headers["cache-control"], "no-store");
+  } finally {
+    await app.close();
+  }
+});

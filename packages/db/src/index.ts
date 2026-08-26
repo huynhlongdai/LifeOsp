@@ -65,4 +65,54 @@ export async function resolveAnonymousSession(
   return session ?? null;
 }
 
+export async function createTextCapture(
+  database: DatabaseClient,
+  userId: string,
+  rawText: string
+): Promise<schema.CaptureRow> {
+  return database.db.transaction(async (transaction) => {
+    const [capture] = await transaction
+      .insert(schema.captures)
+      .values({
+        userId,
+        kind: "text",
+        rawText,
+        processingStatus: "unprocessed"
+      })
+      .returning();
+
+    if (!capture) {
+      throw new Error("Failed to create Capture");
+    }
+
+    await transaction.insert(schema.lifeEvents).values({
+      userId,
+      type: "capture.created",
+      source: "user",
+      entityType: "capture",
+      entityId: capture.id,
+      payload: {
+        kind: "text",
+        processingStatus: "unprocessed"
+      }
+    });
+
+    return capture;
+  });
+}
+
+export async function findCaptureById(
+  database: DatabaseClient,
+  userId: string,
+  captureId: string
+): Promise<schema.CaptureRow | null> {
+  const [capture] = await database.db
+    .select()
+    .from(schema.captures)
+    .where(and(eq(schema.captures.id, captureId), eq(schema.captures.userId, userId)))
+    .limit(1);
+
+  return capture ?? null;
+}
+
 export * from "./schema.js";

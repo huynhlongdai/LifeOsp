@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { LIFE_EVENT_SOURCES, NEED_STATES } from "./index.js";
+import { CAPTURE_KINDS, CAPTURE_PROCESSING_STATUSES, LIFE_EVENT_SOURCES, NEED_STATES } from "./index.js";
 
 test("NeedState values match the canonical contract", () => {
   assert.deepEqual(NEED_STATES, [
@@ -13,6 +13,14 @@ test("NeedState values match the canonical contract", () => {
     "learning_not_applying",
     "other"
   ]);
+});
+
+test("Capture kinds match the canonical contract", () => {
+  assert.deepEqual(CAPTURE_KINDS, ["text", "voice_transcript", "quick_note", "distraction"]);
+});
+
+test("Capture processing statuses match the canonical contract", () => {
+  assert.deepEqual(CAPTURE_PROCESSING_STATUSES, ["unprocessed", "interpreted", "corrected", "promoted", "archived"]);
 });
 
 test("LifeEvent sources match the canonical producers", () => {
