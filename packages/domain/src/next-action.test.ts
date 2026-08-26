@@ -131,10 +131,8 @@ test("ranking evidence contains only declared product-level factors", () => {
 });
 
 test("project-less ready Action remains eligible under active Season and Outcome", () => {
-  const item = candidate("00000000-0000-4000-8000-000000000070", {
-    projectId: undefined,
-    projectStatus: undefined
-  });
+  const withProject = candidate("00000000-0000-4000-8000-000000000070");
+  const { projectId: _projectId, projectStatus: _projectStatus, ...item } = withProject;
   assert.equal(isEligibleNextAction(item), true);
   assert.equal(rankNextActions([item], evaluatedAt).winner?.candidate.actionId, item.actionId);
 });
