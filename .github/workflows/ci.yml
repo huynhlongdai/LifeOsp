@@ -49,6 +49,17 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: API built-artifact rejects invalid environment
+        run: |
+          set +e
+          OUTPUT=$(PORT=invalid node apps/api/dist/server.js 2>&1)
+          STATUS=$?
+          set -e
+
+          echo "$OUTPUT"
+          test "$STATUS" -ne 0
+          echo "$OUTPUT" | grep -F "[lifeos-api] configuration error: PORT"
+
       - name: Verify Drizzle migration is current
         run: |
           pnpm --filter @lifeos/db exec drizzle-kit generate --config=drizzle.config.ts --name=ci_check
