@@ -7,12 +7,12 @@
     "node": ">=24.0.0"
   },
   "scripts": {
-    "predev": "pnpm --filter @lifeos/domain build && pnpm --filter @lifeos/db build",
-    "dev": "pnpm --parallel --filter @lifeos/domain --filter @lifeos/db --filter @lifeos/api --filter @lifeos/web dev",
+    "predev": "pnpm --filter @lifeos/domain build && pnpm --filter @lifeos/ai build && pnpm --filter @lifeos/db build",
+    "dev": "pnpm --parallel --filter @lifeos/domain --filter @lifeos/ai --filter @lifeos/db --filter @lifeos/api --filter @lifeos/web dev",
     "dev:stack": "node scripts/dev-stack.mjs",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
-    "pretest": "pnpm --filter @lifeos/domain build && pnpm --filter @lifeos/db build",
+    "pretest": "pnpm --filter @lifeos/domain build && pnpm --filter @lifeos/ai build && pnpm --filter @lifeos/db build",
     "test": "pnpm -r test",
     "verify": "pnpm typecheck && pnpm test && pnpm build",
     "foundation:smoke": "node scripts/foundation-smoke.mjs",
