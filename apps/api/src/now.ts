@@ -145,15 +145,17 @@ function parseResolveInput(value: unknown): ResolveNowRecommendationInput | null
     action.doneCondition = value.action.doneCondition;
   }
   if (value.action.estimatedMinutes !== undefined) {
+    const estimatedMinutes = value.action.estimatedMinutes;
     if (
-      value.action.estimatedMinutes !== null &&
-      (!Number.isInteger(value.action.estimatedMinutes) ||
-        value.action.estimatedMinutes < 1 ||
-        value.action.estimatedMinutes > MAX_ESTIMATED_MINUTES)
+      estimatedMinutes !== null &&
+      (typeof estimatedMinutes !== "number" ||
+        !Number.isInteger(estimatedMinutes) ||
+        estimatedMinutes < 1 ||
+        estimatedMinutes > MAX_ESTIMATED_MINUTES)
     ) {
       return null;
     }
-    action.estimatedMinutes = value.action.estimatedMinutes;
+    action.estimatedMinutes = estimatedMinutes;
   }
 
   return { resolution: "edited", action };
