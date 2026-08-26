@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createDatabaseClient } from "@lifeos/db";
+import type { FastifyRequest } from "fastify";
 import { buildApp } from "./app.js";
-import { hashSessionToken, SESSION_COOKIE_NAME } from "./identity.js";
+import { hashSessionToken, resolveActorUserId, SESSION_COOKIE_NAME } from "./identity.js";
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {
@@ -26,6 +27,10 @@ function sessionCookieFromResponse(setCookieHeader: string | string[] | undefine
   };
 }
 
+function requestWithCookie(cookie: string): FastifyRequest {
+  return { headers: { cookie } } as unknown as FastifyRequest;
+}
+
 async function deleteUsers(database: ReturnType<typeof createDatabaseClient>, userIds: Set<string>) {
   for (const userId of userIds) {
     await database.pool.query("delete from users where id = $1", [userId]);
@@ -33,7 +38,7 @@ async function deleteUsers(database: ReturnType<typeof createDatabaseClient>, us
 }
 
 test("anonymous session bootstrap stores only token hash and isolates browser actors", async () => {
-  const app = buildApp({ databaseUrl });
+  const app = buildApp({ databaseUrl, identity: { cookieSecure: true } });
   const database = createDatabaseClient(databaseUrl);
   const createdUserIds = new Set<string>();
 
@@ -48,6 +53,7 @@ test("anonymous session bootstrap stores only token hash and isolates browser ac
       : firstBootstrap.headers["set-cookie"];
     assert.match(setCookie ?? "", /HttpOnly/);
     assert.match(setCookie ?? "", /SameSite=Lax/);
+    assert.match(setCookie ?? "", /Secure/);
 
     const firstHash = hashSessionToken(firstCookie.token);
     const firstSessionResult = await database.pool.query<{ user_id: string; token_hash: string }>(
@@ -64,6 +70,16 @@ test("anonymous session bootstrap stores only token hash and isolates browser ac
       firstCookie.token
     ]);
     assert.equal(rawTokenResult.rowCount, 0, "raw session token must never be persisted");
+
+    const actorUserId = await resolveActorUserId(requestWithCookie(firstCookie.header), database, new Date());
+    assert.equal(actorUserId, firstUserId, "private routes must derive ownership only from the server session");
+
+    const invalidActor = await resolveActorUserId(
+      requestWithCookie(`${SESSION_COOKIE_NAME}=invalid-token`),
+      database,
+      new Date()
+    );
+    assert.equal(invalidActor, null);
 
     const firstStatus = await app.inject({
       method: "GET",
