@@ -15,11 +15,18 @@ test("NeedState UI options stay aligned with the canonical domain enum", () => {
   );
 });
 
-test("Quick Life Context is explicit free text folded into the immutable Capture without profile inference", () => {
-  assert.equal(composeCaptureText("", "My raw thought"), "My raw thought");
+test("selected need and Quick Life Context remain explicit input inside the immutable Capture", () => {
   assert.equal(
-    composeCaptureText("I only have one hour today.", "Too many projects are competing."),
-    "Bối cảnh hiện tại:\nI only have one hour today.\n\nBrain dump:\nToo many projects are competing."
+    composeCaptureText("Tôi có quá nhiều thứ trong đầu", "", "My raw thought"),
+    "Điều tôi muốn LifeOS giúp lúc này:\nTôi có quá nhiều thứ trong đầu\n\nBrain dump:\nMy raw thought"
+  );
+  assert.equal(
+    composeCaptureText(
+      "Hôm nay tôi không biết nên làm gì",
+      "I only have one hour today.",
+      "Too many projects are competing."
+    ),
+    "Điều tôi muốn LifeOS giúp lúc này:\nHôm nay tôi không biết nên làm gì\n\nBối cảnh hiện tại:\nI only have one hour today.\n\nBrain dump:\nToo many projects are competing."
   );
 });
 
