@@ -32,6 +32,17 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Generate DB baseline preview
+        run: |
+          rm -rf packages/db/drizzle
+          pnpm --filter @lifeos/db exec drizzle-kit generate --config=drizzle.config.ts --name=foundation
+          while IFS= read -r file; do
+            echo "LIFEOS_MIGRATION_FILE:${file}"
+            base64 -w0 "$file"
+            echo
+            echo "LIFEOS_MIGRATION_END"
+          done < <(find packages/db/drizzle -type f | sort)
+
       - name: API runtime smoke
         run: |
           pnpm --filter @lifeos/api exec tsx src/server.ts > /tmp/lifeos-api.log 2>&1 &
