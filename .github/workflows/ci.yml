@@ -8,6 +8,23 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18.6-alpine
+        env:
+          POSTGRES_DB: lifeos_test
+          POSTGRES_USER: lifeos
+          POSTGRES_PASSWORD: lifeos_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U lifeos -d lifeos_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://lifeos:lifeos_test@127.0.0.1:5432/lifeos_test
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,30 +49,38 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Generate DB baseline preview
+      - name: Verify Drizzle migration is current
         run: |
-          rm -rf packages/db/drizzle
-          pnpm --filter @lifeos/db exec drizzle-kit generate --config=drizzle.config.ts --name=foundation
-          while IFS= read -r file; do
-            echo "LIFEOS_MIGRATION_FILE:${file}"
-            base64 -w0 "$file"
-            echo
-            echo "LIFEOS_MIGRATION_END"
-          done < <(find packages/db/drizzle -type f | sort)
+          pnpm --filter @lifeos/db exec drizzle-kit generate --config=drizzle.config.ts --name=ci_check
+          git diff --exit-code -- packages/db/drizzle
 
-      - name: API runtime smoke
+      - name: Apply database migrations
+        run: pnpm --filter @lifeos/db db:migrate
+
+      - name: API database readiness smoke
         run: |
           pnpm --filter @lifeos/api exec tsx src/server.ts > /tmp/lifeos-api.log 2>&1 &
           API_PID=$!
           trap 'kill $API_PID 2>/dev/null || true' EXIT
 
           for attempt in {1..20}; do
-            if curl --fail --silent http://127.0.0.1:4000/health > /tmp/lifeos-health.json; then
+            health_ok=0
+            ready_ok=0
+            curl --fail --silent http://127.0.0.1:4000/health > /tmp/lifeos-health.json && health_ok=1 || true
+            curl --fail --silent http://127.0.0.1:4000/ready > /tmp/lifeos-ready.json && ready_ok=1 || true
+
+            if [ "$health_ok" -eq 1 ] && [ "$ready_ok" -eq 1 ]; then
               cat /tmp/lifeos-health.json
+              cat /tmp/lifeos-ready.json
               exit 0
             fi
+
             sleep 1
           done
 
           cat /tmp/lifeos-api.log
+          echo "Health response:"
+          cat /tmp/lifeos-health.json 2>/dev/null || true
+          echo "Readiness response:"
+          cat /tmp/lifeos-ready.json 2>/dev/null || true
           exit 1
