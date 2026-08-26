@@ -18,6 +18,7 @@ export type {
 export * from "./action.js";
 export * from "./execution-context.js";
 export * from "./interpretation.js";
+export * from "./next-action.js";
 export * from "./promotion.js";
 
 export const NEED_STATES = [
