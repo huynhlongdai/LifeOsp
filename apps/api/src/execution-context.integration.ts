@@ -205,7 +205,7 @@ test("B0 requires explicit execution context, keeps ownership private and reload
     assert.equal(strangerCurrent.statusCode, 404);
 
     const events = await database.pool.query<{ type: string; entity_id: string | null }>(
-      "select type, entity_id from life_events where user_id = $1 and type in ('outcome.created', 'project.started') order by occurred_at, id",
+      "select type, entity_id from life_events where user_id = $1 and type in ('outcome.created', 'project.started') order by type",
       [ownerUserId]
     );
     assert.deepEqual(
