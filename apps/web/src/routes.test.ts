@@ -16,5 +16,5 @@ test("foundation routes resolve deterministically", () => {
 
 test("Clarity Reset resolves without becoming primary navigation", () => {
   assert.equal(resolveRoute("/clarity")?.key, "clarity");
-  assert.equal(APP_ROUTES.some((route) => route.path === "/clarity"), false);
+  assert.equal(APP_ROUTES.map((route) => String(route.path)).includes("/clarity"), false);
 });
