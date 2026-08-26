@@ -4,11 +4,12 @@ import {
   CAPTURE_INTERPRETATION_CONTRACT_ID,
   CAPTURE_INTERPRETATION_CONTRACT_VERSION
 } from "@lifeos/domain";
+import type { CaptureInterpretationContentV1 } from "@lifeos/domain";
 import { validateCaptureInterpretationOutputV1 } from "./index.js";
 
 const rawText = "Tôi lo dự án bị dở dang. Tôi muốn tập trung LifeOS và cần quyết định việc quan trọng nhất tuần này.";
 
-function emptyContent() {
+function emptyContent(): CaptureInterpretationContentV1 {
   return {
     concerns: [],
     ideas: [],
@@ -20,7 +21,7 @@ function emptyContent() {
   };
 }
 
-function output(content: ReturnType<typeof emptyContent>) {
+function output(content: CaptureInterpretationContentV1) {
   return {
     contractId: CAPTURE_INTERPRETATION_CONTRACT_ID,
     contractVersion: CAPTURE_INTERPRETATION_CONTRACT_VERSION,
