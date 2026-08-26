@@ -156,7 +156,8 @@ export function registerInterpretationRoutes(
         contractVersion: CAPTURE_INTERPRETATION_CONTRACT_VERSION,
         author: "ai",
         content: validation.content,
-        kind: "generated"
+        kind: "generated",
+        expectedBaseVersion: 0
       });
 
       if (appended.status === "not_found") {
