@@ -136,6 +136,39 @@ jobs:
           cat /tmp/lifeos-degraded-ready.json 2>/dev/null || true
           exit 1
 
+      - name: Vertical Slice A survives PostgreSQL container recreation
+        env:
+          COMPOSE_PROJECT_NAME: lifeos-ci-vertical-slice-a
+          POSTGRES_DB: lifeos_vertical_slice_a
+          POSTGRES_USER: lifeos
+          POSTGRES_PASSWORD: lifeos_vertical_slice_a
+          POSTGRES_PORT: 55433
+          A5_DATABASE_URL: postgresql://lifeos:lifeos_vertical_slice_a@127.0.0.1:55433/lifeos_vertical_slice_a
+        run: |
+          cleanup() {
+            docker compose -f compose.dev.yml down -v --remove-orphans || true
+          }
+          trap cleanup EXIT
+
+          wait_for_compose_db() {
+            for attempt in {1..30}; do
+              CONTAINER_ID=$(docker compose -f compose.dev.yml ps -q postgres)
+              HEALTH_STATUS=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$CONTAINER_ID" 2>/dev/null || true)
+              if [ "$HEALTH_STATUS" = "healthy" ]; then
+                return 0
+              fi
+              sleep 1
+            done
+            docker compose -f compose.dev.yml ps
+            docker compose -f compose.dev.yml logs postgres
+            return 1
+          }
+
+          docker compose -f compose.dev.yml up -d postgres
+          wait_for_compose_db
+          DATABASE_URL="$A5_DATABASE_URL" pnpm --filter @lifeos/db db:migrate
+          DATABASE_URL="$A5_DATABASE_URL" pnpm --filter @lifeos/api exec tsx src/vertical-slice-a-container.smoke.ts
+
       - name: PostgreSQL named volume survives container recreation
         env:
           COMPOSE_PROJECT_NAME: lifeos-ci-persistence
