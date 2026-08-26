@@ -57,9 +57,9 @@ jobs:
       - name: Apply database migrations
         run: pnpm --filter @lifeos/db db:migrate
 
-      - name: API database readiness smoke
+      - name: API built-artifact database readiness smoke
         run: |
-          pnpm --filter @lifeos/api exec tsx src/server.ts > /tmp/lifeos-api.log 2>&1 &
+          node apps/api/dist/server.js > /tmp/lifeos-api.log 2>&1 &
           API_PID=$!
           trap 'kill $API_PID 2>/dev/null || true' EXIT
 
