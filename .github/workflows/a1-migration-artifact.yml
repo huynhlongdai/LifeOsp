@@ -1,0 +1,33 @@
+name: A1 Migration Artifact
+
+on:
+  push:
+    branches: [feat/a1-capture-core]
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Generate and print A1 migration artifacts
+        run: |
+          pnpm --filter @lifeos/db exec drizzle-kit generate --config=drizzle.config.ts --name=capture_core
+          echo '--- GENERATED SQL ---'
+          cat packages/db/drizzle/0002_capture_core.sql
+          echo '--- GENERATED SNAPSHOT ---'
+          cat packages/db/drizzle/meta/0002_snapshot.json
+          echo '--- GENERATED JOURNAL ---'
+          cat packages/db/drizzle/meta/_journal.json
