@@ -123,9 +123,9 @@ test("Vertical Slice A ownership blocks cross-session reads and mutations", asyn
 
     const ownerRows = await database.pool.query<{ interpretation_count: string; recommendation_count: string }>(
       `select
-        (select count(*)::text from capture_interpretations where capture_id = $1) as interpretation_count,
-        (select count(*)::text from recommendations where proposed_entity_payload->>'captureId' = $1) as recommendation_count`,
-      [captureId]
+        (select count(*)::text from capture_interpretations where capture_id = $1::uuid) as interpretation_count,
+        (select count(*)::text from recommendations where proposed_entity_payload->>'captureId' = $2::text) as recommendation_count`,
+      [captureId, captureId]
     );
     assert.equal(ownerRows.rows[0]?.interpretation_count, "1", "cross-owner correction must append nothing");
     assert.equal(ownerRows.rows[0]?.recommendation_count, "0", "cross-owner prepare must create nothing");
