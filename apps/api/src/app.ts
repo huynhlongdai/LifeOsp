@@ -1,6 +1,7 @@
 import Fastify from "fastify";
 import { checkDatabase, createDatabaseClient } from "@lifeos/db";
 import type { HealthStatus, ReadinessStatus } from "@lifeos/domain";
+import { registerActionRoutes, type ActionOptions } from "./action.js";
 import { registerCaptureRoutes } from "./capture.js";
 import { registerExecutionContextRoutes } from "./execution-context.js";
 import { registerIdentityRoutes, type IdentityOptions } from "./identity.js";
@@ -11,6 +12,7 @@ export type BuildAppOptions = {
   databaseUrl?: string;
   identity?: IdentityOptions;
   interpretation?: InterpretationOptions;
+  action?: ActionOptions;
 };
 
 export function buildApp(options: BuildAppOptions = {}) {
@@ -47,6 +49,7 @@ export function buildApp(options: BuildAppOptions = {}) {
   registerInterpretationRoutes(app, database, options.interpretation);
   registerPromotionRoutes(app, database);
   registerExecutionContextRoutes(app, database);
+  registerActionRoutes(app, database, options.action);
 
   app.addHook("onClose", async () => {
     if (database) {
