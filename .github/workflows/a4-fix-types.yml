@@ -1,0 +1,33 @@
+name: A4 Fix Types
+
+on:
+  push:
+    branches: [feat/a4-clarity-promotion]
+    paths: [.github/workflows/a4-fix-types.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/a4-clarity-promotion
+      - name: Apply strict optional type fix
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('apps/api/src/promotion.ts')
+          s = p.read_text()
+          s = s.replace('row.sourceCaptureId as DirectionView["sourceCaptureId"]', 'row.sourceCaptureId as NonNullable<DirectionView["sourceCaptureId"]>')
+          s = s.replace('row.sourceCaptureId as IncubatorItemView["sourceCaptureId"]', 'row.sourceCaptureId as NonNullable<IncubatorItemView["sourceCaptureId"]>')
+          p.write_text(s)
+          PY
+          git rm .github/workflows/a4-fix-types.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/api/src/promotion.ts
+          git commit -m "Fix A4 strict optional view mapping"
+          git push origin HEAD:feat/a4-clarity-promotion
