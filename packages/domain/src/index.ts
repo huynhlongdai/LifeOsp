@@ -1,6 +1,7 @@
 import type { CaptureId, LifeEventId, UserId } from "./ids.js";
 
 export type {
+  ActionId,
   Brand,
   CaptureId,
   CaptureInterpretationId,
@@ -14,6 +15,7 @@ export type {
   SeasonId,
   UserId
 } from "./ids.js";
+export * from "./action.js";
 export * from "./execution-context.js";
 export * from "./interpretation.js";
 export * from "./promotion.js";
