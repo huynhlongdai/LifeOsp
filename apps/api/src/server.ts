@@ -1,14 +1,21 @@
 import { buildApp } from "./app.js";
+import { loadApiConfig } from "./config.js";
 
-const databaseUrl = process.env.DATABASE_URL;
-const app = buildApp(databaseUrl ? { databaseUrl } : {});
+const config = (() => {
+  try {
+    return loadApiConfig(process.env);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown configuration error";
+    process.stderr.write(`[lifeos-api] configuration error: ${message}\n`);
+    process.exit(1);
+  }
+})();
 
-const port = Number(process.env.PORT ?? 4000);
-const host = process.env.HOST ?? "0.0.0.0";
+const app = buildApp(config.databaseUrl ? { databaseUrl: config.databaseUrl } : {});
 
 const start = async () => {
   try {
-    await app.listen({ port, host });
+    await app.listen({ port: config.port, host: config.host });
   } catch (error) {
     app.log.error(error);
     process.exit(1);

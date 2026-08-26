@@ -1,3 +1,7 @@
+import type { LifeEventId, UserId } from "./ids.js";
+
+export type { Brand, LifeEventId, UserId } from "./ids.js";
+
 export const NEED_STATES = [
   "unclear_direction",
   "dont_know_what_to_do",
@@ -24,11 +28,12 @@ export type ReadinessStatus = {
   timestamp: string;
 };
 
-export type LifeEventSource = "user" | "system" | "ai" | "import";
+export const LIFE_EVENT_SOURCES = ["user", "system", "ai", "import"] as const;
+export type LifeEventSource = (typeof LIFE_EVENT_SOURCES)[number];
 
 export type LifeEventEnvelope<TPayload = unknown> = {
-  id: string;
-  userId: string;
+  id: LifeEventId;
+  userId: UserId;
   type: string;
   occurredAt: string;
   source: LifeEventSource;
@@ -37,4 +42,13 @@ export type LifeEventEnvelope<TPayload = unknown> = {
   payload: TPayload;
   correlationId?: string;
   causationId?: string;
+};
+
+/**
+ * Foundation read-model boundary for the default NOW surface.
+ * Product recommendations/actions are intentionally absent until their
+ * vertical slice owns those semantics.
+ */
+export type NowView = {
+  generatedAt: string;
 };
