@@ -10,6 +10,7 @@
     "test": "node --test"
   },
   "dependencies": {
+    "@lifeos/db": "workspace:*",
     "@lifeos/domain": "workspace:*",
     "fastify": "5.12.1"
   },
