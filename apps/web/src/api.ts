@@ -7,7 +7,7 @@ export type ApiClient = {
 export function createApiClient(baseUrl = ""): ApiClient {
   return {
     async getHealth(signal?: AbortSignal): Promise<HealthStatus> {
-      const response = await fetch(`${baseUrl}/health`, { signal });
+      const response = await fetch(`${baseUrl}/health`, signal ? { signal } : {});
       if (!response.ok) {
         throw new Error(`API health request failed with status ${response.status}`);
       }
