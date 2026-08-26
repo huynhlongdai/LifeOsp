@@ -207,6 +207,12 @@ export async function generateNextActionRecommendation(
         actionId: winner.candidate.actionId,
         totalScore: winner.totalScore,
         eligibleCount: ranking.eligibleCount,
+        factors: winner.factors.map((factor) => ({
+          key: factor.key,
+          score: factor.score,
+          label: factor.label,
+          value: factor.value
+        })),
         refreshed
       },
       occurredAt: now

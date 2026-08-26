@@ -216,13 +216,16 @@ test("B2 ranks deterministically, stores explainable evidence, refreshes one sho
     );
     assert.equal(shownCount.rows[0]?.count, "1");
 
-    const shownEvents = await database.pool.query<{ payload: { actionId?: string; refreshed?: boolean } }>(
+    const shownEvents = await database.pool.query<{
+      payload: { actionId?: string; refreshed?: boolean; factors?: Array<{ key?: string; score?: number }> };
+    }>(
       "select payload from life_events where user_id = $1 and type = 'recommendation.shown' and entity_id = $2 order by occurred_at",
       [ownerUserId, recommendationId]
     );
     assert.equal(shownEvents.rowCount, 2);
     assert.equal(shownEvents.rows[0]?.payload.actionId, urgentActionId);
     assert.equal(shownEvents.rows[0]?.payload.refreshed, false);
+    assert.ok(shownEvents.rows[0]?.payload.factors?.some((factor) => factor.key === "urgency"));
     assert.equal(shownEvents.rows[1]?.payload.actionId, priorityActionId);
     assert.equal(shownEvents.rows[1]?.payload.refreshed, true);
 
