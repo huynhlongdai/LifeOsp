@@ -115,13 +115,18 @@ export async function findCaptureById(
   return capture ?? null;
 }
 
+export type AppendCaptureInterpretationResult =
+  | { status: "created"; interpretation: schema.CaptureInterpretationRow }
+  | { status: "not_found" }
+  | { status: "interpretation_exists" };
+
 export async function appendCaptureInterpretation(
   database: DatabaseClient,
   userId: string,
   captureId: string,
   source: "ai" | "user",
   content: unknown
-): Promise<schema.CaptureInterpretationRow | null> {
+): Promise<AppendCaptureInterpretationResult> {
   return database.db.transaction(async (transaction) => {
     const [capture] = await transaction
       .select({ id: schema.captures.id })
@@ -130,7 +135,7 @@ export async function appendCaptureInterpretation(
       .limit(1)
       .for("update");
 
-    if (!capture) return null;
+    if (!capture) return { status: "not_found" };
 
     const [latest] = await transaction
       .select({ version: schema.captureInterpretations.version })
@@ -143,6 +148,10 @@ export async function appendCaptureInterpretation(
       )
       .orderBy(desc(schema.captureInterpretations.version))
       .limit(1);
+
+    if (source === "ai" && latest) {
+      return { status: "interpretation_exists" };
+    }
 
     const version = (latest?.version ?? 0) + 1;
     const isCorrection = version > 1;
@@ -182,7 +191,7 @@ export async function appendCaptureInterpretation(
       }
     });
 
-    return interpretation;
+    return { status: "created", interpretation };
   });
 }
 
