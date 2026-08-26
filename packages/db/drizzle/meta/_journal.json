@@ -15,6 +15,13 @@
       "when": 1787713163106,
       "tag": "0001_identity_sessions",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787714086096,
+      "tag": "0002_capture_core",
+      "breakpoints": true
     }
   ]
 }
