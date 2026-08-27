@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { NowView, ResolveNowRecommendationInput } from "@lifeos/domain";
 import { createApiClient } from "./api";
 import { createNowApiClient } from "./now-api";
+import { FocusPanel } from "./FocusPanel";
 import { ErrorState, type AsyncState } from "./ui-states";
 
 export function NowPage({ apiUrl }: { apiUrl: string }) {
@@ -170,6 +171,12 @@ export function NowPage({ apiUrl }: { apiUrl: string }) {
 
         {showWhy ? <EvidencePanel view={view} /> : null}
       </article>
+
+      <FocusPanel
+        apiUrl={apiUrl}
+        recommendationId={view.recommendation.id}
+        recommendationStatus={view.recommendation.status}
+      />
 
       <aside className="now-guardrail">
         <strong>NOW chỉ yêu cầu một quyết định.</strong>
