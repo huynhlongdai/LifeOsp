@@ -13,6 +13,7 @@ import type {
   EndFocusInput,
   FocusSessionView,
   FocusStateView,
+  RecommendationId,
   StartFocusInput
 } from "@lifeos/domain";
 import type { FastifyInstance } from "fastify";
@@ -186,7 +187,7 @@ function toFocusSessionView(focus: FocusSessionRow, action: ActionRow): FocusSes
   return {
     id: focus.id as FocusSessionView["id"],
     actionId: focus.actionId as FocusSessionView["actionId"],
-    ...(focus.recommendationId === null ? {} : { recommendationId: focus.recommendationId as FocusSessionView["recommendationId"] }),
+    ...(focus.recommendationId === null ? {} : { recommendationId: focus.recommendationId as RecommendationId }),
     status: focus.status as FocusSessionView["status"],
     ...(focus.plannedMinutes === null ? {} : { plannedMinutes: focus.plannedMinutes }),
     startedAt: focus.startedAt.toISOString(),
