@@ -78,7 +78,7 @@ export async function startFocusFromNowRecommendation(
       )
       .where(and(eq(schema.actions.id, actionId), eq(schema.actions.userId, userId)))
       .limit(1)
-      .for("update");
+      .for("update", { of: [schema.actions, schema.outcomes] });
     if (!row || row.action.status !== "ready" || row.outcome.status !== "active") return { status: "invalid_action" };
     if (row.action.projectId !== null && (!row.project || row.project.status !== "active")) return { status: "invalid_action" };
 
