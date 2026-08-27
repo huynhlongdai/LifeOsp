@@ -1,5 +1,13 @@
 import { and, desc, eq } from "drizzle-orm";
-import type { FocusEndOutcome } from "@lifeos/domain";
+import type {
+  ActionId,
+  FocusEndOutcome,
+  FocusSessionId,
+  FocusSessionStatus,
+  FocusSessionView,
+  FocusStateView,
+  RecommendationId
+} from "@lifeos/domain";
 import type { DatabaseClient } from "./index.js";
 import * as schema from "./schema.js";
 
@@ -202,7 +210,7 @@ export async function captureFocusDistraction(
   });
 }
 
-export async function readFocusState(database: DatabaseClient, userId: string, generatedAt: Date) {
+export async function readFocusState(database: DatabaseClient, userId: string, generatedAt: Date): Promise<FocusStateView> {
   const [active] = await database.db
     .select({ focus: schema.focusSessions, action: schema.actions })
     .from(schema.focusSessions)
@@ -224,17 +232,17 @@ export async function readFocusState(database: DatabaseClient, userId: string, g
   return { state: "none" as const, generatedAt: generatedAt.toISOString() };
 }
 
-export function toFocusView(focus: schema.FocusSessionRow, action: schema.ActionRow) {
+export function toFocusView(focus: schema.FocusSessionRow, action: schema.ActionRow): FocusSessionView {
   return {
-    id: focus.id,
-    actionId: focus.actionId,
-    ...(focus.recommendationId === null ? {} : { recommendationId: focus.recommendationId }),
-    status: focus.status,
+    id: focus.id as FocusSessionId,
+    actionId: focus.actionId as ActionId,
+    ...(focus.recommendationId === null ? {} : { recommendationId: focus.recommendationId as RecommendationId }),
+    status: focus.status as FocusSessionStatus,
     ...(focus.plannedMinutes === null ? {} : { plannedMinutes: focus.plannedMinutes }),
     startedAt: focus.startedAt.toISOString(),
     ...(focus.endedAt === null ? {} : { endedAt: focus.endedAt.toISOString() }),
     action: {
-      id: action.id,
+      id: action.id as ActionId,
       title: action.title,
       ...(action.doneCondition === null ? {} : { doneCondition: action.doneCondition })
     }
