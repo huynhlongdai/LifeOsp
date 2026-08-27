@@ -18,7 +18,7 @@ import type {
 import type { FastifyInstance } from "fastify";
 import { resolveActorUserId } from "./identity.js";
 
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_DISTRACTION_LENGTH = 2_000;
 
 export type FocusErrorView = {
