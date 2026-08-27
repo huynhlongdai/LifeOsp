@@ -16,7 +16,7 @@ import type {
 import type { FastifyInstance } from "fastify";
 import { resolveActorUserId } from "./identity.js";
 
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_DISTRACTION_LENGTH = 2_000;
 
 export type FocusErrorView = {
@@ -91,19 +91,7 @@ export function registerFocusRoutes(app: FastifyInstance, database: DatabaseClie
     }
 
     reply.code(201);
-    return {
-      id: result.focus.id as FocusSessionView["id"],
-      actionId: result.focus.actionId as FocusSessionView["actionId"],
-      recommendationId: result.focus.recommendationId as FocusSessionView["recommendationId"],
-      status: result.focus.status as FocusSessionView["status"],
-      ...(result.focus.plannedMinutes === null ? {} : { plannedMinutes: result.focus.plannedMinutes }),
-      startedAt: result.focus.startedAt.toISOString(),
-      action: {
-        id: result.action.id as FocusSessionView["action"]["id"],
-        title: result.action.title,
-        ...(result.action.doneCondition === null ? {} : { doneCondition: result.action.doneCondition })
-      }
-    };
+    return toFocusSessionView(result.focus, result.action);
   });
 
   app.post<{ Params: { focusSessionId: string } }>(
@@ -141,20 +129,7 @@ export function registerFocusRoutes(app: FastifyInstance, database: DatabaseClie
         return { error: "invalid_status", message: "Only active FocusSession can be ended", currentStatus: result.currentStatus };
       }
 
-      return {
-        id: result.focus.id as FocusSessionView["id"],
-        actionId: result.focus.actionId as FocusSessionView["actionId"],
-        ...(result.focus.recommendationId === null ? {} : { recommendationId: result.focus.recommendationId as FocusSessionView["recommendationId"] }),
-        status: result.focus.status as FocusSessionView["status"],
-        ...(result.focus.plannedMinutes === null ? {} : { plannedMinutes: result.focus.plannedMinutes }),
-        startedAt: result.focus.startedAt.toISOString(),
-        endedAt: result.focus.endedAt?.toISOString(),
-        action: {
-          id: result.action.id as FocusSessionView["action"]["id"],
-          title: result.action.title,
-          ...(result.action.doneCondition === null ? {} : { doneCondition: result.action.doneCondition })
-        }
-      };
+      return toFocusSessionView(result.focus, result.action);
     }
   );
 
@@ -203,6 +178,23 @@ export function registerFocusRoutes(app: FastifyInstance, database: DatabaseClie
       };
     }
   );
+}
+
+function toFocusSessionView(focus: Parameters<typeof import("@lifeos/db").toFocusView>[0], action: Parameters<typeof import("@lifeos/db").toFocusView>[1]): FocusSessionView {
+  return {
+    id: focus.id as FocusSessionView["id"],
+    actionId: focus.actionId as FocusSessionView["actionId"],
+    ...(focus.recommendationId === null ? {} : { recommendationId: focus.recommendationId as FocusSessionView["recommendationId"] }),
+    status: focus.status as FocusSessionView["status"],
+    ...(focus.plannedMinutes === null ? {} : { plannedMinutes: focus.plannedMinutes }),
+    startedAt: focus.startedAt.toISOString(),
+    ...(focus.endedAt === null ? {} : { endedAt: focus.endedAt.toISOString() }),
+    action: {
+      id: action.id as FocusSessionView["action"]["id"],
+      title: action.title,
+      ...(action.doneCondition === null ? {} : { doneCondition: action.doneCondition })
+    }
+  };
 }
 
 function parseStartFocusInput(value: unknown): StartFocusInput | null {
