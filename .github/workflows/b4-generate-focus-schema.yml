@@ -3,6 +3,7 @@ name: B4 Generate Focus Schema
 on:
   push:
     branches: [feat/b4-focus-v0]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -19,12 +20,15 @@ jobs:
           node-version: 24
       - run: corepack enable
       - run: pnpm install --no-frozen-lockfile
-      - name: Add FocusSession schema
+      - name: Normalize FocusSession schema
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
+
           path = Path('packages/db/src/schema.ts')
           text = path.read_text()
+
           block = '''export const focusSessions = pgTable(
   "focus_sessions",
   {
@@ -60,13 +64,22 @@ jobs:
 );
 
 '''
-          marker = 'export const incubatorItems = pgTable('
-          if 'export const focusSessions = pgTable(' not in text:
-              text = text.replace(marker, block + marker, 1)
-          types = '''export type FocusSessionRow = typeof focusSessions.$inferSelect;\nexport type NewFocusSessionRow = typeof focusSessions.$inferInsert;\n'''
-          marker2 = 'export type IncubatorItemRow = typeof incubatorItems.$inferSelect;'
-          if 'export type FocusSessionRow =' not in text:
-              text = text.replace(marker2, types + marker2, 1)
+
+          text = re.sub(r'export const focusSessions = pgTable\(\n  "focus_sessions",\n.*?\n\);\n\n', '', text, flags=re.S)
+          text = text.replace('export type FocusSessionRow = typeof focusSessions.$inferSelect;\n', '')
+          text = text.replace('export type NewFocusSessionRow = typeof focusSessions.$inferInsert;\n', '')
+
+          marker = 'export const lifeEvents = pgTable('
+          if marker not in text:
+              raise SystemExit('lifeEvents marker not found')
+          text = text.replace(marker, block + marker, 1)
+
+          type_marker = 'export type IncubatorItemRow = typeof incubatorItems.$inferSelect;'
+          if type_marker not in text:
+              raise SystemExit('IncubatorItemRow marker not found')
+          types = 'export type FocusSessionRow = typeof focusSessions.$inferSelect;\nexport type NewFocusSessionRow = typeof focusSessions.$inferInsert;\n'
+          text = text.replace(type_marker, types + type_marker, 1)
+
           path.write_text(text)
           PY
       - name: Generate Drizzle migration
