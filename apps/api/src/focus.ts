@@ -3,7 +3,9 @@ import {
   endActiveFocus,
   readFocusState,
   startFocusFromNowRecommendation,
-  type DatabaseClient
+  type ActionRow,
+  type DatabaseClient,
+  type FocusSessionRow
 } from "@lifeos/db";
 import type {
   CaptureDistractionInput,
@@ -16,7 +18,7 @@ import type {
 import type { FastifyInstance } from "fastify";
 import { resolveActorUserId } from "./identity.js";
 
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_DISTRACTION_LENGTH = 2_000;
 
 export type FocusErrorView = {
@@ -180,7 +182,7 @@ export function registerFocusRoutes(app: FastifyInstance, database: DatabaseClie
   );
 }
 
-function toFocusSessionView(focus: Parameters<typeof import("@lifeos/db").toFocusView>[0], action: Parameters<typeof import("@lifeos/db").toFocusView>[1]): FocusSessionView {
+function toFocusSessionView(focus: FocusSessionRow, action: ActionRow): FocusSessionView {
   return {
     id: focus.id as FocusSessionView["id"],
     actionId: focus.actionId as FocusSessionView["actionId"],
