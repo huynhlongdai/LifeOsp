@@ -4,6 +4,7 @@ import type { HealthStatus, ReadinessStatus } from "@lifeos/domain";
 import { registerActionRoutes, type ActionOptions } from "./action.js";
 import { registerCaptureRoutes } from "./capture.js";
 import { registerExecutionContextRoutes } from "./execution-context.js";
+import { registerFocusRoutes } from "./focus.js";
 import { registerIdentityRoutes, type IdentityOptions } from "./identity.js";
 import { registerInterpretationRoutes, type InterpretationOptions } from "./interpretation.js";
 import { registerNextActionRoutes } from "./next-action.js";
@@ -54,6 +55,7 @@ export function buildApp(options: BuildAppOptions = {}) {
   registerActionRoutes(app, database, options.action);
   registerNextActionRoutes(app, database);
   registerNowRoutes(app, database);
+  registerFocusRoutes(app, database);
 
   app.addHook("onClose", async () => {
     if (database) {

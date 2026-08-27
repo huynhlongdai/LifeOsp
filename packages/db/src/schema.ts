@@ -207,6 +207,40 @@ export const actions = pgTable(
   ]
 );
 
+export const focusSessions = pgTable(
+  "focus_sessions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    actionId: uuid("action_id")
+      .notNull()
+      .references(() => actions.id, { onDelete: "cascade" }),
+    recommendationId: uuid("recommendation_id").references(() => recommendations.id, { onDelete: "set null" }),
+    plannedMinutes: integer("planned_minutes"),
+    status: text("status").default("active").notNull(),
+    startedAt: timestamp("started_at", { withTimezone: true }).defaultNow().notNull(),
+    endedAt: timestamp("ended_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("focus_sessions_user_started_idx").on(table.userId, table.startedAt),
+    index("focus_sessions_user_action_idx").on(table.userId, table.actionId),
+    uniqueIndex("focus_sessions_one_active_per_user_uidx").on(table.userId).where(sql`${table.status} = 'active'`),
+    check("focus_sessions_status_check", sql`${table.status} in ('active', 'completed', 'interrupted', 'abandoned')`),
+    check(
+      "focus_sessions_planned_minutes_check",
+      sql`${table.plannedMinutes} is null or (${table.plannedMinutes} >= 1 and ${table.plannedMinutes} <= 480)`
+    ),
+    check(
+      "focus_sessions_ended_at_check",
+      sql`(${table.status} = 'active' and ${table.endedAt} is null) or (${table.status} <> 'active' and ${table.endedAt} is not null)`
+    )
+  ]
+);
+
 export const incubatorItems = pgTable(
   "incubator_items",
   {
@@ -334,6 +368,8 @@ export type ProjectRow = typeof projects.$inferSelect;
 export type NewProjectRow = typeof projects.$inferInsert;
 export type ActionRow = typeof actions.$inferSelect;
 export type NewActionRow = typeof actions.$inferInsert;
+export type FocusSessionRow = typeof focusSessions.$inferSelect;
+export type NewFocusSessionRow = typeof focusSessions.$inferInsert;
 export type IncubatorItemRow = typeof incubatorItems.$inferSelect;
 export type NewIncubatorItemRow = typeof incubatorItems.$inferInsert;
 export type RecommendationRow = typeof recommendations.$inferSelect;

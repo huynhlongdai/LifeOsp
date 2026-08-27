@@ -6,6 +6,7 @@ export type {
   CaptureId,
   CaptureInterpretationId,
   DirectionId,
+  FocusSessionId,
   IncubatorItemId,
   LifeEventId,
   OutcomeId,
@@ -17,6 +18,7 @@ export type {
 } from "./ids.js";
 export * from "./action.js";
 export * from "./execution-context.js";
+export * from "./focus.js";
 export * from "./interpretation.js";
 export * from "./next-action.js";
 export * from "./now.js";

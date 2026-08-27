@@ -13,6 +13,7 @@ export type SeasonId = Brand<string, "SeasonId">;
 export type OutcomeId = Brand<string, "OutcomeId">;
 export type ProjectId = Brand<string, "ProjectId">;
 export type ActionId = Brand<string, "ActionId">;
+export type FocusSessionId = Brand<string, "FocusSessionId">;
 export type IncubatorItemId = Brand<string, "IncubatorItemId">;
 export type RecommendationId = Brand<string, "RecommendationId">;
 export type RecommendationEvidenceId = Brand<string, "RecommendationEvidenceId">;
