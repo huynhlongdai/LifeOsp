@@ -65,6 +65,23 @@
 
 @keyframes now-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 
+.focus-panel { padding: 20px 22px; border: 1px solid #2d3d5f; border-radius: 18px; background: rgba(10, 16, 29, .74); }
+.focus-panel-loading { margin: 0; color: #7c88a3; font-size: .86rem; }
+.focus-panel-error { border-color: #663641; background: #24151a; color: #ffc2c2; }
+.focus-panel-start { display: flex; justify-content: flex-start; }
+.focus-panel-active h3, .focus-panel-recent h3 { margin: 6px 0 0; font-size: 1.3rem; }
+.focus-done-condition { margin: 12px 0 0; color: #9aa7c2; line-height: 1.5; }
+.focus-done-condition strong { color: #e5ebf9; }
+.focus-meta-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.focus-meta-row span { padding: 6px 10px; border-radius: 999px; background: #141c2f; border: 1px solid #27344f; color: #9daac5; font-size: .74rem; font-weight: 700; }
+.focus-distraction-box { display: grid; gap: 10px; margin-top: 20px; padding: 16px; border: 1px solid #283650; border-radius: 14px; background: rgba(7, 12, 23, .55); }
+.focus-distraction-box label { display: grid; gap: 7px; }
+.focus-distraction-box label span { color: #8c99b3; font-size: .78rem; font-weight: 700; }
+.focus-distraction-box textarea { width: 100%; color: #eef3ff; background: #0d1422; border: 1px solid #2d3b58; border-radius: 11px; padding: 10px 12px; line-height: 1.45; resize: vertical; }
+.focus-distraction-saved { align-self: start; color: #a9e4c7; font-size: .8rem; font-weight: 700; }
+.focus-end-actions { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-top: 20px; }
+.focus-end-actions span { color: #8c99b3; font-size: .82rem; font-weight: 700; margin-right: 4px; }
+
 @media (max-width: 760px) {
   .now-page { gap: 12px; }
   .now-season-strip { grid-template-columns: 1fr; gap: 9px; padding: 15px 16px; }
@@ -85,6 +102,10 @@
   .now-guardrail strong { white-space: normal; }
   .now-empty-actions { display: grid; grid-template-columns: 1fr; }
   .now-empty-actions .primary-button, .now-empty-actions .secondary-button, .now-empty-actions .text-button { width: 100%; justify-content: center; }
+  .focus-panel { padding: 16px; }
+  .focus-end-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .focus-end-actions span { grid-column: 1 / -1; margin-right: 0; }
+  .focus-end-actions .primary-button, .focus-end-actions .secondary-button, .focus-end-actions .text-button { width: 100%; justify-content: center; }
 }
 
 @media (prefers-reduced-motion: reduce) {
