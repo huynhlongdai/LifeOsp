@@ -1,6 +1,6 @@
 # LifeOS Project Handoff
 
-Updated: 2026-08-26
+Updated: 2026-09-13
 Repository: `huynhlongdai/LifeOsp`
 
 ## 1. Purpose
@@ -320,14 +320,115 @@ Use this verbatim or adapt minimally:
 
 > Work on LifeOS repo `huynhlongdai/LifeOsp`. Read `HANDOFF.md`, issue #40 and Meeting #016 first. Continue only B4 on existing branch `feat/b4-focus-v0`. Current stable main is `0d4db21a60c5957211316d54d6ed3013d4ba9b53`. B4 already has initial Focus domain/schema work, but the temporary Drizzle migration-generation workflow failed and no PR exists. Inspect that failed run first, fix migration generation, generate/audit FocusSession migration, delete the temporary workflow, then implement transactional Focus persistence/API/UI/distraction capture/integration tests. Preserve the hard boundary: Focus does not complete or otherwise resolve Action; Action-result semantics belong to B5. Open a draft PR early, use CI/PostgreSQL as gates, and do not merge until the final clean head is green.
 
-## 11. Definition of done for handoff usage
+## 11. Implementation Plan & UI Design V2
+
+**Created:** 2026-09-13  
+**Status:** Planning Phase Complete
+
+### Strategic Documents
+
+Three comprehensive documents have been created to guide LifeOS development:
+
+1. **`IMPLEMENTATION_PLAN_V2.md`** — 12-week implementation roadmap
+   - Gap analysis: UI Design V2 vs current code
+   - 7 phases with detailed tasks
+   - Sprint planning (12 weeks)
+   - Resource allocation & risk assessment
+   - Success metrics & exit gates
+
+2. **`RESEARCH_SUPPLEMENT.md`** — UX research & technical insights
+   - UX patterns from Notion, Linear, Craft
+   - Behavioral psychology applications
+   - AI/ML approaches for intelligence engine
+   - Technical best practices
+   - Growth & experimentation ideas
+
+3. **`FEATURE_IDEAS.md`** — Feature backlog with priorities
+   - 25+ features categorized by priority (P1/P2/P3)
+   - Power user features (Command Palette, Keyboard Shortcuts)
+   - Gamification, Social, Integrations
+   - AI enhancements, Accessibility, Performance
+   - Priority matrix with Impact/Effort analysis
+
+### UI Design V2 Status
+
+**Completed:** 25 mobile screens designed in dark theme
+
+**Design System:**
+- Dark theme: `#0a0a0b` (deep), `#1a1a1f` (surface)
+- Accent: `#FF6B4A` (orange)
+- Typography: Space Grotesk (display) + Inter (body)
+- Phone frame: 393×852px, border-radius 52px
+
+**Screens Designed:**
+- **Core Loop (13):** Welcome, NeedState, Brain Dump, AI Processing, Interpretation, Trade-off, NOW, Focus, Daily Close, Weekly Reset (4 steps), Get Unstuck, Ask LifeOS, Action Result
+- **Secondary (12):** Direction, Execute, Reflect, ME, Memory Inspector, Inbox, Incubator, Settings, Notifications, Privacy, Export, Account
+
+**Files:**
+- `LifeOsp-redesign/screens.html` — All 12 main screens
+- `LifeOsp-redesign/clarity-screens.html` — 6 Clarity flow screens
+- `LifeOsp-redesign/reflect-screens.html` — 7 Reflect & secondary screens
+
+### Implementation Timeline Summary
+
+**12-Week Roadmap:**
+
+| Sprint | Phase | Focus | Deliverable |
+|--------|-------|-------|-------------|
+| 1-2 | 1 | B4 Focus | Focus session functional |
+| 3-4 | 2 | B5 Result + Daily Close | Full loop complete |
+| 5-6 | 3a | UI Redesign Foundation | Design system, 3 core screens |
+| 7-8 | 3b | UI Redesign Complete | All P0 screens |
+| 9-10 | 4 | Intelligence Engine | Derived features, patterns |
+| 11 | 5 | Weekly Adapt | Weekly Reset flow |
+| 12 | 6+7 | Get Unstuck + Polish | MVP feature complete |
+
+### Key Risks & Mitigations
+
+**High Risk:**
+- B4 migration failure → Manual migration if needed
+- UI redesign scope creep → Strict P0 screen list
+- Intelligence engine complexity → Start with simple rules
+
+**Success Metrics:**
+- Activation: Time to first Action <5 min, Brain Dump completion >70%
+- Engagement: DAU/WAU, session frequency
+- Retention: Day 7 >20%, Day 30 >10%
+- Value: Meaningful Progress Days per WAU >2
+
+### Next Actions
+
+**This Week:**
+1. Review 3 strategic documents
+2. Fix B4 migration workflow (Agent B)
+3. Start UI redesign planning (Agent C)
+
+**Next Week:**
+1. Complete B4 implementation
+2. Start B5 domain contracts
+3. Begin design system foundation
+
+### Reading Order
+
+New agents should read:
+
+1. `HANDOFF.md` (this file)
+2. `IMPLEMENTATION_PLAN_V2.md` (roadmap)
+3. Active issue (`#40` for B4)
+4. `RESEARCH_SUPPLEMENT.md` (context)
+5. `FEATURE_IDEAS.md` (backlog)
+6. UI design files in `LifeOsp-redesign/`
+
+## 12. Definition of done for handoff usage
 
 A new agent/chat should be able to continue by reading, in order:
 
 1. `HANDOFF.md`
-2. the active issue (`#40` currently)
-3. `meetings/016-vertical-slice-a-exit-and-b-authorization.md`
-4. current feature branch diff / CI failure
-5. canonical domain/docs only where needed.
+2. `IMPLEMENTATION_PLAN_V2.md`
+3. the active issue (`#40` currently)
+4. `meetings/016-vertical-slice-a-exit-and-b-authorization.md`
+5. `RESEARCH_SUPPLEMENT.md` for context
+6. current feature branch diff / CI failure
+7. canonical domain/docs only where needed.
 
 It should not need the previous long ChatGPT conversation.

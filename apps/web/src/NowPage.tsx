@@ -87,34 +87,63 @@ export function NowPage({ apiUrl }: { apiUrl: string }) {
   }
 
   return (
-    <section className="now-page" aria-live="polite">
-      <SeasonStrip view={view} />
+    <section className="now-page-v2" aria-live="polite">
+      <SeasonBanner view={view} />
 
-      <article className="now-primary-card">
-        <div className="now-primary-heading">
-          <div>
-            <p className="eyebrow">RIGHT NOW</p>
-            <h2>{view.action.title}</h2>
+      <article className="now-card-v2">
+        <div className="now-card-header">
+          <div className="now-badge">
+            <span>⚡</span>
+            <span>Việc cần làm tiếp</span>
           </div>
-          <RecommendationStatus status={view.recommendation.status} />
+          <div className="confidence-indicator">
+            <span className="confidence-dot"></span>
+            <span>{confidenceLabel(view.recommendation.confidenceClass)}</span>
+          </div>
         </div>
 
+        <h2 className="now-title">{view.action.title}</h2>
+
         {view.action.doneCondition ? (
-          <div className="now-done-condition">
-            <span>Khi nào được xem là xong?</span>
-            <strong>{view.action.doneCondition}</strong>
+          <div className="done-condition-box">
+            <div className="done-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <div>
+              <div className="done-label">Khi nào xong</div>
+              <div className="done-text">{view.action.doneCondition}</div>
+            </div>
           </div>
         ) : null}
 
-        <div className="now-meta-row" aria-label="Thông tin Action">
-          {view.action.estimatedMinutes ? <span>≈ {view.action.estimatedMinutes} phút</span> : null}
-          {view.action.scheduledFor ? <span>Lịch: {formatDateTime(view.action.scheduledFor)}</span> : null}
-          <span>{confidenceLabel(view.recommendation.confidenceClass)}</span>
+        <div className="now-tags">
+          {view.action.estimatedMinutes ? (
+            <span className="tag">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              ≈ {view.action.estimatedMinutes} phút
+            </span>
+          ) : null}
+          {view.action.scheduledFor ? (
+            <span className="tag">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              {formatDate(view.action.scheduledFor)}
+            </span>
+          ) : null}
         </div>
 
-        <p className="now-rationale">{view.recommendation.rationale}</p>
+        <p className="now-rationale-v2">{view.recommendation.rationale}</p>
 
-        {mutationError ? <p className="now-inline-error" role="alert">{mutationError}</p> : null}
+        {mutationError ? <div className="error-message-v2">{mutationError}</div> : null}
 
         {editing ? (
           <EditActionForm
@@ -124,33 +153,39 @@ export function NowPage({ apiUrl }: { apiUrl: string }) {
             onSave={(input) => void resolve(view.recommendation.id, input)}
           />
         ) : (
-          <div className="now-action-stack">
+          <div className="now-actions-v2">
             {view.recommendation.status === "shown" ? (
               <button
-                className="primary-button now-primary-cta"
+                className="btn btn-primary btn-lg"
                 type="button"
                 disabled={busy}
                 onClick={() => void resolve(view.recommendation.id, { resolution: "accepted" })}
               >
-                Chấp nhận việc này
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                Bắt đầu Focus
               </button>
             ) : (
-              <div className="now-confirmed-note" role="status">
+              <div className="confirmed-badge">
                 {view.recommendation.status === "accepted"
-                  ? "Đã chấp nhận. Action vẫn ở trạng thái ready cho tới khi bước Execute/Focus bắt đầu."
-                  : "Bạn đã chỉnh Action này. Evidence bên dưới vẫn giải thích recommendation ban đầu."}
+                  ? "✓ Đã chấp nhận. Action đang ở trạng thái ready."
+                  : "✓ Đã chỉnh sửa. Evidence bên dưới vẫn giải thích recommendation ban đầu."}
               </div>
             )}
 
-            <div className="now-secondary-actions">
-              <button className="secondary-button" type="button" disabled={busy} onClick={() => setEditing(true)}>
+            <div className="now-secondary-row">
+              <button className="btn btn-secondary" type="button" disabled={busy} onClick={() => setEditing(true)}>
                 Chỉnh sửa
               </button>
-              <button className="text-button" type="button" disabled={busy} onClick={() => setShowWhy((value) => !value)}>
+              <button className="btn btn-secondary" type="button" disabled={busy} onClick={() => setShowWhy((value) => !value)}>
                 {showWhy ? "Ẩn lý do" : "Vì sao việc này?"}
               </button>
+            </div>
+
+            <div className="now-tertiary-row">
               <button
-                className="text-button"
+                className="btn btn-ghost"
                 type="button"
                 disabled={busy}
                 onClick={() => void resolve(view.recommendation.id, { resolution: "not_now" })}
@@ -158,7 +193,7 @@ export function NowPage({ apiUrl }: { apiUrl: string }) {
                 Để sau
               </button>
               <button
-                className="text-button"
+                className="btn btn-ghost"
                 type="button"
                 disabled={busy}
                 onClick={() => void resolve(view.recommendation.id, { resolution: "wrong_assumption" })}
@@ -178,55 +213,54 @@ export function NowPage({ apiUrl }: { apiUrl: string }) {
         recommendationStatus={view.recommendation.status}
       />
 
-      <aside className="now-guardrail">
-        <strong>NOW chỉ yêu cầu một quyết định.</strong>
-        <span>Không có backlog phụ và không có client-side ranking. Việc khác vẫn ở ngoài vùng chú ý hiện tại.</span>
-      </aside>
+      <div className="now-footer-note">
+        "NOW chỉ yêu cầu một quyết định. Những việc khác đã có chỗ riêng."
+      </div>
     </section>
   );
 }
 
-function SeasonStrip({ view }: { view: Extract<NowView, { state: "ready" }> }) {
+function SeasonBanner({ view }: { view: Extract<NowView, { state: "ready" | "no_ready_action" | "blocked" }> }) {
   return (
-    <div className="now-season-strip">
-      <div>
-        <p className="eyebrow">CURRENT SEASON</p>
-        <strong>{view.season.title}</strong>
+    <div className="season-banner-v2">
+      <div className="season-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+          <path d="M2 17l10 5 10-5"></path>
+          <path d="M2 12l10 5 10-5"></path>
+        </svg>
       </div>
-      <p>{view.season.primaryFocusText ?? view.season.purpose}</p>
+      <div className="season-info">
+        <div className="season-label">Mùa hiện tại</div>
+        <div className="season-name">{view.season.title}</div>
+      </div>
     </div>
   );
 }
 
-function RecommendationStatus({ status }: { status: "shown" | "accepted" | "edited" }) {
-  const label = status === "shown" ? "Đề xuất" : status === "accepted" ? "Đã chấp nhận" : "Đã chỉnh";
-  return <span className={`now-recommendation-status ${status}`}>{label}</span>;
-}
-
 function EvidencePanel({ view }: { view: Extract<NowView, { state: "ready" }> }) {
   return (
-    <section className="now-evidence" aria-label="Recommendation evidence">
-      <div className="now-evidence-heading">
-        <div>
-          <p className="eyebrow">WHY THIS?</p>
-          <h3>Evidence đã được lưu khi recommendation được tạo</h3>
-        </div>
-        <span>{view.recommendation.evidence.length} tín hiệu</span>
+    <section className="evidence-panel-v2" aria-label="Recommendation evidence">
+      <div className="evidence-header">
+        <h3>Vì sao việc này?</h3>
+        <span className="evidence-count">{view.recommendation.evidence.length} tín hiệu</span>
       </div>
-      <div className="now-evidence-list">
+      <div className="evidence-list">
         {view.recommendation.evidence.map((item) => (
-          <div className="now-evidence-item" key={item.key}>
-            <div>
+          <div className="evidence-item" key={item.key}>
+            <div className="evidence-content">
               <strong>{item.label}</strong>
               <small>{evidenceStrengthLabel(item.strength)}</small>
             </div>
-            <span className="now-score">{item.score >= 0 ? "+" : ""}{item.score}</span>
+            <span className={`evidence-badge badge-${item.strength}`}>
+              {item.score >= 0 ? "+" : ""}{item.score}
+            </span>
           </div>
         ))}
       </div>
-      <small className="now-evidence-footnote">
-        Đây là score/evidence cấp sản phẩm, không phải chain-of-thought ẩn của AI.
-      </small>
+      <p className="evidence-footnote">
+        Dựa trên dữ liệu thực tế, không phải suy đoán của AI.
+      </p>
     </section>
   );
 }
@@ -265,18 +299,19 @@ function EditActionForm({
   };
 
   return (
-    <div className="now-edit-form">
+    <div className="edit-form-v2">
       <label>
         <span>Action</span>
-        <input value={title} maxLength={500} onChange={(event) => setTitle(event.target.value)} />
+        <input className="input" value={title} maxLength={500} onChange={(event) => setTitle(event.target.value)} />
       </label>
       <label>
         <span>Điều kiện hoàn thành</span>
-        <textarea value={doneCondition} maxLength={1000} rows={3} onChange={(event) => setDoneCondition(event.target.value)} />
+        <textarea className="input" value={doneCondition} maxLength={1000} rows={3} onChange={(event) => setDoneCondition(event.target.value)} />
       </label>
-      <label className="now-minutes-field">
+      <label>
         <span>Ước lượng phút</span>
         <input
+          className="input"
           type="number"
           min={1}
           max={480}
@@ -284,11 +319,11 @@ function EditActionForm({
           onChange={(event) => setEstimatedMinutes(event.target.value)}
         />
       </label>
-      <div className="now-edit-actions">
-        <button className="primary-button" type="button" disabled={busy || title.trim().length === 0} onClick={submit}>
+      <div className="edit-actions">
+        <button className="btn btn-primary" type="button" disabled={busy || title.trim().length === 0} onClick={submit}>
           Lưu chỉnh sửa
         </button>
-        <button className="secondary-button" type="button" disabled={busy} onClick={onCancel}>
+        <button className="btn btn-secondary" type="button" disabled={busy} onClick={onCancel}>
           Hủy
         </button>
       </div>
@@ -298,13 +333,17 @@ function EditActionForm({
 
 function NoDirection({ view }: { view: Extract<NowView, { state: "no_direction" }> }) {
   return (
-    <section className="now-empty-card">
-      <p className="eyebrow">NO DIRECTION</p>
-      <h2>Chưa cần ép mình chọn một task.</h2>
+    <section className="empty-state-v2">
+      <div className="empty-icon">🧭</div>
+      <h2>Chưa có hướng đi</h2>
       <p>{view.message}</p>
-      <div className="now-empty-actions">
-        <a className="primary-button link-button" href="/direction">Xác định hướng hiện tại</a>
-        <a className="text-button link-button" href="/clarity">Brain Dump trước</a>
+      <div className="empty-actions">
+        <a className="btn btn-primary" href="/clarity">
+          Bắt đầu Clarity Reset
+        </a>
+        <a className="btn btn-secondary" href="/direction">
+          Xác định hướng hiện tại
+        </a>
       </div>
     </section>
   );
@@ -323,25 +362,28 @@ function NoReadyAction({
 }) {
   const resolved = view.reason === "recommendation_resolved";
   return (
-    <section className="now-page">
-      <div className="now-season-strip">
-        <div><p className="eyebrow">CURRENT SEASON</p><strong>{view.season.title}</strong></div>
-        <p>{view.season.primaryFocusText ?? view.season.purpose}</p>
-      </div>
-      <section className="now-empty-card">
-        <p className="eyebrow">{resolved ? "USER CONTROL" : "NO READY ACTION"}</p>
-        <h2>{resolved ? "LifeOS đã tôn trọng quyết định vừa rồi." : "Chưa có một việc đủ rõ để đặt vào RIGHT NOW."}</h2>
+    <section className="now-page-v2">
+      <SeasonBanner view={view} />
+      <section className="empty-state-v2">
+        <div className="empty-icon">{resolved ? "✓" : "🎯"}</div>
+        <h2>{resolved ? "Đã tôn trọng quyết định của bạn" : "Chưa có action sẵn sàng"}</h2>
         <p>{view.message}</p>
-        {mutationError ? <p className="now-inline-error" role="alert">{mutationError}</p> : null}
-        <div className="now-empty-actions">
-          {resolved || view.reason === "recommendation_missing" ? (
-            <button className="secondary-button" type="button" disabled={busy} onClick={onRefresh}>
+        {mutationError ? <div className="error-message-v2">{mutationError}</div> : null}
+        <div className="empty-actions">
+          {(resolved || view.reason === "recommendation_missing") ? (
+            <button className="btn btn-primary" type="button" disabled={busy} onClick={onRefresh}>
               {busy ? "Đang tính lại…" : "Yêu cầu đề xuất lại"}
             </button>
           ) : null}
-          <a className="text-button link-button" href="/execute">Xem vùng Execute</a>
+          <a className="btn btn-secondary" href="/execute">
+            Xem vùng Execute
+          </a>
         </div>
-        {resolved ? <small>LifeOS không tự đưa recommendation đã bác trở lại. Nút trên là một yêu cầu mới có chủ ý.</small> : null}
+        {resolved ? (
+          <p className="empty-note">
+            LifeOS không tự đưa recommendation đã bác trở lại. Nút trên là một yêu cầu mới có chủ ý.
+          </p>
+        ) : null}
       </section>
     </section>
   );
@@ -349,17 +391,19 @@ function NoReadyAction({
 
 function BlockedState({ view }: { view: Extract<NowView, { state: "blocked" }> }) {
   return (
-    <section className="now-page">
-      <div className="now-season-strip">
-        <div><p className="eyebrow">CURRENT SEASON</p><strong>{view.season.title}</strong></div>
-        <p>{view.season.primaryFocusText ?? view.season.purpose}</p>
-      </div>
-      <section className="now-empty-card blocked">
-        <p className="eyebrow">BLOCKED</p>
-        <h2>Không nên giả vờ rằng bạn có một “next action” khả thi.</h2>
+    <section className="now-page-v2">
+      <SeasonBanner view={view} />
+      <section className="empty-state-v2 blocked">
+        <div className="empty-icon">🚧</div>
+        <h2>Đang bị chặn</h2>
         <p>{view.message}</p>
-        <strong>{view.blockedActionCount} Action đang bị chặn</strong>
-        <p className="now-muted">NOW chỉ báo trạng thái thật. Việc gỡ blocker sẽ thuộc flow Execute tiếp theo.</p>
+        <div className="blocked-count">{view.blockedActionCount} Action đang bị chặn</div>
+        <p className="empty-note">
+          NOW chỉ báo trạng thái thật. Việc gỡ blocker sẽ thuộc flow Execute tiếp theo.
+        </p>
+        <a className="btn btn-secondary" href="/execute">
+          Xem Execute
+        </a>
       </section>
     </section>
   );
@@ -367,22 +411,18 @@ function BlockedState({ view }: { view: Extract<NowView, { state: "blocked" }> }
 
 function NowLoading() {
   return (
-    <section className="now-page" aria-busy="true" aria-live="polite">
-      <div className="now-loading-strip" />
-      <div className="now-loading-card">
-        <span />
-        <span />
-        <span />
-      </div>
-      <p className="now-loading-label">Đang đọc Current Season và recommendation đã lưu…</p>
+    <section className="now-page-v2 loading">
+      <div className="loading-skeleton season-skeleton"></div>
+      <div className="loading-skeleton card-skeleton"></div>
+      <p className="loading-text">Đang tải...</p>
     </section>
   );
 }
 
 function confidenceLabel(value: string) {
-  if (value === "direct") return "Evidence trực tiếp";
+  if (value === "direct") return "Trực tiếp";
   if (value === "strong_pattern") return "Pattern mạnh";
-  if (value === "possible_pattern") return "Pattern có thể";
+  if (value === "possible_pattern") return "Có thể";
   return "Gợi ý";
 }
 
@@ -397,4 +437,10 @@ function formatDateTime(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short" }).format(date);
+}
+
+function formatDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("vi-VN", { dateStyle: "short" }).format(date);
 }

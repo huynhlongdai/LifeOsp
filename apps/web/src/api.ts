@@ -89,6 +89,7 @@ export type ApiClient = {
   rejectClarityPromotion(recommendationId: string, signal?: AbortSignal): Promise<PromotionResolutionView>;
   deferClarityPromotion(recommendationId: string, signal?: AbortSignal): Promise<PromotionResolutionView>;
   getCurrentDirection(signal?: AbortSignal): Promise<CurrentDirectionView | null>;
+  getActions(signal?: AbortSignal): Promise<import("@lifeos/domain").ActionView[]>;
 };
 
 export function createApiClient(baseUrl = ""): ApiClient {
@@ -221,6 +222,14 @@ export function createApiClient(baseUrl = ""): ApiClient {
         if (error instanceof ApiRequestError && error.status === 404) return null;
         throw error;
       }
+    },
+
+    async getActions(signal): Promise<import("@lifeos/domain").ActionView[]> {
+      const value = await request("/v1/actions", signal ? { signal } : {});
+      if (!Array.isArray(value) || !value.every(isActionView)) {
+        throw new Error("Actions response does not match the LifeOS contract");
+      }
+      return value;
     }
   };
 }
@@ -424,4 +433,15 @@ function isStringArray(value: unknown): value is string[] {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isActionView(value: unknown): value is import("@lifeos/domain").ActionView {
+  if (!isRecord(value)) return false;
+  return (
+    typeof value.id === "string" &&
+    typeof value.title === "string" &&
+    typeof value.status === "string" &&
+    typeof value.createdAt === "string" &&
+    typeof value.updatedAt === "string"
+  );
 }
