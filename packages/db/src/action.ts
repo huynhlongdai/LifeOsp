@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import type { DatabaseClient } from "./index.js";
 import * as schema from "./schema.js";
 
@@ -256,4 +256,12 @@ export async function findActionById(
     .where(and(eq(schema.actions.id, actionId), eq(schema.actions.userId, userId)))
     .limit(1);
   return action ?? null;
+}
+
+export async function listActions(database: DatabaseClient, userId: string): Promise<schema.ActionRow[]> {
+  return database.db
+    .select()
+    .from(schema.actions)
+    .where(eq(schema.actions.userId, userId))
+    .orderBy(desc(schema.actions.updatedAt));
 }

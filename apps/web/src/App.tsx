@@ -4,6 +4,8 @@ import { createApiClient } from "./api";
 import { ClarityReset } from "./ClarityReset";
 import { DirectionPage } from "./DirectionPage";
 import { NowPage } from "./NowPage";
+import { ExecutePage } from "./ExecutePage";
+import { ReflectPage } from "./ReflectPage";
 import { APP_ROUTES, resolveRoute, type AppRoute } from "./routes";
 import { EmptyState, ErrorState, LoadingState, type AsyncState } from "./ui-states";
 
@@ -88,6 +90,8 @@ function RouteContent({ route, apiUrl }: { route: AppRoute; apiUrl: string }) {
   if (route.key === "clarity") return <ClarityReset apiUrl={apiUrl} />;
   if (route.key === "direction") return <DirectionPage apiUrl={apiUrl} />;
   if (route.key === "now") return <NowPage apiUrl={apiUrl} />;
+  if (route.key === "execute") return <ExecutePage apiUrl={apiUrl} />;
+  if (route.key === "reflect") return <ReflectPage apiUrl={apiUrl} />;
 
   return (
     <EmptyState title={`${route.label} chưa có dữ liệu`}>

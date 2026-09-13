@@ -23,6 +23,7 @@ export * from "./interpretation.js";
 export * from "./next-action.js";
 export * from "./now.js";
 export * from "./promotion.js";
+export * from "./result.js";
 
 export const NEED_STATES = [
   "unclear_direction",

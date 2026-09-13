@@ -1,9 +1,8 @@
 # B5 Result + Daily Close V0 — Status Report
 
 **Ngày:** 2026-09-13  
-**Branch:** `feat/b5-result-daily-close-v2`  
-**Commits:** 1 commit ahead of main  
-**Status:** Implementation Complete, Ready for PR
+**Branch:** `feat/ui-redesign-v2`
+**Status:** Integrated with UI V2; unit/type/build gates passing
 
 ---
 
@@ -183,13 +182,14 @@
 4. **Manual testing** of daily close flow
 
 ### PR Checklist
-- [x] All tests pass (49/49)
+- [x] All tests pass (51/51)
 - [x] TypeScript compilation passes
 - [x] No temporary files or debug code
 - [x] Migration tested (schema validated)
 - [x] API endpoints documented in code
 - [x] No B6 E2E logic leaked
-- [ ] Branch rebased on latest main (after B4 merge)
+- [x] Based on B4-complete main
+- [ ] PostgreSQL integration suite (Docker unavailable in current environment)
 
 ### After Merge
 - [ ] Delete branch `feat/b5-result-daily-close-v2`

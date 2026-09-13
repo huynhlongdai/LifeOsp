@@ -327,6 +327,76 @@ export const recommendationEvidence = pgTable(
   ]
 );
 
+export const actionResults = pgTable(
+  "action_results",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    actionId: uuid("action_id")
+      .notNull()
+      .references(() => actions.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    resultType: text("result_type").notNull(),
+    note: text("note"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("action_results_action_idx").on(table.actionId),
+    index("action_results_user_created_idx").on(table.userId, table.createdAt),
+    check(
+      "action_results_result_type_check",
+      sql`${table.resultType} in ('completed', 'partial', 'postponed', 'blocked', 'dropped')`
+    )
+  ]
+);
+
+export const focusResults = pgTable(
+  "focus_results",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    focusSessionId: uuid("focus_session_id")
+      .notNull()
+      .references(() => focusSessions.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    resultType: text("result_type").notNull(),
+    actualMinutes: integer("actual_minutes"),
+    note: text("note"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("focus_results_focus_session_idx").on(table.focusSessionId),
+    index("focus_results_user_created_idx").on(table.userId, table.createdAt),
+    check(
+      "focus_results_result_type_check",
+      sql`${table.resultType} in ('completed', 'interrupted', 'abandoned')`
+    ),
+    check(
+      "focus_results_actual_minutes_check",
+      sql`${table.actualMinutes} is null or (${table.actualMinutes} >= 1 and ${table.actualMinutes} <= 1440)`
+    )
+  ]
+);
+
+export const dailyCloses = pgTable(
+  "daily_closes",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    date: date("date").notNull(),
+    note: text("note"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    uniqueIndex("daily_closes_user_date_uidx").on(table.userId, table.date),
+    index("daily_closes_user_created_idx").on(table.userId, table.createdAt)
+  ]
+);
+
 export const lifeEvents = pgTable(
   "life_events",
   {
@@ -376,5 +446,11 @@ export type RecommendationRow = typeof recommendations.$inferSelect;
 export type NewRecommendationRow = typeof recommendations.$inferInsert;
 export type RecommendationEvidenceRow = typeof recommendationEvidence.$inferSelect;
 export type NewRecommendationEvidenceRow = typeof recommendationEvidence.$inferInsert;
+export type ActionResultRow = typeof actionResults.$inferSelect;
+export type NewActionResultRow = typeof actionResults.$inferInsert;
+export type FocusResultRow = typeof focusResults.$inferSelect;
+export type NewFocusResultRow = typeof focusResults.$inferInsert;
+export type DailyCloseRow = typeof dailyCloses.$inferSelect;
+export type NewDailyCloseRow = typeof dailyCloses.$inferInsert;
 export type LifeEventRow = typeof lifeEvents.$inferSelect;
 export type NewLifeEventRow = typeof lifeEvents.$inferInsert;

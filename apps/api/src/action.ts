@@ -8,6 +8,7 @@ import {
   createActionCandidate,
   findActionById,
   findActionContext,
+  listActions,
   type ActionRow,
   type DatabaseClient
 } from "@lifeos/db";
@@ -63,6 +64,25 @@ export function registerActionRoutes(
   database: DatabaseClient | null,
   options: ActionOptions = {}
 ) {
+  app.get(
+    "/v1/actions",
+    async (request, reply): Promise<ActionView[] | ActionErrorView> => {
+      reply.header("cache-control", "no-store");
+      if (!database) {
+        reply.code(503);
+        return { error: "unavailable", message: "Action storage is unavailable" };
+      }
+
+      const userId = await resolveActorUserId(request, database);
+      if (!userId) {
+        reply.code(401);
+        return { error: "unauthenticated", message: "An active LifeOS session is required" };
+      }
+
+      return (await listActions(database, userId)).map(toActionView);
+    }
+  );
+
   app.post(
     "/v1/actions/candidates/manual",
     async (request, reply): Promise<ActionView | ActionErrorView> => {
