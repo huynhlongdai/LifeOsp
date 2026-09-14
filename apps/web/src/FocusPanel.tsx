@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import type { FocusStateView } from "@lifeos/domain";
-import { ApiRequestError } from "./api";
+import { ApiRequestError, createApiClient } from "./api";
 import { createFocusApiClient } from "./focus-api";
 import { SessionChecklist } from "./SessionChecklist";
 import { ActionResultSheet } from "./ActionResultSheet";
@@ -315,6 +315,8 @@ function FocusOverlay({
           <SessionChecklist apiUrl={apiUrl} actionId={focus.action.id} tone="dark" />
         ) : null}
 
+        {showContext ? <NotNowList apiUrl={apiUrl} /> : null}
+
         {actionError ? (
           <p className="text-xs px-3.5 py-3 rounded-2xl mb-2" role="alert" style={{ background: "rgba(224,56,56,0.15)", color: "#ffb4b4" }}>
             {actionError}
@@ -545,4 +547,41 @@ function formatDateTime(value: string) {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * "Không làm bây giờ": the things the user themself parked in the Incubator.
+ * Focus only repeats that decision — it never parks anything on its own.
+ */
+function NotNowList({ apiUrl }: { apiUrl: string }) {
+  const api = useMemo(() => createApiClient(apiUrl), [apiUrl]);
+  const [items, setItems] = useState<{ id: string; title: string }[]>([]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    api
+      .getInbox(controller.signal)
+      .then((inbox) => setItems((inbox?.incubated ?? []).slice(0, 3).map((item) => ({ id: item.id, title: item.title }))))
+      .catch(() => setItems([]));
+    return () => controller.abort();
+  }, [api]);
+
+  if (items.length === 0) return null;
+
+  return (
+    <div className="rounded-2xl p-4 mb-3" style={{ background: "rgba(10,14,28,0.85)", border: "1px solid rgba(255,255,255,0.08)" }}>
+      <p className="text-[10px] font-bold tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.25)" }}>KHÔNG LÀM BÂY GIỜ</p>
+      {items.map((item) => (
+        <div key={item.id} className="flex items-center gap-2 mb-1.5">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M18 6L6 18M6 6l12 12" stroke="#f87171" strokeWidth="2.5" strokeLinecap="round" />
+          </svg>
+          <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>{item.title}</span>
+        </div>
+      ))}
+      <p className="text-[10px] mt-1.5" style={{ color: "rgba(255,255,255,0.25)" }}>
+        Bạn đã gác những việc này vào Incubator — không phải LifeOS tự bỏ.
+      </p>
+    </div>
+  );
 }
