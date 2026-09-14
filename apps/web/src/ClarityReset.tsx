@@ -221,7 +221,7 @@ export function ClarityReset({ apiUrl }: { apiUrl: string }) {
     return (
       <section className="clarity-flow" aria-labelledby="clarity-title">
         <div className="flow-intro">
-          <p className="eyebrow">CLARITY RESET · 1/3</p>
+          <p className="eyebrow">BƯỚC 1/3</p>
           <h2 id="clarity-title">Bạn cần LifeOS giúp điều gì ngay lúc này?</h2>
           <p>Không cần có mục tiêu dài hạn. Chọn vấn đề gần với hiện tại nhất; đây không phải nhãn tính cách của bạn.</p>
         </div>
@@ -253,7 +253,7 @@ export function ClarityReset({ apiUrl }: { apiUrl: string }) {
     return (
       <section className="clarity-flow" aria-labelledby="capture-title">
         <div className="flow-intro">
-          <p className="eyebrow">CLARITY RESET · 2/3</p>
+          <p className="eyebrow">BƯỚC 2/3</p>
           <h2 id="capture-title">Đưa mọi thứ trong đầu bạn ra ngoài.</h2>
           <p>Đừng phân loại. LifeOS sẽ lưu bản gốc trước, rồi mới thử giúp bạn sắp xếp.</p>
         </div>
@@ -343,7 +343,7 @@ export function ClarityReset({ apiUrl }: { apiUrl: string }) {
     return (
       <section className="clarity-flow" aria-labelledby="review-title">
         <div className="flow-intro">
-          <p className="eyebrow">CLARITY RESET · 3/3</p>
+          <p className="eyebrow">BƯỚC 3/3</p>
           <h2 id="review-title">Kiểm tra xem LifeOS hiểu đúng chưa.</h2>
           <p>
             Đây là bản làm rõ có thể sửa. Không mục nào tự trở thành Direction, Project hay Action ở bước này.

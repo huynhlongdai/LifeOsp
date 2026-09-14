@@ -74,7 +74,16 @@ export function App() {
 function RouteContent({ route, apiUrl }: { route: AppRoute; apiUrl: string }) {
   if (route.key === "now") return <NowPage apiUrl={apiUrl} />;
   if (route.key === "reflect") return <ReflectPage apiUrl={apiUrl} />;
-  if (route.key === "clarity") return <LegacyPage><ClarityReset apiUrl={apiUrl} /></LegacyPage>;
+  if (route.key === "clarity") {
+    return (
+      <>
+        <ClarityHero />
+        <LegacyPage>
+          <ClarityReset apiUrl={apiUrl} />
+        </LegacyPage>
+      </>
+    );
+  }
   if (route.key === "direction") return <DirectionPage apiUrl={apiUrl} />;
 
   if (route.key === "execute") return <ExecutePage apiUrl={apiUrl} />;
@@ -84,6 +93,26 @@ function RouteContent({ route, apiUrl }: { route: AppRoute; apiUrl: string }) {
 
 
 /** Slice A screens keep their current markup until their own design pass. */
+/**
+ * Prototype header for Clarity Reset. The flow itself still uses the Slice A markup;
+ * only its colours and typography are bridged onto the design tokens.
+ */
+function ClarityHero() {
+  return (
+    <div className="hero-execute relative overflow-hidden px-5 pt-9 pb-5 md:px-8">
+      <svg className="absolute pointer-events-none" style={{ top: 14, right: 22, opacity: 0.16 }} width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 2.38 1.19 4.47 3 5.74V17a1 1 0 001 1h6a1 1 0 001-1v-2.26C17.81 13.47 19 11.38 19 9c0-3.87-3.13-7-7-7z" stroke="var(--text)" strokeWidth="1.6" />
+        <path d="M9 21h6" stroke="var(--text)" strokeWidth="1.6" strokeLinecap="round" />
+      </svg>
+      <div className="relative z-10">
+        <p className="text-[9px] font-extrabold tracking-widest mb-1.5" style={{ color: "var(--text-3)", letterSpacing: "0.14em" }}>CLARITY RESET</p>
+        <h1 className="text-[44px] leading-none font-display" style={{ color: "var(--text)", textTransform: "uppercase" }}>LÀM RÕ</h1>
+        <p className="font-hand mt-1" style={{ color: "var(--text-3)", fontSize: 17 }}>Bạn quyết định, LifeOS chỉ sắp xếp</p>
+      </div>
+    </div>
+  );
+}
+
 function LegacyPage({ children }: { children: ReactNode }) {
   return <div className="px-5 pt-8 pb-10 md:px-8 md:max-w-3xl">{children}</div>;
 }
