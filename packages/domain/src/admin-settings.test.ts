@@ -59,3 +59,10 @@ test("base url must be an absolute http(s) url", () => {
     assert.equal(isAdminSettingsError(parseAdminSettingsUpdate({ aiBaseUrl: value })), true, value);
   }
 });
+
+test("model names may be namespaced like openrouter models", () => {
+  const parsed = parseAdminSettingsUpdate({ aiModel: "meta-llama/llama-3.1-8b-instruct" });
+  assert.equal(isAdminSettingsError(parsed), false);
+  if (isAdminSettingsError(parsed)) return;
+  assert.equal(parsed.aiModel, "meta-llama/llama-3.1-8b-instruct");
+});

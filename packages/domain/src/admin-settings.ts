@@ -76,7 +76,7 @@ export function parseAdminSettingsUpdate(body: unknown): AdminSettingsUpdateInpu
     else if (typeof input.aiModel === "string") {
       const model = input.aiModel.trim();
       if (model.length === 0) update.aiModel = null;
-      else if (model.length > 80 || !/^[A-Za-z0-9._:-]+$/.test(model)) {
+      else if (model.length > 120 || !/^[A-Za-z0-9._:\/-]+$/.test(model)) {
         return { status: "invalid", message: "Tên model không hợp lệ." };
       } else update.aiModel = model;
     } else return { status: "invalid", message: "Tên model không hợp lệ." };
