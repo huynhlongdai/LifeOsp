@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import type { FocusStateView } from "@lifeos/domain";
 import { ApiRequestError } from "./api";
 import { createFocusApiClient } from "./focus-api";
+import { SessionChecklist } from "./SessionChecklist";
 
 type FocusPanelProps = {
   apiUrl: string;
@@ -114,6 +115,7 @@ export function FocusPanel({ apiUrl, recommendationId, recommendationStatus, onA
   if (view.state === "active") {
     return (
       <FocusOverlay
+        apiUrl={apiUrl}
         focus={view.focus}
         busy={busy}
         actionError={actionError}
@@ -186,6 +188,7 @@ type ActiveFocus = Extract<FocusStateView, { state: "active" }>["focus"];
  * timer is presentation only and never ends the session or the Action by itself.
  */
 function FocusOverlay({
+  apiUrl,
   focus,
   busy,
   actionError,
@@ -195,6 +198,7 @@ function FocusOverlay({
   onCaptureDistraction,
   onEnd
 }: {
+  apiUrl: string;
   focus: ActiveFocus;
   busy: boolean;
   actionError: string | null;
@@ -268,6 +272,10 @@ function FocusOverlay({
             <p className="text-[10px] font-bold tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.3)" }}>THÀNH CÔNG KHI</p>
             <p className="text-xs" style={{ color: "rgba(255,255,255,0.7)" }}>{focus.action.doneCondition}</p>
           </div>
+        ) : null}
+
+        {showContext ? (
+          <SessionChecklist apiUrl={apiUrl} actionId={focus.action.id} tone="dark" />
         ) : null}
 
         {actionError ? (

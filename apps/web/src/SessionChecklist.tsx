@@ -6,7 +6,40 @@ type Step = { id: string; actionId: string; title: string; position: number; don
  * "TRONG PHIÊN NÀY": the user's own breakdown of the current Action. LifeOS stores and
  * shows exactly what they typed and ticked — it never invents steps or completes them.
  */
-export function SessionChecklist({ apiUrl, actionId }: { apiUrl: string; actionId: string }) {
+export function SessionChecklist({
+  apiUrl,
+  actionId,
+  tone = "light"
+}: {
+  apiUrl: string;
+  actionId: string;
+  tone?: "light" | "dark";
+}) {
+  const dark = tone === "dark";
+  const palette = dark
+    ? {
+        card: "rgba(10,14,28,0.85)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        shadow: "none",
+        text: "#fff",
+        muted: "rgba(255,255,255,0.45)",
+        accent: "#c8bbff",
+        accentBg: "rgba(139,127,248,0.22)",
+        circle: "2px solid rgba(255,255,255,0.25)",
+        fill: "#8b7ff8"
+      }
+    : {
+        card: "var(--card)",
+        border: "1px solid var(--border)",
+        shadow: "var(--shadow-card)",
+        text: "var(--text)",
+        muted: "var(--text-3)",
+        accent: "var(--primary)",
+        accentBg: "var(--primary-bg)",
+        circle: "2px solid var(--border-2)",
+        fill: "var(--primary)"
+      };
+
   const [steps, setSteps] = useState<Step[]>([]);
   const [draft, setDraft] = useState("");
   const [adding, setAdding] = useState(false);
@@ -86,25 +119,25 @@ export function SessionChecklist({ apiUrl, actionId }: { apiUrl: string; actionI
     <div className="mb-4">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-extrabold" style={{ color: "var(--text-3)", letterSpacing: "0.12em" }}>
+          <span className="text-[10px] font-extrabold" style={{ color: palette.muted, letterSpacing: "0.12em" }}>
             TRONG PHIÊN NÀY
           </span>
           <span
             className="text-xs font-bold px-2 py-0.5 rounded-full"
             style={{
-              background: allDone ? "var(--green-bg)" : "var(--primary-bg)",
-              color: allDone ? "var(--green)" : "var(--primary)"
+              background: allDone && !dark ? "var(--green-bg)" : palette.accentBg,
+              color: allDone && !dark ? "var(--green)" : palette.accent
             }}
           >
             {doneCount}/{steps.length}
           </span>
         </div>
-        {allDone ? <span className="text-xs font-bold" style={{ color: "var(--green)" }}>✓ Xong rồi!</span> : null}
+        {allDone ? <span className="text-xs font-bold" style={{ color: dark ? "#4ade80" : "var(--green)" }}>✓ Xong rồi!</span> : null}
       </div>
 
-      <div className="rounded-2xl overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "var(--shadow-card)" }}>
+      <div className="rounded-2xl overflow-hidden" style={{ background: palette.card, border: palette.border, boxShadow: palette.shadow }}>
         {steps.length === 0 ? (
-          <p className="px-4 py-3.5 text-xs" style={{ color: "var(--text-3)" }}>
+          <p className="px-4 py-3.5 text-xs" style={{ color: palette.muted }}>
             Chưa có bước nào. Bạn tự chia nhỏ Action này thành các bước của phiên làm việc.
           </p>
         ) : (
@@ -112,7 +145,7 @@ export function SessionChecklist({ apiUrl, actionId }: { apiUrl: string; actionI
             <div
               key={step.id}
               className="flex items-center gap-4 w-full px-4 py-3.5"
-              style={{ borderBottom: index < steps.length - 1 ? "1px solid var(--border)" : "1px solid var(--border)" }}
+              style={{ borderBottom: index < steps.length - 1 ? palette.border : palette.border }}
             >
               <button
                 type="button"
@@ -123,7 +156,7 @@ export function SessionChecklist({ apiUrl, actionId }: { apiUrl: string; actionI
               >
                 <span
                   className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center"
-                  style={{ border: step.done ? "none" : "2px solid var(--border-2)", background: step.done ? "var(--primary)" : "transparent" }}
+                  style={{ border: step.done ? "none" : palette.circle, background: step.done ? palette.fill : "transparent" }}
                 >
                   {step.done ? (
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
@@ -133,12 +166,12 @@ export function SessionChecklist({ apiUrl, actionId }: { apiUrl: string; actionI
                 </span>
                 <span
                   className="text-sm"
-                  style={{ color: step.done ? "var(--text-3)" : "var(--text)", textDecoration: step.done ? "line-through" : "none" }}
+                  style={{ color: step.done ? palette.muted : palette.text, textDecoration: step.done ? "line-through" : "none" }}
                 >
                   {step.title}
                 </span>
               </button>
-              <button type="button" onClick={() => void remove(step)} aria-label={`Xoá bước ${step.title}`} className="text-xs" style={{ color: "var(--text-3)" }}>
+              <button type="button" onClick={() => void remove(step)} aria-label={`Xoá bước ${step.title}`} className="text-xs" style={{ color: palette.muted }}>
                 ✕
               </button>
             </div>
@@ -158,14 +191,14 @@ export function SessionChecklist({ apiUrl, actionId }: { apiUrl: string; actionI
               }
             }}
             className="flex-1 text-sm bg-transparent"
-            style={{ color: "var(--text)", outline: "none", border: "none" }}
+            style={{ color: palette.text, outline: "none", border: "none" }}
           />
           <button
             type="button"
             disabled={adding || draft.trim().length === 0}
             onClick={() => void addStep()}
             className="text-xs font-bold px-3 py-1.5 rounded-lg disabled:opacity-40"
-            style={{ background: "var(--primary-bg)", color: "var(--primary)" }}
+            style={{ background: palette.accentBg, color: palette.accent }}
           >
             Thêm
           </button>
@@ -173,7 +206,7 @@ export function SessionChecklist({ apiUrl, actionId }: { apiUrl: string; actionI
       </div>
 
       {error ? (
-        <p className="text-xs mt-2" role="alert" style={{ color: "var(--red)" }}>{error}</p>
+        <p className="text-xs mt-2" role="alert" style={{ color: dark ? "#ffb4b4" : "var(--red)" }}>{error}</p>
       ) : null}
     </div>
   );
