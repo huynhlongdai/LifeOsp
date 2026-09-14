@@ -3,6 +3,7 @@ import type { HealthStatus } from "@lifeos/domain";
 import { createApiClient } from "./api";
 import { AppShell } from "./AppShell";
 import { ClarityReset } from "./ClarityReset";
+import { BrainDumpButton, BrainDumpSheet } from "./BrainDump";
 import { ExecutePage } from "./ExecutePage";
 import { MePage } from "./MePage";
 import { DirectionPage } from "./DirectionPage";
@@ -14,6 +15,7 @@ import { ErrorState, type AsyncState } from "./ui-states";
 export function App() {
   const [pathname, setPathname] = useState(() => window.location.pathname);
   const [apiState, setApiState] = useState<AsyncState<HealthStatus>>({ kind: "loading" });
+  const [brainDumpOpen, setBrainDumpOpen] = useState(false);
   const apiUrl = import.meta.env.VITE_API_URL ?? "";
   const route = resolveRoute(pathname);
 
@@ -40,6 +42,17 @@ export function App() {
     return () => controller.abort();
   }, [apiUrl]);
 
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setBrainDumpOpen(true);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
   const navigate = (event: MouseEvent<HTMLAnchorElement>, nextPath: string) => {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
@@ -51,6 +64,8 @@ export function App() {
   return (
     <AppShell route={route} onNavigate={navigate} statusSlot={<ApiBadge state={apiState} />}>
       {route ? <RouteContent route={route} apiUrl={apiUrl} /> : <UnknownRoute />}
+      <BrainDumpButton onOpen={() => setBrainDumpOpen(true)} />
+      {brainDumpOpen ? <BrainDumpSheet apiUrl={apiUrl} onClose={() => setBrainDumpOpen(false)} /> : null}
     </AppShell>
   );
 }
