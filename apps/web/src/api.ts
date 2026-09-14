@@ -30,6 +30,8 @@ import {
   type SeasonView,
   type SessionView,
   type AdminSettingsView,
+  type CoachChatMessage,
+  type CoachChatReply,
   type AdminSettingsUpdateInput
 } from "@lifeos/domain";
 
@@ -109,6 +111,7 @@ export type ApiClient = {
   getDirectionOutlook(signal?: AbortSignal): Promise<DirectionOutlookView>;
   getPreferences(signal?: AbortSignal): Promise<UserPreferencesView>;
   updatePreferences(input: UpdateUserPreferencesInput, signal?: AbortSignal): Promise<UserPreferencesView>;
+  sendCoachMessage(messages: CoachChatMessage[], signal?: AbortSignal): Promise<CoachChatReply>;
   getAdminSettings(signal?: AbortSignal): Promise<AdminSettingsView | null>;
   updateAdminSettings(input: AdminSettingsUpdateInput, signal?: AbortSignal): Promise<AdminSettingsView>;
 };
@@ -300,6 +303,14 @@ export function createApiClient(baseUrl = ""): ApiClient {
       });
       if (!isPreferencesView(value)) throw new Error("Preferences response does not match the LifeOS contract");
       return value;
+    },
+
+    async sendCoachMessage(messages, signal) {
+      return (await request("/v1/coach/chat", {
+        method: "POST",
+        body: JSON.stringify({ messages }),
+        ...(signal ? { signal } : {})
+      })) as CoachChatReply;
     },
 
     async getAdminSettings(signal) {

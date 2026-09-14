@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { CoachView, LifeScoreView } from "@lifeos/domain";
 import { ApiRequestError, createApiClient } from "./api";
+import { CoachChat } from "./CoachChat";
 
 const KIND_ICON: Record<string, string> = { focus: "🧠", result: "📝", closing: "🌙", capacity: "📅" };
 
@@ -10,7 +11,7 @@ const KIND_ICON: Record<string, string> = { focus: "🧠", result: "📝", closi
  */
 export function CoachPage({ apiUrl }: { apiUrl: string }) {
   const api = useMemo(() => createApiClient(apiUrl), [apiUrl]);
-  const [tab, setTab] = useState<"insights" | "capacity">("insights");
+  const [tab, setTab] = useState<"insights" | "capacity" | "chat">("insights");
   const [state, setState] = useState<
     { kind: "loading" } | { kind: "ready"; coach: CoachView } | { kind: "empty" } | { kind: "error"; message: string }
   >({ kind: "loading" });
@@ -88,7 +89,8 @@ export function CoachPage({ apiUrl }: { apiUrl: string }) {
         <div className="flex gap-1 mb-3 p-1 rounded-xl" style={{ background: "var(--bg-2)", width: "fit-content" }} role="tablist" aria-label="Khu vực coach">
           {([
             { id: "insights" as const, label: "Nhận xét" },
-            { id: "capacity" as const, label: "Năng lực" }
+            { id: "capacity" as const, label: "Năng lực" },
+            { id: "chat" as const, label: "Chat" }
           ]).map(({ id, label }) => (
             <button
               key={id}
@@ -107,6 +109,8 @@ export function CoachPage({ apiUrl }: { apiUrl: string }) {
             </button>
           ))}
         </div>
+
+        {tab === "chat" ? <CoachChat apiUrl={apiUrl} /> : null}
 
         {tab === "insights" ? (
           <div className="space-y-3">
@@ -138,7 +142,7 @@ export function CoachPage({ apiUrl }: { apiUrl: string }) {
               </p>
             </div>
           </div>
-        ) : (
+        ) : tab === "capacity" ? (
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <Stat label="Focus 7 ngày" value={`${focusHours}h`} hint={`${coach.capacity.focusSessionsLast7Days} phiên`} />
@@ -170,7 +174,7 @@ export function CoachPage({ apiUrl }: { apiUrl: string }) {
               </ul>
             </div>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );
