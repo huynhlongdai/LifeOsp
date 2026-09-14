@@ -4,6 +4,8 @@ import type { FocusStateView } from "@lifeos/domain";
 import { ApiRequestError } from "./api";
 import { createFocusApiClient } from "./focus-api";
 import { SessionChecklist } from "./SessionChecklist";
+import { ActionResultSheet } from "./ActionResultSheet";
+import type { ActionView } from "@lifeos/domain";
 
 type FocusPanelProps = {
   apiUrl: string;
@@ -27,6 +29,8 @@ export function FocusPanel({ apiUrl, recommendationId, recommendationStatus, onA
   const [actionError, setActionError] = useState<string | null>(null);
   const [distractionText, setDistractionText] = useState("");
   const [distractionSaved, setDistractionSaved] = useState(false);
+  const [completed, setCompleted] = useState<{ title: string; actionId: string; minutes: number } | null>(null);
+  const [summaryAction, setSummaryAction] = useState<ActionView | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -67,6 +71,13 @@ export function FocusPanel({ apiUrl, recommendationId, recommendationStatus, onA
       setActionError(null);
       const focus = await focusApi.endFocus(focusSessionId, outcome);
       setState({ kind: "loaded", data: { state: "recent", generatedAt: new Date().toISOString(), focus } });
+      if (outcome === "completed") {
+        setCompleted({
+          title: focus.action.title,
+          actionId: focus.actionId,
+          minutes: Math.max(1, Math.round(elapsedSince(focus.startedAt, focus.endedAt) / 60))
+        });
+      }
       onActiveFocusChange?.(null);
       setDistractionText("");
       setDistractionSaved(false);
@@ -111,6 +122,32 @@ export function FocusPanel({ apiUrl, recommendationId, recommendationStatus, onA
   }
 
   const view = state.data;
+
+  if (completed) {
+    return (
+      <>
+        {summaryAction ? null : (
+        <FocusCompletion
+          apiUrl={apiUrl}
+          completed={completed}
+          onOpenSummary={setSummaryAction}
+          onClose={() => setCompleted(null)}
+        />
+        )}
+        {summaryAction ? (
+          <ActionResultSheet
+            action={summaryAction}
+            apiUrl={apiUrl}
+            onClose={() => setSummaryAction(null)}
+            onRecorded={() => {
+              setSummaryAction(null);
+              setCompleted(null);
+            }}
+          />
+        ) : null}
+      </>
+    );
+  }
 
   if (view.state === "active") {
     return (
@@ -390,10 +427,85 @@ function TimerRing({ progress, size }: { progress: number; size: number }) {
   );
 }
 
-function elapsedSince(startedAt: string): number {
+/**
+ * Prototype completion screen: confirms the session ended and hands the user to
+ * the result sheet. Ending Focus never completes the Action by itself.
+ */
+function FocusCompletion({
+  apiUrl,
+  completed,
+  onOpenSummary,
+  onClose
+}: {
+  apiUrl: string;
+  completed: { title: string; actionId: string; minutes: number };
+  onOpenSummary: (action: ActionView) => void;
+  onClose: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const openSummary = async () => {
+    try {
+      setBusy(true);
+      setError(null);
+      const response = await fetch(`${apiUrl}/v1/actions/${completed.actionId}`, { credentials: "include" });
+      const body = (await response.json()) as ActionView | { message?: string };
+      if (!response.ok || !("id" in body)) {
+        setError("message" in body && body.message ? body.message : "Không mở được tổng kết.");
+        return;
+      }
+      onOpenSummary(body);
+    } catch {
+      setError("Không mở được tổng kết.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center px-8 text-center" style={{ background: "#07091a" }} role="dialog" aria-label="Phiên hoàn thành">
+      <div
+        className="flex items-center justify-center rounded-3xl mb-6"
+        style={{ width: 72, height: 72, fontSize: 32, background: "var(--primary)", boxShadow: "0 12px 40px rgba(0,0,0,0.30)" }}
+        aria-hidden="true"
+      >
+        🎯
+      </div>
+      <h2 className="text-2xl font-display mb-2" style={{ color: "#fff" }}>Phiên hoàn thành!</h2>
+      <p className="text-sm mb-8" style={{ color: "#7a8aaa" }}>
+        {completed.minutes} phút · {completed.title}
+      </p>
+      {error ? (
+        <p className="text-xs mb-3" role="alert" style={{ color: "#ffb4b4" }}>{error}</p>
+      ) : null}
+      <button
+        type="button"
+        disabled={busy}
+        onClick={() => void openSummary()}
+        className="h-12 px-8 rounded-2xl font-bold text-sm"
+        style={{ background: "var(--primary)", color: "var(--primary-fg)", boxShadow: "0 6px 20px rgba(0,0,0,0.25)" }}
+      >
+        Xem tổng kết →
+      </button>
+      <button
+        type="button"
+        onClick={onClose}
+        className="mt-4 text-xs font-semibold"
+        style={{ color: "rgba(255,255,255,0.45)" }}
+      >
+        Để sau
+      </button>
+    </div>,
+    document.body
+  );
+}
+
+function elapsedSince(startedAt: string, endedAt?: string): number {
   const started = new Date(startedAt).getTime();
   if (Number.isNaN(started)) return 0;
-  return Math.max(0, Math.floor((Date.now() - started) / 1000));
+  const ended = endedAt ? new Date(endedAt).getTime() : Date.now();
+  return Math.max(0, Math.floor(((Number.isNaN(ended) ? Date.now() : ended) - started) / 1000));
 }
 
 function formatClock(totalSeconds: number): string {
