@@ -239,6 +239,7 @@ export * from "./now.js";
 export * from "./preferences.js";
 export * from "./promotion.js";
 export * from "./reflect-week.js";
+export * from "./reflect-analytics.js";
 export * from "./action-steps.js";
 export * from "./result.js";
 export * from "./schema.js";

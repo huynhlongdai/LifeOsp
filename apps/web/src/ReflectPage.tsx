@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { ActionResultOutcome, DailyCloseView } from "@lifeos/domain";
 import { createApiClient } from "./api";
 import { browserLocalDate, browserTzOffsetMinutes, createResultApiClient } from "./result-api";
+import { ReflectAnalytics } from "./ReflectAnalytics";
 import { ReflectWeek } from "./ReflectWeek";
 import { resultErrorMessage } from "./ResultPanel";
 import type { AsyncState } from "./ui-states";
@@ -28,7 +29,7 @@ export function ReflectPage({ apiUrl }: { apiUrl: string }) {
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [mutationError, setMutationError] = useState<string | null>(null);
-  const [tab, setTab] = useState<"day" | "week">("day");
+  const [tab, setTab] = useState<"day" | "week" | "energy" | "habits">("day");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -114,10 +115,12 @@ export function ReflectPage({ apiUrl }: { apiUrl: string }) {
       </div>
 
       <div className="px-4 pt-4 md:px-8 space-y-3">
-        <div className="flex gap-1 p-1 rounded-xl" style={{ background: "var(--bg-2)", width: "fit-content" }} role="tablist" aria-label="Khu vực nhìn lại">
+        <div className="flex flex-wrap gap-1 p-1 rounded-xl" style={{ background: "var(--bg-2)", width: "fit-content", maxWidth: "100%" }} role="tablist" aria-label="Khu vực nhìn lại">
           {([
             { id: "day" as const, label: "Hôm nay" },
-            { id: "week" as const, label: "Tuần" }
+            { id: "week" as const, label: "Tuần" },
+            { id: "energy" as const, label: "Năng lượng" },
+            { id: "habits" as const, label: "Habits" }
           ]).map(({ id, label }) => (
             <button
               key={id}
@@ -138,6 +141,10 @@ export function ReflectPage({ apiUrl }: { apiUrl: string }) {
         </div>
 
         {tab === "week" ? <ReflectWeek apiUrl={apiUrl} tzOffsetMinutes={tzOffsetMinutes} /> : null}
+
+        {tab === "energy" || tab === "habits" ? (
+          <ReflectAnalytics apiUrl={apiUrl} tzOffsetMinutes={tzOffsetMinutes} tab={tab} />
+        ) : null}
 
         {tab === "day" ? (
         <>
