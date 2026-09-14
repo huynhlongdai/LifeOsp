@@ -21,6 +21,7 @@ const DONE_STATUSES = new Set(["completed", "dropped"]);
  */
 export function ExecutePage({ apiUrl }: { apiUrl: string }) {
   const api = useMemo(() => createApiClient(apiUrl), [apiUrl]);
+  const [view, setView] = useState<"all" | "active" | "other">("all");
   const [state, setState] = useState<
     | { kind: "loading" }
     | { kind: "empty" }
@@ -86,6 +87,8 @@ export function ExecutePage({ apiUrl }: { apiUrl: string }) {
   }
 
   const { board } = state;
+  const visibleOutcomes =
+    view === "all" ? board.outcomes : board.outcomes.filter((group) => (view === "active" ? group.outcome.status === "active" : group.outcome.status !== "active"));
   const allActions = board.outcomes.flatMap((group) => [
     ...group.projects.flatMap((project) => project.actions),
     ...group.unassignedActions
@@ -97,6 +100,32 @@ export function ExecutePage({ apiUrl }: { apiUrl: string }) {
       <ExecuteHero subtitle={board.seasonTitle} total={allActions.length} done={doneCount} />
 
       <div className="px-4 pt-4 md:px-8">
+        <TodayPlan board={board} />
+
+        <div className="flex gap-1 mb-3 p-1 rounded-xl" style={{ background: "var(--bg-2)", width: "fit-content" }} role="tablist" aria-label="Lọc Outcome">
+          {([
+            { id: "all" as const, label: "Tất cả" },
+            { id: "active" as const, label: "Đang chạy" },
+            { id: "other" as const, label: "Khác" }
+          ]).map(({ id, label }) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={view === id}
+              onClick={() => setView(id)}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold"
+              style={{
+                background: view === id ? "var(--card)" : "transparent",
+                color: view === id ? "var(--text)" : "var(--text-3)",
+                boxShadow: view === id ? "var(--shadow-card)" : "none"
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
         {board.outcomes.length === 0 ? (
           <div className="rounded-3xl p-6" style={CARD}>
             <p className="text-sm leading-relaxed" style={{ color: "var(--text-2)" }}>
@@ -106,9 +135,13 @@ export function ExecutePage({ apiUrl }: { apiUrl: string }) {
           </div>
         ) : (
           <div className="space-y-4">
-            {board.outcomes.map((group) => (
-              <OutcomeCard key={group.outcome.id} group={group} />
-            ))}
+            {visibleOutcomes.length === 0 ? (
+              <div className="rounded-2xl p-5" style={CARD}>
+                <p className="text-sm" style={{ color: "var(--text-2)" }}>Không có Outcome nào ở bộ lọc này.</p>
+              </div>
+            ) : (
+              visibleOutcomes.map((group) => <OutcomeCard key={group.outcome.id} group={group} />)
+            )}
           </div>
         )}
 
@@ -125,6 +158,73 @@ const CARD = {
   border: "1px solid var(--border)",
   boxShadow: "var(--shadow-card)"
 } as const;
+
+/**
+ * Today's plan, from Actions the user scheduled for today. No AI scheduling: an empty
+ * list stays empty instead of being filled with guesses.
+ */
+function TodayPlan({ board }: { board: ExecuteBoardView }) {
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const endOfToday = new Date(startOfToday.getTime() + 86_400_000);
+
+  const scheduled = board.outcomes
+    .flatMap((group) => [
+      ...group.projects.flatMap((project) => project.actions.map((action) => ({ action, project: project.project.title }))),
+      ...group.unassignedActions.map((action) => ({ action, project: null as string | null }))
+    ])
+    .filter(({ action }) => {
+      if (!action.scheduledFor) return false;
+      const at = new Date(action.scheduledFor).getTime();
+      return at >= startOfToday.getTime() && at < endOfToday.getTime();
+    })
+    .sort((left, right) => (left.action.scheduledFor ?? "").localeCompare(right.action.scheduledFor ?? ""));
+
+  const totalMinutes = scheduled.reduce((sum, { action }) => sum + (action.estimatedMinutes ?? 0), 0);
+
+  return (
+    <div className="rounded-2xl overflow-hidden mb-4" style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "var(--shadow-raise)" }}>
+      <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: "1px solid var(--border)" }}>
+        <span className="text-xs font-bold" style={{ color: "var(--text)" }}>KẾ HOẠCH HÔM NAY</span>
+        <span className="text-xs font-semibold" style={{ color: "var(--text-3)" }}>
+          {totalMinutes > 0 ? `${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}ph` : "—"}
+        </span>
+      </div>
+      {scheduled.length === 0 ? (
+        <p className="px-4 py-4 text-xs leading-relaxed" style={{ color: "var(--text-3)" }}>
+          Hôm nay bạn chưa đặt lịch Action nào. LifeOS không tự xếp lịch thay bạn.
+        </p>
+      ) : (
+        scheduled.map(({ action, project }, index) => (
+          <div
+            key={action.id}
+            className="flex items-center gap-3 px-4 py-2.5"
+            style={{ borderBottom: index < scheduled.length - 1 ? "1px solid var(--border)" : "none" }}
+          >
+            <span className="text-[11px] font-bold w-10 flex-shrink-0" style={{ color: "var(--primary)", fontVariantNumeric: "tabular-nums" }}>
+              {formatTime(action.scheduledFor ?? "")}
+            </span>
+            <span className="w-0.5 h-8 rounded-full flex-shrink-0" style={{ background: "var(--primary-border)" }} />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate" style={{ color: "var(--text)" }}>{action.title}</p>
+              <div className="flex items-center gap-2 mt-0.5">
+                {project ? <span className="text-[10px]" style={{ color: "var(--text-3)" }}>{project}</span> : null}
+                {action.estimatedMinutes ? (
+                  <span className="text-[10px]" style={{ color: "var(--text-3)" }}>{action.estimatedMinutes} phút</span>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
+
+function formatTime(value: string): string {
+  const date = new Date(value);
+  return Number.isNaN(date.valueOf()) ? "" : date.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
+}
 
 function ExecuteHero({ subtitle, total, done }: { subtitle: string; total: number; done: number }) {
   const percent = total === 0 ? 0 : Math.round((done / total) * 100);

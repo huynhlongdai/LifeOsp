@@ -89,6 +89,7 @@ function toActionView(row: ActionRow): ActionView {
     ...(row.estimatedMinutes === null ? {} : { estimatedMinutes: row.estimatedMinutes }),
     status: row.status as ActionView["status"],
     ...(row.priority === null ? {} : { priority: row.priority }),
+    ...(row.scheduledFor === null ? {} : { scheduledFor: row.scheduledFor.toISOString() }),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString()
   };
