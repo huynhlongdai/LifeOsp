@@ -183,6 +183,17 @@ export async function seedDemoData(database: DatabaseClient, userId: string): Pr
         status: "completed",
         priority: 3,
         completedAt: daysAgo(5, 11)
+      },
+      {
+        userId,
+        projectId: project!.id,
+        outcomeId: outcomeRows[0]!.id,
+        title: "Dọn dẹp danh sách việc buổi sáng",
+        doneCondition: "Danh sách hôm nay chỉ còn việc thật sự cần làm.",
+        estimatedMinutes: 25,
+        status: "completed",
+        priority: 4,
+        completedAt: daysAgo(0, 8)
       }
     ])
     .returning({ id: actions.id, title: actions.title, status: actions.status });
@@ -196,7 +207,8 @@ export async function seedDemoData(database: DatabaseClient, userId: string): Pr
       { userId, actionId: done[1]!.id, plannedMinutes: 60, status: "completed", startedAt: daysAgo(3, 15), endedAt: daysAgo(3, 16) },
       { userId, actionId: done[2]!.id, plannedMinutes: 30, status: "completed", startedAt: daysAgo(5, 10), endedAt: daysAgo(5, 11) },
       { userId, actionId: actionRows[0]!.id, plannedMinutes: 50, status: "interrupted", startedAt: daysAgo(2, 14), endedAt: daysAgo(2, 15) },
-      { userId, actionId: actionRows[1]!.id, plannedMinutes: 45, status: "completed", startedAt: daysAgo(6, 9), endedAt: daysAgo(6, 10) }
+      { userId, actionId: actionRows[1]!.id, plannedMinutes: 45, status: "completed", startedAt: daysAgo(6, 9), endedAt: daysAgo(6, 10) },
+      { userId, actionId: done[3]!.id, plannedMinutes: 25, status: "completed", startedAt: daysAgo(0, 7), endedAt: daysAgo(0, 8) }
     ])
     .returning({ id: focusSessions.id });
 
@@ -233,6 +245,17 @@ export async function seedDemoData(database: DatabaseClient, userId: string): Pr
       focusMinutes: 30,
       plannedMinutes: 30,
       recordedAt: daysAgo(5, 11)
+    },
+    {
+      userId,
+      actionId: done[3]!.id,
+      focusSessionId: sessionRows[5]!.id,
+      outcome: "completed",
+      previousActionStatus: "active",
+      note: "Sáng nay dọn xong danh sách, đầu nhẹ hơn.",
+      focusMinutes: 25,
+      plannedMinutes: 25,
+      recordedAt: daysAgo(0, 8)
     }
   ]);
 
