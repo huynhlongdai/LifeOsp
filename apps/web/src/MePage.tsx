@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { MeView } from "@lifeos/domain";
 import { ApiRequestError, createApiClient } from "./api";
+import { MePreferences } from "./MePreferences";
 
 /**
  * ME mirrors what the user actually recorded. Every figure is a count of stored rows —
@@ -8,6 +9,7 @@ import { ApiRequestError, createApiClient } from "./api";
  */
 export function MePage({ apiUrl }: { apiUrl: string }) {
   const api = useMemo(() => createApiClient(apiUrl), [apiUrl]);
+  const [tab, setTab] = useState<"profile" | "prefs" | "ai">("profile");
   const [state, setState] = useState<
     { kind: "loading" } | { kind: "ready"; me: MeView } | { kind: "empty" } | { kind: "error"; message: string }
   >({ kind: "loading" });
@@ -103,6 +105,34 @@ export function MePage({ apiUrl }: { apiUrl: string }) {
       </div>
 
       <div className="px-4 pt-4 md:px-8 space-y-3">
+        <div className="flex gap-1 p-1 rounded-xl" style={{ background: "var(--bg-2)", width: "fit-content" }} role="tablist" aria-label="Khu vực hồ sơ">
+          {([
+            { id: "profile" as const, label: "Tổng quan" },
+            { id: "prefs" as const, label: "Tuỳ chỉnh" },
+            { id: "ai" as const, label: "Kiểm soát AI" }
+          ]).map(({ id, label }) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={tab === id}
+              onClick={() => setTab(id)}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold"
+              style={{
+                background: tab === id ? "var(--card)" : "transparent",
+                color: tab === id ? "var(--text)" : "var(--text-3)",
+                boxShadow: tab === id ? "var(--shadow-card)" : "none"
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {tab !== "profile" ? <MePreferences apiUrl={apiUrl} tab={tab} /> : null}
+
+        {tab === "profile" ? (
+        <>
         <div className="rounded-2xl p-4" style={CARD}>
           <p className="text-[10px] font-bold tracking-widest mb-2" style={{ color: "var(--text-3)" }}>SEASON HIỆN TẠI</p>
           {me.season ? (
@@ -139,6 +169,8 @@ export function MePage({ apiUrl }: { apiUrl: string }) {
             thêm bất kỳ chỉ số nào.
           </p>
         </div>
+        </>
+        ) : null}
       </div>
     </div>
   );

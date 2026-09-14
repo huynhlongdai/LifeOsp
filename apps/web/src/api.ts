@@ -20,6 +20,8 @@ import {
   type HealthStatus,
   type InboxView,
   type MeView,
+  type UpdateUserPreferencesInput,
+  type UserPreferencesView,
   type IncubatorItemView,
   type SeasonView,
   type SessionView
@@ -95,6 +97,8 @@ export type ApiClient = {
   getExecuteBoard(signal?: AbortSignal): Promise<ExecuteBoardView | null>;
   getMe(signal?: AbortSignal): Promise<MeView | null>;
   getInbox(signal?: AbortSignal): Promise<InboxView | null>;
+  getPreferences(signal?: AbortSignal): Promise<UserPreferencesView>;
+  updatePreferences(input: UpdateUserPreferencesInput, signal?: AbortSignal): Promise<UserPreferencesView>;
 };
 
 export function createApiClient(baseUrl = ""): ApiClient {
@@ -227,6 +231,22 @@ export function createApiClient(baseUrl = ""): ApiClient {
         if (error instanceof ApiRequestError && error.status === 404) return null;
         throw error;
       }
+    },
+
+    async getPreferences(signal) {
+      const value = await request("/v1/me/preferences", signal ? { signal } : {});
+      if (!isPreferencesView(value)) throw new Error("Preferences response does not match the LifeOS contract");
+      return value;
+    },
+
+    async updatePreferences(input, signal) {
+      const value = await request("/v1/me/preferences", {
+        method: "PATCH",
+        body: JSON.stringify(input),
+        ...(signal ? { signal } : {})
+      });
+      if (!isPreferencesView(value)) throw new Error("Preferences response does not match the LifeOS contract");
+      return value;
     },
 
     async getInbox(signal) {
@@ -487,4 +507,15 @@ function isInboxView(value: unknown): value is InboxView {
   if (typeof value !== "object" || value === null) return false;
   const candidate = value as Partial<InboxView>;
   return Array.isArray(candidate.captures) && Array.isArray(candidate.incubated) && typeof candidate.counts === "object";
+}
+
+function isPreferencesView(value: unknown): value is UserPreferencesView {
+  if (typeof value !== "object" || value === null) return false;
+  const candidate = value as Partial<UserPreferencesView>;
+  return (
+    typeof candidate.timezone === "string" &&
+    typeof candidate.focusMinutes === "number" &&
+    Array.isArray(candidate.workDays) &&
+    typeof candidate.aiSuggestsActions === "boolean"
+  );
 }

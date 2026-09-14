@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   date,
   index,
@@ -429,6 +430,32 @@ export type OutcomeRow = typeof outcomes.$inferSelect;
 export type NewOutcomeRow = typeof outcomes.$inferInsert;
 export type ProjectRow = typeof projects.$inferSelect;
 export type NewProjectRow = typeof projects.$inferInsert;
+export const userPreferences = pgTable(
+  "user_preferences",
+  {
+    userId: uuid("user_id")
+      .primaryKey()
+      .references(() => users.id, { onDelete: "cascade" }),
+    timezone: text("timezone").default("Asia/Ho_Chi_Minh").notNull(),
+    workStartMinute: integer("work_start_minute").default(480).notNull(),
+    workEndMinute: integer("work_end_minute").default(1080).notNull(),
+    workDays: text("work_days").default("1,2,3,4,5").notNull(),
+    focusMinutes: integer("focus_minutes").default(40).notNull(),
+    breakMinutes: integer("break_minutes").default(10).notNull(),
+    aiSuggestsActions: boolean("ai_suggests_actions").default(true).notNull(),
+    aiDailySummary: boolean("ai_daily_summary").default(false).notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    check("user_preferences_work_window_check", sql`${table.workStartMinute} >= 0 and ${table.workEndMinute} <= 1440 and ${table.workStartMinute} < ${table.workEndMinute}`),
+    check("user_preferences_focus_minutes_check", sql`${table.focusMinutes} between 5 and 240`),
+    check("user_preferences_break_minutes_check", sql`${table.breakMinutes} between 0 and 120`)
+  ]
+);
+
+export type UserPreferencesRow = typeof userPreferences.$inferSelect;
+export type NewUserPreferencesRow = typeof userPreferences.$inferInsert;
+
 export type ActionRow = typeof actions.$inferSelect;
 export type NewActionRow = typeof actions.$inferInsert;
 export type FocusSessionRow = typeof focusSessions.$inferSelect;

@@ -12,6 +12,7 @@ import { registerInboxRoutes } from "./inbox.js";
 import { registerMeRoutes } from "./me.js";
 import { registerNextActionRoutes } from "./next-action.js";
 import { registerNowRoutes } from "./now.js";
+import { registerPreferencesRoutes } from "./preferences.js";
 import { registerPromotionRoutes } from "./promotion.js";
 import { registerResultRoutes } from "./result.js";
 
@@ -61,6 +62,7 @@ export function buildApp(options: BuildAppOptions = {}) {
   registerNextActionRoutes(app, database);
   registerMeRoutes(app, database);
   registerInboxRoutes(app, database);
+  registerPreferencesRoutes(app, database);
   registerNowRoutes(app, database);
   registerFocusRoutes(app, database);
   registerResultRoutes(app, database);

@@ -235,6 +235,7 @@ export * from "./inbox.js";
 export * from "./me.js";
 export * from "./next-action.js";
 export * from "./now.js";
+export * from "./preferences.js";
 export * from "./promotion.js";
 export * from "./result.js";
 export * from "./schema.js";
