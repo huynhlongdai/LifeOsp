@@ -153,7 +153,8 @@ export function BrainDumpSheet({ apiUrl, onClose }: { apiUrl: string; onClose: (
 
           {state.kind === "saved" ? (
             <p className="text-xs mt-3 px-3.5 py-3 rounded-2xl" role="status" style={{ background: "var(--green-bg)", color: "var(--green)" }}>
-              Đã lưu vào hộp capture. Không có gì bị kích hoạt tự động.
+              Đã lưu vào hộp chờ. Không có gì bị kích hoạt tự động.{" "}
+              <a href="/inbox" style={{ color: "var(--green)", textDecoration: "underline" }}>Xem hộp chờ</a>
             </p>
           ) : null}
 

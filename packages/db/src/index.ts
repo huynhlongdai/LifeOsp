@@ -231,6 +231,7 @@ export * from "./action.js";
 export * from "./execute-board.js";
 export * from "./execution-context.js";
 export * from "./focus.js";
+export * from "./inbox.js";
 export * from "./me.js";
 export * from "./next-action.js";
 export * from "./now.js";

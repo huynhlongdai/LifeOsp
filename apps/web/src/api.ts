@@ -18,6 +18,7 @@ import {
   type DirectionView,
   type ExecuteBoardView,
   type HealthStatus,
+  type InboxView,
   type MeView,
   type IncubatorItemView,
   type SeasonView,
@@ -93,6 +94,7 @@ export type ApiClient = {
   getCurrentDirection(signal?: AbortSignal): Promise<CurrentDirectionView | null>;
   getExecuteBoard(signal?: AbortSignal): Promise<ExecuteBoardView | null>;
   getMe(signal?: AbortSignal): Promise<MeView | null>;
+  getInbox(signal?: AbortSignal): Promise<InboxView | null>;
 };
 
 export function createApiClient(baseUrl = ""): ApiClient {
@@ -223,6 +225,17 @@ export function createApiClient(baseUrl = ""): ApiClient {
         return value;
       } catch (error) {
         if (error instanceof ApiRequestError && error.status === 404) return null;
+        throw error;
+      }
+    },
+
+    async getInbox(signal) {
+      try {
+        const value = await request("/v1/inbox", signal ? { signal } : {});
+        if (!isInboxView(value)) throw new Error("Inbox response does not match the LifeOS contract");
+        return value;
+      } catch (error) {
+        if (error instanceof ApiRequestError && error.status === 401) return null;
         throw error;
       }
     },
@@ -468,4 +481,10 @@ function isMeView(value: unknown): value is MeView {
   if (typeof value !== "object" || value === null) return false;
   const candidate = value as Partial<MeView>;
   return typeof candidate.memberSince === "string" && typeof candidate.stats === "object" && candidate.stats !== null;
+}
+
+function isInboxView(value: unknown): value is InboxView {
+  if (typeof value !== "object" || value === null) return false;
+  const candidate = value as Partial<InboxView>;
+  return Array.isArray(candidate.captures) && Array.isArray(candidate.incubated) && typeof candidate.counts === "object";
 }

@@ -46,6 +46,12 @@ const NAV_ICONS: Record<AppRouteKey, NavIcon> = {
       <path d="M12 2C8.13 2 5 5.13 5 9c0 2.38 1.19 4.47 3 5.74V17a1 1 0 001 1h6a1 1 0 001-1v-2.26C17.81 13.47 19 11.38 19 9c0-3.87-3.13-7-7-7z" stroke={a ? "var(--nav-icon-active)" : "var(--text-3)"} strokeWidth="1.7" />
       <path d="M9 21h6" stroke={a ? "var(--nav-icon-active)" : "var(--text-3)"} strokeWidth="1.7" strokeLinecap="round" />
     </svg>
+  ),
+  inbox: (a) => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M3 13h5l1.5 3h5L16 13h5" stroke={a ? "var(--nav-icon-active)" : "var(--text-3)"} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M5 5h14l2 8v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4z" stroke={a ? "var(--nav-icon-active)" : "var(--text-3)"} strokeWidth="1.7" strokeLinejoin="round" />
+    </svg>
   )
 };
 
@@ -55,7 +61,8 @@ const NAV_LABELS: Record<AppRouteKey, string> = {
   execute: "EXECUTE",
   reflect: "REFLECT",
   me: "ME",
-  clarity: "Clarity Reset"
+  clarity: "Clarity Reset",
+  inbox: "Hộp chờ"
 };
 
 export type AppShellProps = {
@@ -100,6 +107,7 @@ export function AppShell({ route, onNavigate, statusSlot, children }: AppShellPr
         </div>
         <nav className="px-3 space-y-0.5 flex-1">
           <SidebarItem routeKey="clarity" path="/clarity" active={activeKey === "clarity"} onNavigate={onNavigate} small />
+          <SidebarItem routeKey="inbox" path="/inbox" active={activeKey === "inbox"} onNavigate={onNavigate} small />
         </nav>
       </aside>
 

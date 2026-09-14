@@ -8,6 +8,7 @@ import { registerExecutionContextRoutes } from "./execution-context.js";
 import { registerFocusRoutes } from "./focus.js";
 import { registerIdentityRoutes, type IdentityOptions } from "./identity.js";
 import { registerInterpretationRoutes, type InterpretationOptions } from "./interpretation.js";
+import { registerInboxRoutes } from "./inbox.js";
 import { registerMeRoutes } from "./me.js";
 import { registerNextActionRoutes } from "./next-action.js";
 import { registerNowRoutes } from "./now.js";
@@ -59,6 +60,7 @@ export function buildApp(options: BuildAppOptions = {}) {
   registerActionRoutes(app, database, options.action);
   registerNextActionRoutes(app, database);
   registerMeRoutes(app, database);
+  registerInboxRoutes(app, database);
   registerNowRoutes(app, database);
   registerFocusRoutes(app, database);
   registerResultRoutes(app, database);
