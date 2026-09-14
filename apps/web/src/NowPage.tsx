@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { NowView, ResolveNowRecommendationInput } from "@lifeos/domain";
 import { createApiClient } from "./api";
 import { createNowApiClient } from "./now-api";
 import { FocusPanel } from "./FocusPanel";
+import { ResultPanel } from "./ResultPanel";
 import { ErrorState, type AsyncState } from "./ui-states";
 
 export function NowPage({ apiUrl }: { apiUrl: string }) {
@@ -11,6 +12,7 @@ export function NowPage({ apiUrl }: { apiUrl: string }) {
   const [showWhy, setShowWhy] = useState(false);
   const [editing, setEditing] = useState(false);
   const [mutationError, setMutationError] = useState<string | null>(null);
+  const [activeFocusSessionId, setActiveFocusSessionId] = useState<string | null>(null);
 
   const nowApi = useMemo(() => createNowApiClient(apiUrl), [apiUrl]);
   const sessionApi = useMemo(() => createApiClient(apiUrl), [apiUrl]);
@@ -36,6 +38,10 @@ export function NowPage({ apiUrl }: { apiUrl: string }) {
     void load();
     return () => controller.abort();
   }, [nowApi, sessionApi]);
+
+  const handleActiveFocusChange = useCallback((focusSessionId: string | null) => {
+    setActiveFocusSessionId(focusSessionId);
+  }, []);
 
   const resolve = async (recommendationId: string, input: ResolveNowRecommendationInput) => {
     try {
@@ -176,6 +182,14 @@ export function NowPage({ apiUrl }: { apiUrl: string }) {
         apiUrl={apiUrl}
         recommendationId={view.recommendation.id}
         recommendationStatus={view.recommendation.status}
+        onActiveFocusChange={handleActiveFocusChange}
+      />
+
+      <ResultPanel
+        apiUrl={apiUrl}
+        actionId={view.action.id}
+        {...(activeFocusSessionId ? { focusSessionId: activeFocusSessionId } : {})}
+        onRecorded={() => void refresh()}
       />
 
       <aside className="now-guardrail">

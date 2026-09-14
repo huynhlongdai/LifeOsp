@@ -82,6 +82,29 @@
 .focus-end-actions { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-top: 20px; }
 .focus-end-actions span { color: #8c99b3; font-size: .82rem; font-weight: 700; margin-right: 4px; }
 
+/* B5 Result + Daily Close */
+.result-panel { margin-top: 14px; padding: 18px; border: 1px solid #283650; border-radius: 16px; background: rgba(7, 12, 23, .55); display: grid; gap: 12px; }
+.result-panel .eyebrow { color: #8c99b3; }
+.result-outcomes { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { padding: 7px 13px; border-radius: 999px; border: 1px solid #2d3b58; background: #101827; color: #c8d3ea; font-size: .8rem; font-weight: 700; cursor: pointer; }
+.chip-selected { border-color: #5b8cff; background: #17233d; color: #eef3ff; }
+.result-field { display: grid; gap: 7px; }
+.result-field span { color: #8c99b3; font-size: .78rem; font-weight: 700; }
+.result-field input, .result-field textarea { width: 100%; color: #eef3ff; background: #0d1422; border: 1px solid #2d3b58; border-radius: 11px; padding: 10px 12px; line-height: 1.45; resize: vertical; }
+.result-focus-toggle { display: flex; align-items: center; gap: 9px; color: #9daac5; font-size: .84rem; }
+.result-panel-recorded { border-color: #2f5b45; }
+.result-note { color: #9daac5; font-size: .86rem; }
+.daily-close { display: grid; gap: 16px; }
+.daily-close-summary { display: grid; gap: 7px; margin: 0; padding: 16px; list-style: none; border: 1px solid #283650; border-radius: 16px; background: rgba(7, 12, 23, .55); color: #c8d3ea; }
+.daily-close-summary strong { color: #eef3ff; }
+.daily-close-results { display: grid; gap: 9px; margin: 0; padding-left: 18px; color: #c8d3ea; }
+.daily-close-empty { color: #8c99b3; }
+.daily-close-form { display: grid; gap: 12px; padding: 16px; border: 1px solid #283650; border-radius: 16px; background: rgba(7, 12, 23, .55); }
+.daily-close-form label { display: grid; gap: 7px; }
+.daily-close-form label span { color: #8c99b3; font-size: .78rem; font-weight: 700; }
+.daily-close-form textarea { width: 100%; color: #eef3ff; background: #0d1422; border: 1px solid #2d3b58; border-radius: 11px; padding: 10px 12px; line-height: 1.45; resize: vertical; }
+.daily-close-done { padding: 16px; border: 1px solid #2f5b45; border-radius: 16px; background: rgba(9, 23, 17, .5); color: #c8d3ea; display: grid; gap: 6px; }
+
 @media (max-width: 760px) {
   .now-page { gap: 12px; }
   .now-season-strip { grid-template-columns: 1fr; gap: 9px; padding: 15px 16px; }
@@ -110,4 +133,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   .now-loading-strip { animation: none; }
+}
+
+@media (max-width: 760px) {
+  .result-panel { padding: 15px; }
+  .result-outcomes { display: grid; grid-template-columns: 1fr 1fr; }
+  .chip { text-align: center; }
 }
