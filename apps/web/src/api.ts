@@ -16,6 +16,7 @@ import {
   type ClarityPromotionDraftView,
   type CoachView,
   type CurrentDirectionView,
+  type DirectionOutlookView,
   type DirectionView,
   type ExecuteBoardView,
   type HealthStatus,
@@ -103,6 +104,7 @@ export type ApiClient = {
   getCoach(signal?: AbortSignal): Promise<CoachView | null>;
   getReflectWeek(tzOffsetMinutes: number, signal?: AbortSignal): Promise<ReflectWeekView>;
   getReflectAnalytics(tzOffsetMinutes: number, signal?: AbortSignal): Promise<ReflectAnalyticsView>;
+  getDirectionOutlook(signal?: AbortSignal): Promise<DirectionOutlookView>;
   getPreferences(signal?: AbortSignal): Promise<UserPreferencesView>;
   updatePreferences(input: UpdateUserPreferencesInput, signal?: AbortSignal): Promise<UserPreferencesView>;
 };
@@ -237,6 +239,14 @@ export function createApiClient(baseUrl = ""): ApiClient {
         if (error instanceof ApiRequestError && error.status === 404) return null;
         throw error;
       }
+    },
+
+    async getDirectionOutlook(signal) {
+      const value = await request("/v1/direction/outlook", signal ? { signal } : {});
+      if (typeof value !== "object" || value === null || !Array.isArray((value as DirectionOutlookView).focusAreas)) {
+        throw new Error("Direction outlook response does not match the LifeOS contract");
+      }
+      return value as DirectionOutlookView;
     },
 
     async getReflectAnalytics(tzOffsetMinutes, signal) {

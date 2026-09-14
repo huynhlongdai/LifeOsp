@@ -32,6 +32,7 @@ export * from "./preferences.js";
 export * from "./promotion.js";
 export * from "./reflect-week.js";
 export * from "./reflect-analytics.js";
+export * from "./direction-outlook.js";
 export * from "./result.js";
 
 export const NEED_STATES = [

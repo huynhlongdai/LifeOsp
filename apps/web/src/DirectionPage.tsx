@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { CurrentDirectionView } from "@lifeos/domain";
 import { ApiRequestError, createApiClient } from "./api";
+import { DirectionOutlook } from "./DirectionOutlook";
 
 export function DirectionPage({ apiUrl }: { apiUrl: string }) {
   const api = useMemo(() => createApiClient(apiUrl), [apiUrl]);
@@ -131,6 +132,8 @@ export function DirectionPage({ apiUrl }: { apiUrl: string }) {
             </div>
           </div>
         </div>
+
+        <DirectionOutlook apiUrl={apiUrl} />
 
         <a
           href="/clarity"
