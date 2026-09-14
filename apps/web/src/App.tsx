@@ -3,6 +3,7 @@ import type { HealthStatus } from "@lifeos/domain";
 import { createApiClient } from "./api";
 import { AppShell } from "./AppShell";
 import { ClarityReset } from "./ClarityReset";
+import { ExecutePage } from "./ExecutePage";
 import { DirectionPage } from "./DirectionPage";
 import { NowPage } from "./NowPage";
 import { ReflectPage } from "./ReflectPage";
@@ -59,7 +60,8 @@ function RouteContent({ route, apiUrl }: { route: AppRoute; apiUrl: string }) {
   if (route.key === "clarity") return <LegacyPage><ClarityReset apiUrl={apiUrl} /></LegacyPage>;
   if (route.key === "direction") return <DirectionPage apiUrl={apiUrl} />;
 
-  return <PlaceholderScreen title={route.label} icon={route.key === "execute" ? "🧩" : "🙂"} />;
+  if (route.key === "execute") return <ExecutePage apiUrl={apiUrl} />;
+  return <PlaceholderScreen title={route.label} icon="🙂" />;
 }
 
 /** Prototype PlaceholderScreen: routes that the current vertical slices do not own yet. */

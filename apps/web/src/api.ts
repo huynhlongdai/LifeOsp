@@ -16,6 +16,7 @@ import {
   type ClarityPromotionDraftView,
   type CurrentDirectionView,
   type DirectionView,
+  type ExecuteBoardView,
   type HealthStatus,
   type IncubatorItemView,
   type SeasonView,
@@ -89,6 +90,7 @@ export type ApiClient = {
   rejectClarityPromotion(recommendationId: string, signal?: AbortSignal): Promise<PromotionResolutionView>;
   deferClarityPromotion(recommendationId: string, signal?: AbortSignal): Promise<PromotionResolutionView>;
   getCurrentDirection(signal?: AbortSignal): Promise<CurrentDirectionView | null>;
+  getExecuteBoard(signal?: AbortSignal): Promise<ExecuteBoardView | null>;
 };
 
 export function createApiClient(baseUrl = ""): ApiClient {
@@ -215,6 +217,19 @@ export function createApiClient(baseUrl = ""): ApiClient {
         const value = await request("/v1/direction/current", signal ? { signal } : {});
         if (!isCurrentDirectionView(value)) {
           throw new Error("Current Direction response does not match the LifeOS contract");
+        }
+        return value;
+      } catch (error) {
+        if (error instanceof ApiRequestError && error.status === 404) return null;
+        throw error;
+      }
+    },
+
+    async getExecuteBoard(signal) {
+      try {
+        const value = await request("/v1/execute", signal ? { signal } : {});
+        if (!isExecuteBoardView(value)) {
+          throw new Error("Execute board response does not match the LifeOS contract");
         }
         return value;
       } catch (error) {
@@ -424,4 +439,14 @@ function isStringArray(value: unknown): value is string[] {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isExecuteBoardView(value: unknown): value is ExecuteBoardView {
+  if (typeof value !== "object" || value === null) return false;
+  const candidate = value as Partial<ExecuteBoardView>;
+  return (
+    typeof candidate.seasonId === "string" &&
+    typeof candidate.seasonTitle === "string" &&
+    Array.isArray(candidate.outcomes)
+  );
 }

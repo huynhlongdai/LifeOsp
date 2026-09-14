@@ -3,6 +3,7 @@ import { checkDatabase, createDatabaseClient } from "@lifeos/db";
 import type { HealthStatus, ReadinessStatus } from "@lifeos/domain";
 import { registerActionRoutes, type ActionOptions } from "./action.js";
 import { registerCaptureRoutes } from "./capture.js";
+import { registerExecuteBoardRoutes } from "./execute-board.js";
 import { registerExecutionContextRoutes } from "./execution-context.js";
 import { registerFocusRoutes } from "./focus.js";
 import { registerIdentityRoutes, type IdentityOptions } from "./identity.js";
@@ -53,6 +54,7 @@ export function buildApp(options: BuildAppOptions = {}) {
   registerInterpretationRoutes(app, database, options.interpretation);
   registerPromotionRoutes(app, database);
   registerExecutionContextRoutes(app, database);
+  registerExecuteBoardRoutes(app, database);
   registerActionRoutes(app, database, options.action);
   registerNextActionRoutes(app, database);
   registerNowRoutes(app, database);
