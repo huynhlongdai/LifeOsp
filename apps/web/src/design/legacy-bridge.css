@@ -1,0 +1,31 @@
+/*
+ * Bridge for Vertical Slice A screens (Clarity Reset, Direction) that still use the
+ * pre-design-system class names. It only remaps colours onto the vendored design
+ * tokens so the whole app reads as one product; those screens get their real
+ * prototype markup when their own design issue is picked up.
+ */
+.app-shell, .content { background: transparent; }
+.hero-card, .panel, .empty-state, .state-message, .need-card, .saved-capture, .flow-status, .selected-context {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+  color: var(--text);
+}
+.need-card.selected { background: var(--primary-bg); border-color: var(--primary-border); }
+.need-card span, .selected-context span, .saved-capture summary, .flow-status p, p { color: var(--text-2); }
+h1, h2, h3, strong { color: var(--text); }
+.eyebrow, .field-label span, .save-first-note { color: var(--text-3); }
+.primary-button { background: var(--text); color: var(--card); border-radius: 16px; box-shadow: var(--shadow-card); }
+.secondary-button { background: var(--bg-2); color: var(--text); border: 1px solid var(--border-2); border-radius: 16px; }
+.text-button { color: var(--text-2); }
+.context-input, .brain-dump-input, .now-edit-form input, .now-edit-form textarea, .now-edit-form select {
+  background: var(--bg); border: 1px solid var(--border-2); color: var(--text); border-radius: 14px;
+}
+.inline-notice { color: var(--green); background: var(--green-bg); border: 1px solid var(--border); }
+.inline-error, .now-inline-error { color: var(--red); background: var(--red-bg); border: 1px solid var(--border); border-radius: 14px; }
+.status.online { color: var(--green); background: var(--green-bg); border-color: var(--border); }
+.status.offline { color: var(--red); background: var(--red-bg); border-color: var(--border); }
+.status.checking { color: var(--amber); background: var(--amber-bg); border-color: var(--border); }
+.saved-capture pre { background: var(--bg); color: var(--text-2); border-top: 1px solid var(--border); }
+.status-pulse { background: var(--primary); box-shadow: 0 0 0 7px var(--primary-bg); }

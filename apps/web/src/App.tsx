@@ -1,12 +1,13 @@
-import { useEffect, useState, type MouseEvent } from "react";
+import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
 import type { HealthStatus } from "@lifeos/domain";
 import { createApiClient } from "./api";
+import { AppShell } from "./AppShell";
 import { ClarityReset } from "./ClarityReset";
 import { DirectionPage } from "./DirectionPage";
 import { NowPage } from "./NowPage";
 import { ReflectPage } from "./ReflectPage";
-import { APP_ROUTES, resolveRoute, type AppRoute } from "./routes";
-import { EmptyState, ErrorState, LoadingState, type AsyncState } from "./ui-states";
+import { resolveRoute, type AppRoute } from "./routes";
+import { EmptyState, ErrorState, type AsyncState } from "./ui-states";
 
 export function App() {
   const [pathname, setPathname] = useState(() => window.location.pathname);
@@ -46,78 +47,59 @@ export function App() {
   };
 
   return (
-    <div className="app-shell">
-      <aside className="sidebar" aria-label="LifeOS navigation">
-        <a className="brand" href="/" onClick={(event) => navigate(event, "/")}>
-          LifeOS
-        </a>
-        <nav>
-          {APP_ROUTES.map((item) => (
-            <a
-              className={route?.key === item.key ? "nav-item active" : "nav-item"}
-              href={item.path}
-              key={item.key}
-              aria-current={route?.key === item.key ? "page" : undefined}
-              onClick={(event) => navigate(event, item.path)}
-            >
-              {item.label}
-            </a>
-          ))}
-        </nav>
-        <div className="secondary-links" aria-label="Product status">
-          <span>Vertical Slice B</span>
-          <a href="/clarity" onClick={(event) => navigate(event, "/clarity")}>Clarity Reset</a>
-        </div>
-      </aside>
-
-      <main className="content">
-        <header className="topbar">
-          <div>
-            <p className="eyebrow">{route?.key === "clarity" ? "VERTICAL SLICE A" : "LIFEOS"} / {route?.label ?? "UNKNOWN"}</p>
-            <h1>{route?.key === "now" ? "Biết điều gì quan trọng. Biết việc cần làm tiếp theo." : route?.label ?? "Route không tồn tại"}</h1>
-          </div>
-          <ApiBadge state={apiState} />
-        </header>
-
-        {route ? <RouteContent route={route} apiUrl={apiUrl} /> : <UnknownRoute />}
-      </main>
-    </div>
+    <AppShell route={route} onNavigate={navigate} statusSlot={<ApiBadge state={apiState} />}>
+      {route ? <RouteContent route={route} apiUrl={apiUrl} /> : <UnknownRoute />}
+    </AppShell>
   );
 }
 
 function RouteContent({ route, apiUrl }: { route: AppRoute; apiUrl: string }) {
-  if (route.key === "clarity") return <ClarityReset apiUrl={apiUrl} />;
-  if (route.key === "direction") return <DirectionPage apiUrl={apiUrl} />;
   if (route.key === "now") return <NowPage apiUrl={apiUrl} />;
   if (route.key === "reflect") return <ReflectPage apiUrl={apiUrl} />;
+  if (route.key === "clarity") return <LegacyPage><ClarityReset apiUrl={apiUrl} /></LegacyPage>;
+  if (route.key === "direction") return <LegacyPage><DirectionPage apiUrl={apiUrl} /></LegacyPage>;
 
   return (
+    <LegacyPage>
     <EmptyState title={`${route.label} chưa có dữ liệu`}>
       Route đã có ownership trong app shell, nhưng feature và dữ liệu chỉ được thêm khi vertical slice tương ứng bắt đầu.
     </EmptyState>
+    </LegacyPage>
   );
+}
+
+/** Slice A screens keep their current markup until their own design pass. */
+function LegacyPage({ children }: { children: ReactNode }) {
+  return <div className="px-5 pt-8 pb-10 md:px-8 md:max-w-3xl">{children}</div>;
 }
 
 function UnknownRoute() {
   return (
+    <LegacyPage>
     <ErrorState title="Route không tồn tại">
       Dùng navigation của LifeOS để quay về một khu vực đã được định nghĩa.
     </ErrorState>
+    </LegacyPage>
   );
 }
 
 function ApiBadge({ state }: { state: AsyncState<HealthStatus> }) {
-  if (state.kind === "loading") return <LoadingState label="API checking" />;
-  if (state.kind === "error") {
-    return (
-      <span className="status offline" title={state.message} role="status">
-        API offline
-      </span>
-    );
-  }
+  const tone =
+    state.kind === "loading"
+      ? { label: "API…", color: "var(--amber)", background: "var(--amber-bg)" }
+      : state.kind === "error"
+        ? { label: "API offline", color: "var(--red)", background: "var(--red-bg)" }
+        : { label: "API online", color: "var(--green)", background: "var(--green-bg)" };
+
   return (
-    <span className="status online" title={`Healthy at ${state.data.timestamp}`} role="status">
-      API online
+    <span
+      className="flex items-center gap-1.5 px-2.5 h-8 rounded-xl text-[10px] font-extrabold uppercase"
+      style={{ color: tone.color, background: tone.background, border: "1px solid var(--border-2)", letterSpacing: "0.06em" }}
+      title={state.kind === "error" ? state.message : state.kind === "success" ? `Healthy at ${state.data.timestamp}` : undefined}
+      role="status"
+    >
+      <span className="rounded-full" style={{ width: 7, height: 7, background: tone.color }} />
+      {tone.label}
     </span>
   );
 }

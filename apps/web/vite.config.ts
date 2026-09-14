@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 
 const apiProxyTarget = process.env.LIFEOS_API_PROXY_TARGET ?? "http://127.0.0.1:4000";
 const apiProxy = {
@@ -9,7 +10,7 @@ const apiProxy = {
 };
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   server: {
     port: 3222,
     proxy: apiProxy

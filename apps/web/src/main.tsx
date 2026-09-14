@@ -3,7 +3,8 @@ import { createRoot } from "react-dom/client";
 import { App } from "./App";
 import "./styles.css";
 import "./now.css";
-import "./theme.css";
+import "./design/index.css";
+import "./design/legacy-bridge.css";
 
 const root = document.getElementById("root");
 

@@ -63,26 +63,31 @@ export function ResultPanel({ apiUrl, actionId, focusSessionId, onRecorded }: Re
 
   if (recorded) {
     return (
-      <section className="result-panel result-panel-recorded" aria-live="polite">
-        <p className="eyebrow">KẾT QUẢ ĐÃ GHI</p>
-        <p>
-          <strong>{OUTCOME_LABELS[recorded.outcome]}</strong>
-          {recorded.focusMinutes === undefined ? null : <span> · {recorded.focusMinutes} phút Focus</span>}
+      <section className="rounded-2xl p-4 mb-4" aria-live="polite" style={{ background: "var(--green-bg)", border: "1px solid var(--border)" }}>
+        <p className="text-[10px] font-extrabold tracking-widest mb-1.5" style={{ color: "var(--green)" }}>KẾT QUẢ ĐÃ GHI</p>
+        <p className="text-sm font-bold" style={{ color: "var(--text)" }}>
+          {OUTCOME_LABELS[recorded.outcome]}
+          {recorded.focusMinutes === undefined ? null : <span style={{ fontWeight: 600 }}> · {recorded.focusMinutes} phút Focus</span>}
         </p>
-        {recorded.note ? <p className="result-note">{recorded.note}</p> : null}
+        {recorded.note ? <p className="text-xs mt-1 leading-relaxed" style={{ color: "var(--text-2)" }}>{recorded.note}</p> : null}
       </section>
     );
   }
 
   return (
-    <section className="result-panel">
-      <p className="eyebrow">GHI KẾT QUẢ THỰC TẾ</p>
-      <div className="result-outcomes" role="group" aria-label="Kết quả của Action">
+    <section className="rounded-2xl p-4 mb-4" style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "var(--shadow-card)" }}>
+      <p className="text-[10px] font-extrabold tracking-widest mb-3" style={{ color: "var(--text-3)", letterSpacing: "0.12em" }}>GHI KẾT QUẢ THỰC TẾ</p>
+      <div className="flex flex-wrap gap-2 mb-3" role="group" aria-label="Kết quả của Action">
         {OUTCOMES.map((value) => (
           <button
             key={value}
             type="button"
-            className={value === outcome ? "chip chip-selected" : "chip"}
+            className="text-xs font-bold px-3 py-2 rounded-full"
+            style={
+              value === outcome
+                ? { background: "var(--primary-bg)", color: "var(--primary)", border: "1px solid var(--primary-border)" }
+                : { background: "var(--bg)", color: "var(--text-2)", border: "1px solid var(--border)" }
+            }
             aria-pressed={value === outcome}
             disabled={busy}
             onClick={() => setOutcome(value)}
@@ -93,33 +98,37 @@ export function ResultPanel({ apiUrl, actionId, focusSessionId, onRecorded }: Re
       </div>
 
       {reasonRequired ? (
-        <label className="result-field">
-          <span>Lý do bị chặn (bắt buộc)</span>
+        <label className="block mb-3">
+          <span className="block text-[10px] font-extrabold tracking-widest mb-1.5" style={{ color: "var(--text-3)" }}>LÝ DO BỊ CHẶN (BẮT BUỘC)</span>
           <input
             type="text"
             value={reason}
             maxLength={2000}
             disabled={busy}
             onChange={(event) => setReason(event.target.value)}
+            className="w-full px-3.5 py-3 rounded-2xl text-sm"
+            style={FIELD_STYLE}
             placeholder="Vd: Đang chờ quyền truy cập API"
           />
         </label>
       ) : null}
 
-      <label className="result-field">
-        <span>Ghi chú (tuỳ chọn)</span>
+      <label className="block mb-3">
+        <span className="block text-[10px] font-extrabold tracking-widest mb-1.5" style={{ color: "var(--text-3)" }}>GHI CHÚ (TUỲ CHỌN)</span>
         <textarea
           value={note}
           rows={2}
           maxLength={2000}
           disabled={busy}
           onChange={(event) => setNote(event.target.value)}
+          className="w-full px-3.5 py-3 rounded-2xl text-sm"
+          style={FIELD_STYLE}
           placeholder="Chỉ ghi điều thực sự đã xảy ra."
         />
       </label>
 
       {focusSessionId ? (
-        <label className="result-focus-toggle">
+        <label className="flex items-center gap-2.5 mb-3 text-xs" style={{ color: "var(--text-2)" }}>
           <input
             type="checkbox"
             checked={commitFocus}
@@ -131,12 +140,17 @@ export function ResultPanel({ apiUrl, actionId, focusSessionId, onRecorded }: Re
       ) : null}
 
       {error ? (
-        <p className="now-inline-error" role="alert">
+        <p className="text-xs px-3.5 py-3 rounded-2xl mb-3" role="alert" style={{ color: "var(--red)", background: "var(--red-bg)", border: "1px solid var(--border)" }}>
           {error}
         </p>
       ) : null}
 
-      <button className="primary-button" type="button" disabled={busy || !canSubmit} onClick={() => void submit()}>
+      <button
+        type="button"
+        disabled={busy || !canSubmit}
+        onClick={() => void submit()}
+        className="btn-primary-action w-full h-12 rounded-2xl font-display text-sm active:scale-[0.97] disabled:opacity-50"
+      >
         {busy ? "Đang ghi…" : "Ghi kết quả"}
       </button>
     </section>
@@ -157,6 +171,12 @@ export function resultErrorMessage(error: unknown): string {
   }
   return error instanceof Error ? error.message : "Không thể ghi kết quả";
 }
+
+const FIELD_STYLE = {
+  background: "var(--bg)",
+  border: "1px solid var(--border-2)",
+  color: "var(--text)"
+} as const;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
