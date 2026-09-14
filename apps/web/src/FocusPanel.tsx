@@ -7,6 +7,8 @@ type FocusPanelProps = {
   apiUrl: string;
   recommendationId: string;
   recommendationStatus: "shown" | "accepted" | "edited";
+  /** Lets NOW commit the running FocusSession together with the B5 Action result. */
+  onActiveFocusChange?: (focusSessionId: string | null) => void;
 };
 
 type FocusPanelState =
@@ -16,7 +18,7 @@ type FocusPanelState =
 
 // B4 Focus V0 entry point. Only reads/writes FocusSession state via the
 // dedicated Focus API; never touches Action completion or result semantics.
-export function FocusPanel({ apiUrl, recommendationId, recommendationStatus }: FocusPanelProps) {
+export function FocusPanel({ apiUrl, recommendationId, recommendationStatus, onActiveFocusChange }: FocusPanelProps) {
   const focusApi = useMemo(() => createFocusApiClient(apiUrl), [apiUrl]);
   const [state, setState] = useState<FocusPanelState>({ kind: "loading" });
   const [busy, setBusy] = useState(false);
@@ -32,6 +34,7 @@ export function FocusPanel({ apiUrl, recommendationId, recommendationStatus }: F
         setState({ kind: "loading" });
         const data = await focusApi.getFocus(controller.signal);
         setState({ kind: "loaded", data });
+        onActiveFocusChange?.(data.state === "active" ? data.focus.id : null);
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") return;
         setState({ kind: "error", message: focusErrorMessage(error) });
@@ -40,7 +43,7 @@ export function FocusPanel({ apiUrl, recommendationId, recommendationStatus }: F
 
     void load();
     return () => controller.abort();
-  }, [focusApi]);
+  }, [focusApi, onActiveFocusChange]);
 
   const startFocus = async () => {
     try {
@@ -48,6 +51,7 @@ export function FocusPanel({ apiUrl, recommendationId, recommendationStatus }: F
       setActionError(null);
       const focus = await focusApi.startFocus(recommendationId);
       setState({ kind: "loaded", data: { state: "active", generatedAt: new Date().toISOString(), focus } });
+      onActiveFocusChange?.(focus.id);
     } catch (error) {
       setActionError(focusErrorMessage(error));
     } finally {
@@ -61,6 +65,7 @@ export function FocusPanel({ apiUrl, recommendationId, recommendationStatus }: F
       setActionError(null);
       const focus = await focusApi.endFocus(focusSessionId, outcome);
       setState({ kind: "loaded", data: { state: "recent", generatedAt: new Date().toISOString(), focus } });
+      onActiveFocusChange?.(null);
       setDistractionText("");
       setDistractionSaved(false);
     } catch (error) {

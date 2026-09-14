@@ -233,4 +233,5 @@ export * from "./focus.js";
 export * from "./next-action.js";
 export * from "./now.js";
 export * from "./promotion.js";
+export * from "./result.js";
 export * from "./schema.js";

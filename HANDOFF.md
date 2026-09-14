@@ -1,6 +1,6 @@
 # LifeOS Project Handoff
 
-Updated: 2026-08-26
+Updated: 2026-09-14
 Repository: `huynhlongdai/LifeOsp`
 
 ## 1. Purpose
@@ -37,9 +37,9 @@ Hard trust principles:
 
 Current `main` head at handoff:
 
-`0d4db21a60c5957211316d54d6ed3013d4ba9b53`
+`a714fda861c25f7d2f77e8db2f61f38c4004b6b7`
 
-This is the squash merge of B3 NOW V0.
+This is the docs commit after the B4 Focus V0 merge.
 
 No pull request is open at the time of this handoff.
 
@@ -61,6 +61,13 @@ Vertical Slice A loop completed:
 `Capture -> Clarify -> trade-off -> confirmed Direction / Current Season`
 
 ### Completed Vertical Slice B increments
+
+B4 #40 — Focus V0: merged (PR #48).
+
+- FocusSession persistence with one active session per user;
+- start from an accepted/edited NOW recommendation;
+- distraction Capture that changes nothing else;
+- Focus never completes the Action.
 
 B0 #36 — Execution Context: merged.
 
@@ -98,83 +105,42 @@ B3 #39 — NOW V0: merged.
 - responsive NOW-first Web UI;
 - B4 execution boundary intentionally preserved.
 
-## 4. Current active work: B4 Focus V0
+## 4. Current active work: B5 Result + Daily Close V0
 
-Issue: #40
-Branch: `feat/b4-focus-v0`
-Branch head at handoff: `7989c409f96bc121ec39f02b5ffda5ea4158d10d`
-PR: none yet
+Issue: #41
+Branch: `feat/b5-result-daily-close`
+PR: draft
 
-Canonical B4 scope:
+B4 Focus V0 is **merged** (PR #48, 2026-08-27). The temporary Drizzle
+migration-generation workflow is gone and `packages/db/drizzle/0008_b4_focus_sessions.sql`
+is on `main`. Issue #40 is still open only because it was never closed manually.
 
-- FocusSession persistence with `active | completed | interrupted | abandoned`;
-- start Focus from accepted NOW recommendation in <=2 taps;
-- FocusSession links to owned Action but does NOT imply Action completion;
-- snapshot `plannedMinutes` from Action estimate when applicable;
-- distraction capture creates immutable `Capture(kind='distraction')` with raw text;
-- distraction capture must not change Action / Recommendation / Focus priority;
-- audit `focus.started`, focus outcome, and `distraction.captured`;
-- reload active/recent Focus safely after app restart;
-- no B5 Action-result semantics.
+Canonical B5 scope in flight:
 
-### B4 already changed on feature branch
+- `action_results` table: one immutable result per Action
+  (`completed | partial | postponed | blocked | dropped`), previous status,
+  optional note/reason, optional user revisit date, Focus/planned minutes;
+- `daily_closes` table: one row per user and local date with a factual summary;
+- `POST /v1/actions/:actionId/result`, `GET /v1/daily-close`, `POST /v1/daily-close`;
+- Action result and Focus result stay distinct but may be committed in one
+  transaction when the user asks for it;
+- postponing/dropping clears `scheduled_for` unless the user picked a revisit
+  date, so no synthetic overdue debt is created;
+- recording a result resolves the open `next_action` recommendation
+  (`recommendation.resolved`) and audits `action.result.recorded` /
+  `daily_close.recorded`;
+- no AI call anywhere in the path: a provider outage cannot block a result or a
+  Daily Close;
+- no Get Unstuck / Weekly Adapt inference.
 
-Work already started on `feat/b4-focus-v0`:
-
-- `FocusSessionId` added to domain IDs;
-- `packages/domain/src/focus.ts` added with FocusSession/start/end/distraction contracts;
-- domain index exports Focus contract;
-- `focusSessions` schema was drafted with:
-  - `userId`
-  - `actionId`
-  - optional `recommendationId`
-  - `plannedMinutes`
-  - status
-  - `startedAt`
-  - optional `endedAt`
-  - partial unique index: max one `active` FocusSession per user.
-
-### B4 known failure / exact restart point
-
-A temporary workflow was added to let Drizzle generate the FocusSession migration:
-
-`.github/workflows/b4-generate-focus-schema.yml`
-
-The first workflow run failed.
-
-Do NOT assume a valid FocusSession migration exists yet.
-
-First task for the B4 implementation agent:
-
-1. inspect the failed workflow run for the exact failure;
-2. fix only migration-generation/tooling or schema issues revealed by the log;
-3. let Drizzle generate migration + snapshot/journal;
-4. inspect generated SQL, especially the partial unique active-focus index;
-5. delete the temporary workflow before opening/finalizing the B4 PR;
-6. continue DB service/API/UI/integration only after schema is valid.
-
-Do not merge the temporary generator workflow into `main`.
-
-### B4 required gates before merge
-
-- only an owned Action tied to the user's accepted/edited NOW recommendation can start Focus;
-- concurrent/double-active starts cannot create two active FocusSessions;
-- invalid/cross-owner starts fail with no partial state;
-- start + `focus.started` audit is atomic;
-- distraction Capture raw text survives reload and does not alter current Focus or Action priority;
-- ending/interruption/abandonment of Focus does not auto-complete the Action;
-- active/recent Focus reloads after API/app restart;
-- Web can enter Focus from NOW in <=2 taps;
-- no B5 result semantics leak into B4;
-- final branch has no temporary workflows and full CI is green.
+Web surface added with B5: result controls under NOW and a Daily Close view on
+the `REFLECT` route.
 
 ## 5. Remaining Vertical Slice B
 
 ### B5 #41 — Result + Daily Close V0
 
-Dependency: B4 #40 must merge first.
-
-Implement only after B4 contract is stable.
+Status: implementation in flight on `feat/b5-result-daily-close` (see section 4).
 
 Scope:
 
@@ -230,38 +196,27 @@ Owns:
 
 Should NOT implement feature code in parallel unless another agent is blocked.
 
-### Agent B — B4 Focus implementation
+### Agent B — B5 Result + Daily Close implementation
 
 Own branch:
 
-`feat/b4-focus-v0`
+`feat/b5-result-daily-close`
 
 Owns:
 
-- Focus domain/schema/migration;
-- DB transaction service;
-- Focus API;
-- distraction capture mutation;
-- Focus UI and NOW -> Focus entry;
-- PostgreSQL/Web contract tests;
-- PR for #40.
+- result/Daily Close domain contracts, schema, migration `0009`;
+- transactional result service and Daily Close read model;
+- result + Daily Close API;
+- NOW result controls and the REFLECT Daily Close surface;
+- PostgreSQL integration tests;
+- PR for #41.
 
-Avoid touching B5 result semantics.
+Must not add Weekly Adapt or Get Unstuck inference.
 
-### Agent C — B5 specification/test planning only until B4 merge
+### Agent C — B6 planning until B5 merge
 
-Before B4 merge:
-
-- read #41 + domain docs;
-- define Action-result transition matrix;
-- define Daily Close read model and factual-only rules;
-- prepare test cases / acceptance criteria;
-- do NOT merge product code that assumes an unmerged Focus schema.
-
-After B4 merge:
-
-- create a fresh B5 branch from new `main`;
-- implement #41.
+Before B5 merge: E2E fixtures, expected LifeEvent sequence and adversarial
+ownership cases only. After B5 merge: branch from new `main` and implement #42.
 
 ### Agent D — B6 / QA architect
 
@@ -288,11 +243,14 @@ Deliver docs or isolated components; avoid changing B4 core files without coordi
 
 ## 8. File ownership / merge-conflict guidance
 
-While B4 is active, treat these as B4-owned or conflict-prone:
+While B5 is active, treat these as B5-owned or conflict-prone:
 
 - `packages/domain/src/ids.ts`
 - `packages/domain/src/index.ts`
 - `packages/domain/src/focus.ts`
+- `packages/domain/src/result.ts`
+- `packages/db/src/result.ts`
+- `apps/api/src/result.ts`
 - `packages/db/src/schema.ts`
 - `packages/db/drizzle/**`
 - `packages/db/src/index.ts`
@@ -314,18 +272,22 @@ Do not have two agents independently edit Drizzle migrations/snapshots.
 - Schema migrations should be generated by Drizzle and reviewed, not hand-edited snapshots.
 - Integration behavior that matters must be proven against PostgreSQL, not mocks alone.
 
-## 10. Starting prompt for a fresh B4 chat/agent
+## 10. Starting prompt for a fresh B5/B6 chat/agent
 
-Use this verbatim or adapt minimally:
-
-> Work on LifeOS repo `huynhlongdai/LifeOsp`. Read `HANDOFF.md`, issue #40 and Meeting #016 first. Continue only B4 on existing branch `feat/b4-focus-v0`. Current stable main is `0d4db21a60c5957211316d54d6ed3013d4ba9b53`. B4 already has initial Focus domain/schema work, but the temporary Drizzle migration-generation workflow failed and no PR exists. Inspect that failed run first, fix migration generation, generate/audit FocusSession migration, delete the temporary workflow, then implement transactional Focus persistence/API/UI/distraction capture/integration tests. Preserve the hard boundary: Focus does not complete or otherwise resolve Action; Action-result semantics belong to B5. Open a draft PR early, use CI/PostgreSQL as gates, and do not merge until the final clean head is green.
+> Work on LifeOS repo `huynhlongdai/LifeOsp`. Read `HANDOFF.md`, the active issue and
+> Meeting #016 first. Foundation, Vertical Slice A and B0–B4 are merged; B5 Result +
+> Daily Close is implemented on `feat/b5-result-daily-close` (#41) and B6 (#42) is the
+> Vertical Slice B E2E. Preserve the hard boundaries: results are user-stated and never
+> inferred, Focus result and Action result stay distinct, and no Weekly Adapt or Get
+> Unstuck inference belongs in Slice B. Use CI with PostgreSQL as the gate and do not
+> merge until the final clean head is green.
 
 ## 11. Definition of done for handoff usage
 
 A new agent/chat should be able to continue by reading, in order:
 
 1. `HANDOFF.md`
-2. the active issue (`#40` currently)
+2. the active issue (`#41` currently)
 3. `meetings/016-vertical-slice-a-exit-and-b-authorization.md`
 4. current feature branch diff / CI failure
 5. canonical domain/docs only where needed.

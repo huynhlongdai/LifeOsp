@@ -10,6 +10,7 @@ import { registerInterpretationRoutes, type InterpretationOptions } from "./inte
 import { registerNextActionRoutes } from "./next-action.js";
 import { registerNowRoutes } from "./now.js";
 import { registerPromotionRoutes } from "./promotion.js";
+import { registerResultRoutes } from "./result.js";
 
 export type BuildAppOptions = {
   databaseUrl?: string;
@@ -56,6 +57,7 @@ export function buildApp(options: BuildAppOptions = {}) {
   registerNextActionRoutes(app, database);
   registerNowRoutes(app, database);
   registerFocusRoutes(app, database);
+  registerResultRoutes(app, database);
 
   app.addHook("onClose", async () => {
     if (database) {

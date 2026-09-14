@@ -241,6 +241,69 @@ export const focusSessions = pgTable(
   ]
 );
 
+export const actionResults = pgTable(
+  "action_results",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    actionId: uuid("action_id")
+      .notNull()
+      .references(() => actions.id, { onDelete: "cascade" }),
+    focusSessionId: uuid("focus_session_id").references(() => focusSessions.id, { onDelete: "set null" }),
+    recommendationId: uuid("recommendation_id").references(() => recommendations.id, { onDelete: "set null" }),
+    outcome: text("outcome").notNull(),
+    previousActionStatus: text("previous_action_status").notNull(),
+    note: text("note"),
+    reason: text("reason"),
+    postponedTo: date("postponed_to"),
+    focusMinutes: integer("focus_minutes"),
+    plannedMinutes: integer("planned_minutes"),
+    recordedAt: timestamp("recorded_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("action_results_user_recorded_idx").on(table.userId, table.recordedAt),
+    uniqueIndex("action_results_one_per_action_uidx").on(table.actionId),
+    check(
+      "action_results_outcome_check",
+      sql`${table.outcome} in ('completed', 'partial', 'postponed', 'blocked', 'dropped')`
+    ),
+    check(
+      "action_results_previous_status_check",
+      sql`${table.previousActionStatus} in ('ready', 'active')`
+    ),
+    check(
+      "action_results_reason_required_check",
+      sql`${table.outcome} <> 'blocked' or length(btrim(coalesce(${table.reason}, ''))) > 0`
+    ),
+    check("action_results_focus_minutes_check", sql`${table.focusMinutes} is null or ${table.focusMinutes} >= 0`)
+  ]
+);
+
+export const dailyCloses = pgTable(
+  "daily_closes",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    localDate: date("local_date").notNull(),
+    tzOffsetMinutes: integer("tz_offset_minutes").default(0).notNull(),
+    note: text("note"),
+    summary: jsonb("summary").$type<unknown>().notNull(),
+    closedAt: timestamp("closed_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    uniqueIndex("daily_closes_user_local_date_uidx").on(table.userId, table.localDate),
+    check(
+      "daily_closes_tz_offset_check",
+      sql`${table.tzOffsetMinutes} >= -840 and ${table.tzOffsetMinutes} <= 840`
+    )
+  ]
+);
+
 export const incubatorItems = pgTable(
   "incubator_items",
   {
@@ -370,6 +433,10 @@ export type ActionRow = typeof actions.$inferSelect;
 export type NewActionRow = typeof actions.$inferInsert;
 export type FocusSessionRow = typeof focusSessions.$inferSelect;
 export type NewFocusSessionRow = typeof focusSessions.$inferInsert;
+export type ActionResultRow = typeof actionResults.$inferSelect;
+export type NewActionResultRow = typeof actionResults.$inferInsert;
+export type DailyCloseRow = typeof dailyCloses.$inferSelect;
+export type NewDailyCloseRow = typeof dailyCloses.$inferInsert;
 export type IncubatorItemRow = typeof incubatorItems.$inferSelect;
 export type NewIncubatorItemRow = typeof incubatorItems.$inferInsert;
 export type RecommendationRow = typeof recommendations.$inferSelect;
