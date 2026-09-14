@@ -5,6 +5,7 @@ import { AppShell } from "./AppShell";
 import { ClarityReset } from "./ClarityReset";
 import { BrainDumpButton, BrainDumpSheet } from "./BrainDump";
 import { ExecutePage } from "./ExecutePage";
+import { CoachPage } from "./CoachPage";
 import { InboxPage } from "./InboxPage";
 import { IncubatorPage } from "./IncubatorPage";
 import { MePage } from "./MePage";
@@ -90,6 +91,7 @@ function RouteContent({ route, apiUrl }: { route: AppRoute; apiUrl: string }) {
   if (route.key === "execute") return <ExecutePage apiUrl={apiUrl} />;
   if (route.key === "inbox") return <InboxPage apiUrl={apiUrl} />;
   if (route.key === "incubator") return <IncubatorPage apiUrl={apiUrl} />;
+  if (route.key === "coach") return <CoachPage apiUrl={apiUrl} />;
   return <MePage apiUrl={apiUrl} />;
 }
 

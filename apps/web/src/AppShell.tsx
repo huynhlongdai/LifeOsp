@@ -47,6 +47,11 @@ const NAV_ICONS: Record<AppRouteKey, NavIcon> = {
       <path d="M9 21h6" stroke={a ? "var(--nav-icon-active)" : "var(--text-3)"} strokeWidth="1.7" strokeLinecap="round" />
     </svg>
   ),
+  coach: (a) => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 3l2 5h5l-4 3.2 1.5 5.3L12 13.6 7.5 16.5 9 11.2 5 8h5z" stroke={a ? "var(--nav-icon-active)" : "var(--text-3)"} strokeWidth="1.6" strokeLinejoin="round" />
+    </svg>
+  ),
   incubator: (a) => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M12 3a6 6 0 00-3.5 10.9V17h7v-3.1A6 6 0 0012 3z" stroke={a ? "var(--nav-icon-active)" : "var(--text-3)"} strokeWidth="1.7" strokeLinejoin="round" />
@@ -69,7 +74,8 @@ const NAV_LABELS: Record<AppRouteKey, string> = {
   me: "ME",
   clarity: "Clarity Reset",
   inbox: "Captures",
-  incubator: "Incubator"
+  incubator: "Incubator",
+  coach: "AI Coach"
 };
 
 export type AppShellProps = {
@@ -116,6 +122,7 @@ export function AppShell({ route, onNavigate, statusSlot, children }: AppShellPr
           <SidebarItem routeKey="clarity" path="/clarity" active={activeKey === "clarity"} onNavigate={onNavigate} small />
           <SidebarItem routeKey="inbox" path="/inbox" active={activeKey === "inbox"} onNavigate={onNavigate} small />
           <SidebarItem routeKey="incubator" path="/incubator" active={activeKey === "incubator"} onNavigate={onNavigate} small />
+          <SidebarItem routeKey="coach" path="/coach" active={activeKey === "coach"} onNavigate={onNavigate} small />
         </nav>
       </aside>
 

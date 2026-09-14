@@ -19,6 +19,7 @@ export type {
   UserId
 } from "./ids.js";
 export * from "./action.js";
+export * from "./coach.js";
 export * from "./execute-board.js";
 export * from "./execution-context.js";
 export * from "./focus.js";

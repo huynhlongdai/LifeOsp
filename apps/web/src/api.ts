@@ -14,6 +14,7 @@ import {
   type CaptureView,
   type ClarityPromotionDraftInput,
   type ClarityPromotionDraftView,
+  type CoachView,
   type CurrentDirectionView,
   type DirectionView,
   type ExecuteBoardView,
@@ -97,6 +98,7 @@ export type ApiClient = {
   getExecuteBoard(signal?: AbortSignal): Promise<ExecuteBoardView | null>;
   getMe(signal?: AbortSignal): Promise<MeView | null>;
   getInbox(signal?: AbortSignal): Promise<InboxView | null>;
+  getCoach(signal?: AbortSignal): Promise<CoachView | null>;
   getPreferences(signal?: AbortSignal): Promise<UserPreferencesView>;
   updatePreferences(input: UpdateUserPreferencesInput, signal?: AbortSignal): Promise<UserPreferencesView>;
 };
@@ -229,6 +231,17 @@ export function createApiClient(baseUrl = ""): ApiClient {
         return value;
       } catch (error) {
         if (error instanceof ApiRequestError && error.status === 404) return null;
+        throw error;
+      }
+    },
+
+    async getCoach(signal) {
+      try {
+        const value = await request("/v1/coach", signal ? { signal } : {});
+        if (!isCoachView(value)) throw new Error("Coach response does not match the LifeOS contract");
+        return value;
+      } catch (error) {
+        if (error instanceof ApiRequestError && error.status === 401) return null;
         throw error;
       }
     },
@@ -518,4 +531,10 @@ function isPreferencesView(value: unknown): value is UserPreferencesView {
     Array.isArray(candidate.workDays) &&
     typeof candidate.aiSuggestsActions === "boolean"
   );
+}
+
+function isCoachView(value: unknown): value is CoachView {
+  if (typeof value !== "object" || value === null) return false;
+  const candidate = value as Partial<CoachView>;
+  return Array.isArray(candidate.insights) && typeof candidate.capacity === "object" && typeof candidate.facts === "object";
 }
