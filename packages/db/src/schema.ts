@@ -472,3 +472,28 @@ export type RecommendationEvidenceRow = typeof recommendationEvidence.$inferSele
 export type NewRecommendationEvidenceRow = typeof recommendationEvidence.$inferInsert;
 export type LifeEventRow = typeof lifeEvents.$inferSelect;
 export type NewLifeEventRow = typeof lifeEvents.$inferInsert;
+
+/**
+ * Steps a user writes for a single Action ("TRONG PHIÊN NÀY"). They are the user's own
+ * breakdown of the work; LifeOS never generates or ticks them automatically.
+ */
+export const actionSteps = pgTable(
+  "action_steps",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    actionId: uuid("action_id")
+      .notNull()
+      .references(() => actions.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    position: integer("position").default(0).notNull(),
+    doneAt: timestamp("done_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [index("action_steps_action_idx").on(table.actionId, table.position)]
+);
+
+export type ActionStepRow = typeof actionSteps.$inferSelect;
+export type NewActionStepRow = typeof actionSteps.$inferInsert;

@@ -1,3 +1,4 @@
+import { SessionChecklist } from "./SessionChecklist";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { IncubatorItemView, NowView, ResolveNowRecommendationInput } from "@lifeos/domain";
 import { createApiClient } from "./api";
@@ -166,6 +167,8 @@ export function NowPage({ apiUrl }: { apiUrl: string }) {
               ) : null}
 
               <p className="text-xs leading-relaxed" style={{ color: "var(--text-2)" }}>{view.recommendation.rationale}</p>
+
+              <SessionChecklist apiUrl={apiUrl} actionId={view.action.id} />
 
               {mutationError ? (
                 <p className="text-xs px-3.5 py-3 rounded-2xl" role="alert" style={{ color: "var(--red)", background: "var(--red-bg)", border: "1px solid var(--border)" }}>
