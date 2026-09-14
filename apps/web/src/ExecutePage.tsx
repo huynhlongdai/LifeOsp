@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ActionView, ExecuteBoardView } from "@lifeos/domain";
+import { ActionResultSheet } from "./ActionResultSheet";
 import { ApiRequestError, createApiClient } from "./api";
 
 const ACTION_STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -21,6 +22,8 @@ const DONE_STATUSES = new Set(["completed", "dropped"]);
  */
 export function ExecutePage({ apiUrl }: { apiUrl: string }) {
   const api = useMemo(() => createApiClient(apiUrl), [apiUrl]);
+  const [reloadToken, setReloadToken] = useState(0);
+  const [resultTarget, setResultTarget] = useState<ActionView | null>(null);
   const [view, setView] = useState<"all" | "active" | "other">("all");
   const [state, setState] = useState<
     | { kind: "loading" }
@@ -46,7 +49,7 @@ export function ExecutePage({ apiUrl }: { apiUrl: string }) {
       });
 
     return () => controller.abort();
-  }, [api]);
+  }, [api, reloadToken]);
 
   if (state.kind === "loading") {
     return (
@@ -140,15 +143,24 @@ export function ExecutePage({ apiUrl }: { apiUrl: string }) {
                 <p className="text-sm" style={{ color: "var(--text-2)" }}>Không có Outcome nào ở bộ lọc này.</p>
               </div>
             ) : (
-              visibleOutcomes.map((group) => <OutcomeCard key={group.outcome.id} group={group} />)
+              visibleOutcomes.map((group) => <OutcomeCard key={group.outcome.id} group={group} onRecordResult={setResultTarget} />)
             )}
           </div>
         )}
 
         <p className="text-[11px] mt-4" style={{ color: "var(--text-3)" }}>
-          Bảng này chỉ đọc: trạng thái Action thay đổi qua Focus và ô ghi kết quả, không đổi bằng một cú chạm.
+          Chạm vào ô tròn để ghi kết quả cho một Action đang sẵn sàng hoặc đang chạy. LifeOS lưu đúng kết quả bạn chọn.
         </p>
       </div>
+
+      {resultTarget ? (
+        <ActionResultSheet
+          action={resultTarget}
+          apiUrl={apiUrl}
+          onClose={() => setResultTarget(null)}
+          onRecorded={() => setReloadToken((value) => value + 1)}
+        />
+      ) : null}
     </div>
   );
 }
@@ -253,7 +265,7 @@ function ExecuteHero({ subtitle, total, done }: { subtitle: string; total: numbe
   );
 }
 
-function OutcomeCard({ group }: { group: ExecuteBoardView["outcomes"][number] }) {
+function OutcomeCard({ group, onRecordResult }: { group: ExecuteBoardView["outcomes"][number]; onRecordResult: (action: ActionView) => void }) {
   const [open, setOpen] = useState(true);
   const actions = [...group.projects.flatMap((project) => project.actions), ...group.unassignedActions];
   const done = actions.filter((action) => DONE_STATUSES.has(action.status)).length;
@@ -299,7 +311,7 @@ function OutcomeCard({ group }: { group: ExecuteBoardView["outcomes"][number] })
                 <p className="px-4 py-3 text-xs" style={{ color: "var(--text-3)" }}>Chưa có Action nào trong Project này.</p>
               ) : (
                 project.actions.map((action, index) => (
-                  <ActionRow key={action.id} action={action} last={index === project.actions.length - 1} />
+                  <ActionRow key={action.id} action={action} last={index === project.actions.length - 1} onRecordResult={onRecordResult} />
                 ))
               )}
             </div>
@@ -311,7 +323,7 @@ function OutcomeCard({ group }: { group: ExecuteBoardView["outcomes"][number] })
                 <span className="text-xs font-bold" style={{ color: "var(--text-2)" }}>Không thuộc Project</span>
               </div>
               {group.unassignedActions.map((action, index) => (
-                <ActionRow key={action.id} action={action} last={index === group.unassignedActions.length - 1} />
+                <ActionRow key={action.id} action={action} last={index === group.unassignedActions.length - 1} onRecordResult={onRecordResult} />
               ))}
             </div>
           ) : null}
@@ -325,23 +337,34 @@ function OutcomeCard({ group }: { group: ExecuteBoardView["outcomes"][number] })
   );
 }
 
-function ActionRow({ action, last }: { action: ActionView; last: boolean }) {
+function ActionRow({ action, last, onRecordResult }: { action: ActionView; last: boolean; onRecordResult: (action: ActionView) => void }) {
   const status = ACTION_STATUS_LABELS[action.status] ?? { label: action.status, color: "var(--text-3)" };
   const done = DONE_STATUSES.has(action.status);
+  const recordable = action.status === "ready" || action.status === "active";
 
   return (
     <div className="flex items-start gap-3 py-2.5 px-4" style={{ opacity: done ? 0.55 : 1, borderBottom: last ? "none" : "1px solid var(--border)" }}>
-      <span
+      <button
+        type="button"
+        disabled={!recordable}
+        onClick={() => onRecordResult(action)}
+        aria-label={recordable ? `Ghi kết quả cho ${action.title}` : `${action.title} đã có kết quả`}
         className="rounded-full flex-shrink-0 mt-1 flex items-center justify-center"
-        aria-hidden="true"
-        style={{ width: 18, height: 18, border: "2px solid", borderColor: done ? "var(--primary)" : "var(--border-2)", background: done ? "var(--primary)" : "transparent" }}
+        style={{
+          width: 18,
+          height: 18,
+          border: "2px solid",
+          borderColor: done ? "var(--primary)" : "var(--border-2)",
+          background: done ? "var(--primary)" : "transparent",
+          cursor: recordable ? "pointer" : "default"
+        }}
       >
         {done ? (
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none">
             <path d="M5 12l5 5L20 7" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         ) : null}
-      </span>
+      </button>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium" style={{ color: done ? "var(--text-3)" : "var(--text)", textDecoration: done ? "line-through" : "none" }}>
           {action.title}
