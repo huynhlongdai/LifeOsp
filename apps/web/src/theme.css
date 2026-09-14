@@ -1,0 +1,281 @@
+/*
+ * LifeOS design system v1 ("Gloss").
+ * Tokens and surface styling taken from the approved Figma prototype:
+ * soft sage gradient canvas, cream cards, heavy black display type,
+ * one orange accent, pastel status chips, icon rail on desktop and an
+ * icon tab bar on mobile. Loaded after styles.css and now.css, so it
+ * restyles the existing markup without changing component contracts.
+ */
+
+:root {
+  --ink: #12211c;
+  --ink-soft: #5b6b64;
+  --ink-faint: #8b9a93;
+  --canvas-top: #dfe9e4;
+  --canvas-bottom: #eef2ee;
+  --card: #fbfaf6;
+  --card-muted: #f2f5f1;
+  --line: rgba(18, 33, 28, .1);
+  --line-strong: rgba(18, 33, 28, .18);
+  --accent: #f4713c;
+  --accent-soft: #ffe7dc;
+  --good: #2f7a56;
+  --good-soft: #e3f2e7;
+  --bad: #c0392f;
+  --bad-soft: #fce9e7;
+  --radius-lg: 26px;
+  --radius-md: 18px;
+  --radius-sm: 13px;
+  --shadow-card: 0 18px 46px rgba(18, 33, 28, .09);
+  --shadow-cta: 0 14px 30px rgba(18, 33, 28, .22);
+
+  color: var(--ink);
+  background: var(--canvas-bottom);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+body {
+  background: linear-gradient(180deg, var(--canvas-top) 0, var(--canvas-bottom) 46%, var(--canvas-bottom) 100%);
+  color: var(--ink);
+}
+
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---------- shell ---------- */
+.app-shell { grid-template-columns: 248px 1fr; background: transparent; }
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  padding: 22px 16px;
+  gap: 22px;
+  border-right: 1px solid var(--line);
+  background: rgba(251, 250, 246, .72);
+  backdrop-filter: blur(12px);
+}
+.brand { display: flex; align-items: center; gap: 10px; color: var(--ink); font-size: 1.15rem; }
+.brand::before {
+  content: "";
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: var(--ink);
+  box-shadow: inset 0 0 0 4px var(--card), inset 0 0 0 5px var(--ink);
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: var(--ink-soft);
+  border-radius: var(--radius-sm);
+  padding: 12px 13px;
+  letter-spacing: .09em;
+}
+.nav-item::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  flex: 0 0 auto;
+}
+.nav-item:hover { color: var(--ink); background: var(--card-muted); }
+.nav-item.active {
+  color: var(--ink);
+  background: var(--card);
+  box-shadow: var(--shadow-card);
+}
+.nav-item.active::before { background: var(--accent); border-color: var(--accent); }
+.secondary-links { color: var(--ink-faint); }
+.secondary-links a { color: var(--ink); font-weight: 700; }
+
+.content { padding: 34px clamp(18px, 4vw, 56px) 120px; }
+.topbar { align-items: center; margin-bottom: 26px; }
+.eyebrow { color: var(--ink-faint); letter-spacing: .16em; }
+h1 {
+  font-size: clamp(2.6rem, 6vw, 4.6rem);
+  line-height: .92;
+  letter-spacing: -0.05em;
+  font-weight: 900;
+  text-transform: uppercase;
+  max-width: 14ch;
+}
+h2, h3 { color: var(--ink); }
+p { color: var(--ink-soft); }
+
+.status { border-width: 1px; padding: 9px 14px; }
+.status.online { color: var(--good); background: var(--good-soft); border-color: rgba(47, 122, 86, .25); }
+.status.offline { color: var(--bad); background: var(--bad-soft); border-color: rgba(192, 57, 47, .25); }
+.status.checking { color: #8a6d2f; background: #f6efdd; border-color: rgba(138, 109, 47, .25); }
+
+/* ---------- surfaces ---------- */
+.hero-card, .panel, .empty-state, .state-message,
+.now-primary-card, .focus-panel, .result-panel,
+.daily-close-summary, .daily-close-form, .daily-close-done,
+.now-season-strip, .saved-capture, .flow-status, .selected-context {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  color: var(--ink);
+}
+.now-primary-card { padding: clamp(22px, 4vw, 34px); }
+.now-primary-heading h2 {
+  font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  font-weight: 900;
+}
+.now-done-condition, .now-meta-row span, .focus-done-condition, .focus-meta-row span {
+  background: var(--card-muted);
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  border-radius: 999px;
+}
+.now-done-condition, .focus-done-condition {
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: grid;
+  gap: 4px;
+}
+.now-done-condition span, .focus-done-condition span { color: var(--ink-faint); font-size: .72rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.now-done-condition strong, .focus-done-condition strong { color: var(--ink); }
+.now-rationale, .now-confirmed-note, .now-guardrail span, .daily-close-empty, .result-note { color: var(--ink-soft); }
+.now-guardrail { padding: 4px 2px; color: var(--ink-soft); }
+.now-guardrail strong { color: var(--ink); }
+.now-season-strip { padding: 18px 20px; }
+.now-recommendation-status, .saved-badge { background: var(--accent-soft); color: #9c3d17; border: 0; border-radius: 999px; padding: 7px 13px; font-weight: 800; }
+
+/* ---------- controls ---------- */
+.primary-button {
+  background: var(--ink);
+  color: var(--card);
+  border-radius: var(--radius-md);
+  min-height: 56px;
+  padding: 14px 22px;
+  font-weight: 800;
+  box-shadow: var(--shadow-cta);
+}
+.primary-button:hover:not(:disabled) { background: #1c332b; }
+.now-primary-cta { position: relative; padding-right: 68px; }
+.now-primary-cta::after {
+  content: "→";
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+}
+.secondary-button {
+  background: var(--card-muted);
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  min-height: 52px;
+}
+.secondary-button:hover:not(:disabled) { background: #e9ede8; }
+.text-button { color: var(--ink-soft); font-weight: 700; }
+.text-button:hover:not(:disabled) { color: var(--ink); }
+
+.chip {
+  background: var(--card-muted);
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  padding: 9px 15px;
+  font-weight: 700;
+}
+.chip-selected { background: var(--accent-soft); border-color: rgba(244, 113, 60, .45); color: #9c3d17; }
+
+.result-field input, .result-field textarea,
+.daily-close-form textarea, .context-input, .brain-dump-input,
+.focus-distraction-box textarea, .now-edit-form input, .now-edit-form textarea, .now-edit-form select {
+  background: var(--card-muted);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+}
+.result-field span, .daily-close-form label span, .focus-distraction-box label span, .field-label { color: var(--ink-faint); }
+.field-label span { color: var(--ink-faint); }
+.result-focus-toggle { color: var(--ink-soft); }
+.result-panel-recorded { border-color: rgba(47, 122, 86, .35); background: var(--good-soft); }
+.daily-close-done { border-color: rgba(47, 122, 86, .35); background: var(--good-soft); }
+.daily-close-summary strong, .daily-close-results { color: var(--ink); }
+.now-inline-error, .inline-error { color: var(--bad); background: var(--bad-soft); border: 1px solid rgba(192, 57, 47, .25); border-radius: var(--radius-sm); padding: 12px 14px; }
+.inline-notice { color: var(--good); background: var(--good-soft); border: 1px solid rgba(47, 122, 86, .25); }
+
+.need-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-md); color: var(--ink); box-shadow: var(--shadow-card); }
+.need-card span { color: var(--ink-soft); }
+.need-card.selected { background: var(--accent-soft); border-color: rgba(244, 113, 60, .45); box-shadow: none; }
+.saved-capture pre { background: var(--card-muted); color: var(--ink-soft); border-top: 1px solid var(--line); }
+.saved-capture summary { color: var(--ink); }
+.status-pulse { background: var(--accent); box-shadow: 0 0 0 7px rgba(244, 113, 60, .14); }
+
+/* ---------- mobile: icon tab bar ---------- */
+@media (max-width: 860px) {
+  .app-shell { grid-template-columns: 1fr; }
+  .content { padding: 22px 16px 112px; }
+  .sidebar {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 20;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+    padding: 8px 6px calc(8px + env(safe-area-inset-bottom, 0px));
+    border-right: 0;
+    border-top: 1px solid var(--line);
+    background: rgba(251, 250, 246, .94);
+  }
+  .sidebar .brand, .sidebar .secondary-links { display: none; }
+  .sidebar nav { display: flex; flex: 1; gap: 0; }
+  .nav-item {
+    flex: 1;
+    flex-direction: column;
+    gap: 5px;
+    padding: 9px 2px;
+    font-size: .62rem;
+    letter-spacing: .1em;
+    background: transparent;
+    box-shadow: none;
+  }
+  .nav-item.active { background: transparent; box-shadow: none; }
+  .nav-item::before { width: 13px; height: 13px; }
+  h1 { font-size: clamp(2.7rem, 13vw, 3.6rem); }
+  .topbar { flex-direction: column; align-items: flex-start; gap: 12px; }
+}
+
+/* ---------- remaining legacy dark-theme text colors ---------- */
+.now-season-strip strong, .now-evidence-item strong, .now-edit-form input,
+.now-edit-form textarea, .focus-distraction-box textarea, .result-field input,
+.result-field textarea, .daily-close-form textarea, .daily-close-summary strong,
+.chip-selected, .hero-card h2, .empty-state h2, .state-message h2, .focus-panel strong { color: var(--ink); }
+
+.now-season-strip p:last-child, .now-evidence-item, .now-edit-form label span,
+.focus-done-condition, .focus-end-actions span, .result-panel .eyebrow,
+.daily-close-summary, .daily-close-results, .now-guardrail strong { color: var(--ink-soft); }
+
+.now-evidence-panel, .now-evidence-item, .now-empty-card {
+  background: var(--card-muted);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  color: var(--ink-soft);
+}
+.focus-panel-error { border-color: rgba(192, 57, 47, .3); background: var(--bad-soft); color: var(--bad); }
+.now-loading-strip { background: var(--card-muted); }
+.now-season-strip p:last-child { text-align: left; }
+.result-panel-recorded strong, .daily-close-done p { color: var(--good); }
+.primary-button:disabled { background: var(--card-muted); color: var(--ink-faint); box-shadow: none; opacity: 1; }
+.primary-button:disabled.now-primary-cta::after { background: var(--line-strong); color: var(--card); }
