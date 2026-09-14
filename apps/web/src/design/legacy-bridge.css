@@ -1,0 +1,72 @@
+/*
+ * Bridge for Vertical Slice A screens (Clarity Reset, Direction) that still use the
+ * pre-design-system class names. It only remaps colours onto the vendored design
+ * tokens so the whole app reads as one product; those screens get their real
+ * prototype markup when their own design issue is picked up.
+ */
+.app-shell, .content { background: transparent; }
+.hero-card, .panel, .empty-state, .state-message, .need-card, .saved-capture, .flow-status, .selected-context {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+  color: var(--text);
+}
+.need-card.selected { background: var(--primary-bg); border-color: var(--primary-border); }
+.need-card span, .selected-context span, .saved-capture summary, .flow-status p, p { color: var(--text-2); }
+h1, h2, h3, strong { color: var(--text); }
+.eyebrow, .field-label span, .save-first-note { color: var(--text-3); }
+.primary-button { background: var(--text); color: var(--card); border-radius: 16px; box-shadow: var(--shadow-card); }
+.secondary-button { background: var(--bg-2); color: var(--text); border: 1px solid var(--border-2); border-radius: 16px; }
+.text-button { color: var(--text-2); }
+.context-input, .brain-dump-input, .now-edit-form input, .now-edit-form textarea, .now-edit-form select {
+  background: var(--bg); border: 1px solid var(--border-2); color: var(--text); border-radius: 14px;
+}
+.inline-notice { color: var(--green); background: var(--green-bg); border: 1px solid var(--border); }
+.inline-error, .now-inline-error { color: var(--red); background: var(--red-bg); border: 1px solid var(--border); border-radius: 14px; }
+.status.online { color: var(--green); background: var(--green-bg); border-color: var(--border); }
+.status.offline { color: var(--red); background: var(--red-bg); border-color: var(--border); }
+.status.checking { color: var(--amber); background: var(--amber-bg); border-color: var(--border); }
+.saved-capture pre { background: var(--bg); color: var(--text-2); border-top: 1px solid var(--border); }
+.status-pulse { background: var(--primary); box-shadow: 0 0 0 7px var(--primary-bg); }
+
+/* Clarity Reset flow: prototype-like spacing and selectable cards on the Slice A markup. */
+.clarity-flow { display: grid; gap: 16px; }
+.flow-intro h2 { font-size: 22px; line-height: 1.35; }
+.need-grid { display: grid; gap: 10px; }
+.need-card { padding: 16px; cursor: pointer; transition: transform 0.15s, border-color 0.15s; }
+.need-card:hover { transform: translateY(-1px); border-color: var(--border-2); }
+.need-card.selected { box-shadow: var(--shadow-raise); }
+.flow-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.primary-button, .secondary-button { min-height: 48px; padding: 0 20px; font-weight: 700; }
+.interpretation-group, .interpretation-item { border-radius: 18px; }
+
+/* NOW fallback states still use the Slice A markup; map them onto the design tokens so
+   they do not render as dark cards inside the light prototype shell. */
+.now-season-strip,
+.now-empty-card,
+.now-blocked-card {
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+}
+.now-season-strip strong,
+.now-empty-card h2 { color: var(--text) !important; }
+.now-season-strip p, .now-empty-card p, .now-empty-card small { color: var(--text-2) !important; }
+.now-empty-card h2 { font-size: clamp(1.3rem, 4vw, 1.9rem); }
+.now-empty-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; align-items: center; }
+
+/* First-run onboarding on NOW: three steps plus the labelled demo dataset offer. */
+.now-onboarding-steps { list-style: none; margin: 18px 0 4px; padding: 0; display: grid; gap: 10px; }
+.now-onboarding-steps li {
+  display: grid; gap: 3px; padding: 12px 14px; border-radius: 16px;
+  background: var(--bg-2) !important; border: 1px solid var(--border) !important;
+}
+.now-onboarding-steps strong { color: var(--text) !important; font-size: .92rem; }
+.now-onboarding-steps span { color: var(--text-2) !important; font-size: .82rem; line-height: 1.5; }
+.now-onboarding-demo {
+  margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border);
+  display: grid; gap: 10px; justify-items: start;
+}
+.now-onboarding-demo p { color: var(--text-3) !important; font-size: .8rem; margin: 0; }

@@ -136,6 +136,23 @@ Canonical B5 scope in flight:
 Web surface added with B5: result controls under NOW and a Daily Close view on
 the `REFLECT` route.
 
+### UI adoption of the approved prototype (`feat/ui-design-system-v1`)
+
+Branched from `feat/b5-result-daily-close` (PR #50, draft). The owner's Figma
+prototype is the design source of truth for the web app:
+
+- `apps/web/src/design/index.css` is the prototype stylesheet vendored verbatim —
+  re-export it from Figma instead of hand-editing;
+- screens are ported from the prototype markup and then wired to real API data;
+  no mock data ships in `apps/web`;
+- NOW, DIRECTION, EXECUTE, REFLECT, ME and the full-screen Focus session are done.
+
+Read-only EXECUTE board API added with this branch: `GET /v1/execute` returns the
+active Season grouped Outcome -> Project -> Action (Actions without a Project stay
+visible at the Outcome level). `GET /v1/me` returns recorded counters only
+(focus sessions, focus minutes and completed Actions over 7 days, open Actions,
+captures, daily-close streak) — ME never estimates or scores the user.
+
 ## 5. Remaining Vertical Slice B
 
 ### B5 #41 — Result + Daily Close V0

@@ -1,5 +1,6 @@
+import { SessionChecklist } from "./SessionChecklist";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { NowView, ResolveNowRecommendationInput } from "@lifeos/domain";
+import type { IncubatorItemView, NowView, ResolveNowRecommendationInput } from "@lifeos/domain";
 import { createApiClient } from "./api";
 import { createNowApiClient } from "./now-api";
 import { FocusPanel } from "./FocusPanel";
@@ -79,7 +80,7 @@ export function NowPage({ apiUrl }: { apiUrl: string }) {
   }
 
   const view = state.data;
-  if (view.state === "no_direction") return <NoDirection view={view} />;
+  if (view.state === "no_direction") return <NoDirection view={view} apiUrl={apiUrl} />;
   if (view.state === "blocked") return <BlockedState view={view} />;
   if (view.state === "no_ready_action") {
     return (
@@ -92,157 +93,296 @@ export function NowPage({ apiUrl }: { apiUrl: string }) {
     );
   }
 
+  const evidence = view.recommendation.evidence;
+
   return (
-    <section className="now-page" aria-live="polite">
-      <SeasonStrip view={view} />
-
-      <article className="now-primary-card">
-        <div className="now-primary-heading">
-          <div>
-            <p className="eyebrow">RIGHT NOW</p>
-            <h2>{view.action.title}</h2>
-          </div>
-          <RecommendationStatus status={view.recommendation.status} />
+    <div className="pb-8 md:max-w-2xl" aria-live="polite">
+      {/* Hero — ported from the Figma prototype (NowScreen) */}
+      <div className="hero-now relative overflow-hidden" style={{ padding: "36px 20px" }}>
+        <HeroDoodles />
+        <div className="relative z-10 flex items-center justify-between mb-5">
+          <p className="text-xs font-extrabold" style={{ color: "var(--text-3)", letterSpacing: "0.14em" }}>
+            {todayLabel().toUpperCase()}
+          </p>
+          <SeasonBadge view={view} />
         </div>
+        <h1
+          className="relative z-10 mb-2 font-display"
+          style={{ fontSize: "clamp(58px, 13vw, 78px)", lineHeight: 0.87, letterSpacing: "-0.01em", color: "var(--text)", textTransform: "uppercase" }}
+        >
+          NGAY<br />BÂY GIỜ.
+        </h1>
+        <p className="relative z-10 font-hand" style={{ fontSize: 21, fontWeight: 600, color: "var(--text-2)" }}>
+          Chỉ một việc. Làm tốt nhất có thể.
+        </p>
+      </div>
 
-        {view.action.doneCondition ? (
-          <div className="now-done-condition">
-            <span>Khi nào được xem là xong?</span>
-            <strong>{view.action.doneCondition}</strong>
-          </div>
-        ) : null}
-
-        <div className="now-meta-row" aria-label="Thông tin Action">
-          {view.action.estimatedMinutes ? <span>≈ {view.action.estimatedMinutes} phút</span> : null}
-          {view.action.scheduledFor ? <span>Lịch: {formatDateTime(view.action.scheduledFor)}</span> : null}
-          <span>{confidenceLabel(view.recommendation.confidenceClass)}</span>
-        </div>
-
-        <p className="now-rationale">{view.recommendation.rationale}</p>
-
-        {mutationError ? <p className="now-inline-error" role="alert">{mutationError}</p> : null}
-
-        {editing ? (
-          <EditActionForm
-            view={view}
-            busy={busy}
-            onCancel={() => setEditing(false)}
-            onSave={(input) => void resolve(view.recommendation.id, input)}
-          />
-        ) : (
-          <div className="now-action-stack">
-            {view.recommendation.status === "shown" ? (
-              <button
-                className="primary-button now-primary-cta"
-                type="button"
-                disabled={busy}
-                onClick={() => void resolve(view.recommendation.id, { resolution: "accepted" })}
+      <div className="px-4 pt-5 md:px-6">
+        <div className="card-gradient-border rounded-[26px] p-px mb-5" style={{ boxShadow: "var(--shadow-raise)" }}>
+          <div className="rounded-[25px] overflow-hidden" style={{ background: "var(--card)" }}>
+            <div className="px-5 pt-5 pb-4 flex items-start gap-4">
+              <span
+                className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0"
+                style={{ background: "linear-gradient(135deg, #fde68a, #f59e0b)", boxShadow: "0 6px 24px rgba(245,158,11,0.32)" }}
+                aria-hidden="true"
               >
-                Chấp nhận việc này
-              </button>
-            ) : (
-              <div className="now-confirmed-note" role="status">
-                {view.recommendation.status === "accepted"
-                  ? "Đã chấp nhận. Action vẫn ở trạng thái ready cho tới khi bước Execute/Focus bắt đầu."
-                  : "Bạn đã chỉnh Action này. Evidence bên dưới vẫn giải thích recommendation ban đầu."}
+                🚀
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-[9px] font-extrabold mb-1" style={{ color: "var(--text-3)", letterSpacing: "0.12em" }}>
+                  {view.recommendation.status === "shown" ? "ĐỀ XUẤT AI" : view.recommendation.status === "accepted" ? "ĐÃ CHẤP NHẬN" : "BẠN ĐÃ CHỈNH"}
+                </p>
+                <h2 className="text-xl leading-snug font-display" style={{ color: "var(--text)", letterSpacing: "0.01em" }}>
+                  {view.action.title}
+                </h2>
+                <div className="flex items-center gap-1.5 mt-2.5 flex-wrap">
+                  <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={CHIP_PRIMARY}>
+                    {view.season.title}
+                  </span>
+                  {view.action.estimatedMinutes ? (
+                    <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full" style={CHIP_PRIMARY}>
+                      <ClockIcon /> {view.action.estimatedMinutes} phút
+                    </span>
+                  ) : null}
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-lg" style={CHIP_MUTED}>
+                    {confidenceLabel(view.recommendation.confidenceClass)}
+                  </span>
+                  {view.action.scheduledFor ? (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-lg" style={CHIP_MUTED}>
+                      {formatDateTime(view.action.scheduledFor)}
+                    </span>
+                  ) : null}
+                </div>
               </div>
-            )}
+            </div>
 
-            <div className="now-secondary-actions">
-              <button className="secondary-button" type="button" disabled={busy} onClick={() => setEditing(true)}>
-                Chỉnh sửa
-              </button>
-              <button className="text-button" type="button" disabled={busy} onClick={() => setShowWhy((value) => !value)}>
-                {showWhy ? "Ẩn lý do" : "Vì sao việc này?"}
-              </button>
-              <button
-                className="text-button"
-                type="button"
-                disabled={busy}
-                onClick={() => void resolve(view.recommendation.id, { resolution: "not_now" })}
-              >
-                Để sau
-              </button>
-              <button
-                className="text-button"
-                type="button"
-                disabled={busy}
-                onClick={() => void resolve(view.recommendation.id, { resolution: "wrong_assumption" })}
-              >
-                Giả định sai
-              </button>
+            <div className="px-5 pb-5 space-y-3">
+              {view.action.doneCondition ? (
+                <div className="px-3.5 py-3.5 rounded-2xl" style={{ background: "rgba(22,163,74,0.07)", border: "1px solid rgba(22,163,74,0.16)" }}>
+                  <p className="text-[9px] font-extrabold tracking-widest mb-1.5 flex items-center gap-1" style={{ color: "var(--green)" }}>
+                    <CheckIcon /> THÀNH CÔNG KHI
+                  </p>
+                  <p className="text-xs leading-relaxed" style={{ color: "var(--text-2)" }}>{view.action.doneCondition}</p>
+                </div>
+              ) : null}
+
+              <p className="text-xs leading-relaxed" style={{ color: "var(--text-2)" }}>{view.recommendation.rationale}</p>
+
+              <SessionChecklist apiUrl={apiUrl} actionId={view.action.id} />
+
+              {mutationError ? (
+                <p className="text-xs px-3.5 py-3 rounded-2xl" role="alert" style={{ color: "var(--red)", background: "var(--red-bg)", border: "1px solid var(--border)" }}>
+                  {mutationError}
+                </p>
+              ) : null}
+
+              {editing ? (
+                <EditActionForm
+                  view={view}
+                  busy={busy}
+                  onCancel={() => setEditing(false)}
+                  onSave={(input) => void resolve(view.recommendation.id, input)}
+                />
+              ) : (
+                <>
+                  {view.recommendation.status === "shown" ? (
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => void resolve(view.recommendation.id, { resolution: "accepted" })}
+                      className="btn-primary-action w-full h-14 rounded-2xl flex items-center justify-between px-5 active:scale-[0.97]"
+                    >
+                      <span className="text-[15px] font-display">Chấp nhận việc này</span>
+                      <span className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "var(--accent)" }}>
+                        <ArrowIcon />
+                      </span>
+                    </button>
+                  ) : (
+                    <div className="px-4 py-3.5 rounded-2xl text-xs leading-relaxed" role="status" style={{ background: "var(--primary-bg)", border: "1px solid var(--primary-border)", color: "var(--primary)" }}>
+                      {view.recommendation.status === "accepted"
+                        ? "Đã chấp nhận. Action vẫn ở trạng thái ready cho tới khi bước Execute/Focus bắt đầu."
+                        : "Bạn đã chỉnh Action này. Evidence bên dưới vẫn giải thích recommendation ban đầu."}
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => setShowWhy(true)}
+                    className="w-full h-10 rounded-xl font-semibold text-sm"
+                    style={{ background: "var(--bg)", border: "1px solid var(--border)", color: "var(--text-2)" }}
+                  >
+                    Tại sao việc này? →
+                  </button>
+
+                  <div className="flex gap-2">
+                    <button type="button" disabled={busy} onClick={() => setEditing(true)} className="flex-1 h-10 rounded-xl font-semibold text-xs" style={SOFT_BUTTON}>
+                      Chỉnh sửa
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => void resolve(view.recommendation.id, { resolution: "not_now" })}
+                      className="flex-1 h-10 rounded-xl font-semibold text-xs"
+                      style={SOFT_BUTTON}
+                    >
+                      Để sau
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => void resolve(view.recommendation.id, { resolution: "wrong_assumption" })}
+                      className="flex-1 h-10 rounded-xl font-semibold text-xs"
+                      style={SOFT_BUTTON}
+                    >
+                      Giả định sai
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
-        )}
+        </div>
 
-        {showWhy ? <EvidencePanel view={view} /> : null}
-      </article>
+        <FocusPanel
+          apiUrl={apiUrl}
+          recommendationId={view.recommendation.id}
+          recommendationStatus={view.recommendation.status}
+          onActiveFocusChange={handleActiveFocusChange}
+        />
 
-      <FocusPanel
-        apiUrl={apiUrl}
-        recommendationId={view.recommendation.id}
-        recommendationStatus={view.recommendation.status}
-        onActiveFocusChange={handleActiveFocusChange}
-      />
+        <ResultPanel
+          apiUrl={apiUrl}
+          actionId={view.action.id}
+          {...(activeFocusSessionId ? { focusSessionId: activeFocusSessionId } : {})}
+          onRecorded={() => void refresh()}
+        />
 
-      <ResultPanel
-        apiUrl={apiUrl}
-        actionId={view.action.id}
-        {...(activeFocusSessionId ? { focusSessionId: activeFocusSessionId } : {})}
-        onRecorded={() => void refresh()}
-      />
+        <ParkedIdeas apiUrl={apiUrl} />
 
-      <aside className="now-guardrail">
-        <strong>NOW chỉ yêu cầu một quyết định.</strong>
-        <span>Không có backlog phụ và không có client-side ranking. Việc khác vẫn ở ngoài vùng chú ý hiện tại.</span>
-      </aside>
-    </section>
-  );
-}
-
-function SeasonStrip({ view }: { view: Extract<NowView, { state: "ready" }> }) {
-  return (
-    <div className="now-season-strip">
-      <div>
-        <p className="eyebrow">CURRENT SEASON</p>
-        <strong>{view.season.title}</strong>
+        <p className="text-[11px] leading-relaxed mt-4" style={{ color: "var(--text-3)" }}>
+          NOW chỉ yêu cầu một quyết định. Không có backlog phụ và không có client-side ranking.
+        </p>
       </div>
-      <p>{view.season.primaryFocusText ?? view.season.purpose}</p>
+
+      {showWhy ? <WhySheet evidence={evidence} onClose={() => setShowWhy(false)} /> : null}
     </div>
   );
 }
 
-function RecommendationStatus({ status }: { status: "shown" | "accepted" | "edited" }) {
-  const label = status === "shown" ? "Đề xuất" : status === "accepted" ? "Đã chấp nhận" : "Đã chỉnh";
-  return <span className={`now-recommendation-status ${status}`}>{label}</span>;
+const CHIP_PRIMARY = {
+  background: "var(--primary-bg)",
+  color: "var(--primary)",
+  border: "1px solid var(--primary-border)"
+} as const;
+
+const CHIP_MUTED = {
+  background: "rgba(55,65,81,0.06)",
+  color: "var(--text-2)",
+  border: "1px solid var(--border)"
+} as const;
+
+const SOFT_BUTTON = {
+  background: "var(--bg)",
+  border: "1px solid var(--border)",
+  color: "var(--text-2)"
+} as const;
+
+function HeroDoodles() {
+  return (
+    <>
+      <svg className="absolute pointer-events-none" style={{ top: 14, left: 16, opacity: 0.18 }} width="36" height="28" viewBox="0 0 36 28" fill="none" aria-hidden="true">
+        <path d="M2 26L9 6L18 15L27 6L34 26H2Z" stroke="var(--text)" strokeWidth="2" strokeLinejoin="round" />
+      </svg>
+      <svg className="absolute pointer-events-none" style={{ top: 16, right: 20, opacity: 0.22 }} width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden="true">
+        <path d="M17 2L20.5 12.5H32L22.5 19L26 29.5L17 23L8 29.5L11.5 19L2 12.5H13.5L17 2Z" stroke="var(--text)" strokeWidth="1.8" strokeLinejoin="round" />
+      </svg>
+      <svg className="absolute pointer-events-none" style={{ bottom: 20, right: 28, opacity: 0.13 }} width="22" height="36" viewBox="0 0 22 36" fill="none" aria-hidden="true">
+        <path d="M13 2L3 20H12L9 34L21 14H11L13 2Z" stroke="var(--text)" strokeWidth="1.8" strokeLinejoin="round" />
+      </svg>
+    </>
+  );
 }
 
-function EvidencePanel({ view }: { view: Extract<NowView, { state: "ready" }> }) {
+function SeasonBadge({ view }: { view: Extract<NowView, { state: "ready" }> }) {
   return (
-    <section className="now-evidence" aria-label="Recommendation evidence">
-      <div className="now-evidence-heading">
-        <div>
-          <p className="eyebrow">WHY THIS?</p>
-          <h3>Evidence đã được lưu khi recommendation được tạo</h3>
-        </div>
-        <span>{view.recommendation.evidence.length} tín hiệu</span>
-      </div>
-      <div className="now-evidence-list">
-        {view.recommendation.evidence.map((item) => (
-          <div className="now-evidence-item" key={item.key}>
-            <div>
-              <strong>{item.label}</strong>
-              <small>{evidenceStrengthLabel(item.strength)}</small>
-            </div>
-            <span className="now-score">{item.score >= 0 ? "+" : ""}{item.score}</span>
-          </div>
-        ))}
-      </div>
-      <small className="now-evidence-footnote">
-        Đây là score/evidence cấp sản phẩm, không phải chain-of-thought ẩn của AI.
-      </small>
-    </section>
+    <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full" style={{ background: "var(--green-bg)", border: "1.5px solid var(--border-2)" }}>
+      <span className="rounded-full" style={{ width: 8, height: 8, background: "var(--green)" }} />
+      <span className="text-[11px] font-extrabold" style={{ color: "var(--text)" }}>{view.season.primaryFocusText ?? view.season.title}</span>
+    </span>
   );
+}
+
+function WhySheet({ evidence, onClose }: { evidence: Extract<NowView, { state: "ready" }>["recommendation"]["evidence"]; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col justify-end md:items-center md:justify-center" onClick={onClose} role="dialog" aria-label="Tại sao việc này?">
+      <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.48)", backdropFilter: "blur(8px)" }} />
+      <div
+        className="relative w-full md:max-w-md rounded-t-3xl md:rounded-3xl overflow-hidden"
+        style={{ background: "var(--surface)", boxShadow: "var(--shadow-float)", border: "1px solid var(--border)" }}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="flex justify-center pt-3.5 md:hidden">
+          <span className="w-10 h-1 rounded-full" style={{ background: "var(--border-2)" }} />
+        </div>
+        <div className="px-5 pb-7 pt-4">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <p className="text-[9px] font-extrabold tracking-widest mb-0.5" style={{ color: "var(--text-3)" }}>EVIDENCE ĐÃ LƯU</p>
+              <h3 className="text-xl font-display" style={{ color: "var(--text)" }}>Tại sao việc này?</h3>
+            </div>
+            <button type="button" onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "var(--bg-2)", color: "var(--text-2)" }} aria-label="Đóng">
+              ✕
+            </button>
+          </div>
+          <div className="space-y-2.5">
+            {evidence.map((item) => (
+              <div key={item.key} className="flex items-start gap-3 px-4 py-3.5 rounded-2xl" style={{ background: "var(--bg)", border: "1px solid var(--border)" }}>
+                <span className="text-[9px] font-extrabold px-2 py-1 rounded-lg mt-0.5 flex-shrink-0 tracking-wide" style={{ background: "var(--primary-bg)", color: "var(--primary)" }}>
+                  {evidenceStrengthLabel(item.strength)}
+                </span>
+                <p className="text-sm leading-relaxed flex-1" style={{ color: "var(--text-2)" }}>{item.label}</p>
+                <span className="text-xs font-bold" style={{ color: "var(--text-3)" }}>{item.score >= 0 ? "+" : ""}{item.score}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 px-4 py-3.5 rounded-2xl" style={{ background: "var(--primary-bg)", border: "1px solid var(--primary-border)" }}>
+            <p className="text-xs leading-relaxed" style={{ color: "var(--primary)" }}>
+              💡 Đây là score/evidence cấp sản phẩm đã lưu khi recommendation được tạo — không phải chain-of-thought ẩn của AI.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2.2" />
+      <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M5 12l5 5L20 7" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function ArrowIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M5 12h14M13 6l6 6-6 6" stroke="var(--accent-fg)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function todayLabel() {
+  return new Intl.DateTimeFormat("vi-VN", { weekday: "long", day: "numeric", month: "numeric" }).format(new Date());
 }
 
 function EditActionForm({
@@ -310,15 +450,55 @@ function EditActionForm({
   );
 }
 
-function NoDirection({ view }: { view: Extract<NowView, { state: "no_direction" }> }) {
+function NoDirection({ view, apiUrl }: { view: Extract<NowView, { state: "no_direction" }>; apiUrl: string }) {
+  const api = useMemo(() => createApiClient(apiUrl), [apiUrl]);
+  const [busy, setBusy] = useState(false);
+  const [seedError, setSeedError] = useState<string | null>(null);
+
+  const fillDemo = async () => {
+    setBusy(true);
+    setSeedError(null);
+    try {
+      await api.seedDemoData();
+      window.location.reload();
+    } catch (reason) {
+      setSeedError(reason instanceof Error ? reason.message : "Không tạo được dữ liệu mẫu.");
+      setBusy(false);
+    }
+  };
+
   return (
     <section className="now-empty-card">
-      <p className="eyebrow">NO DIRECTION</p>
-      <h2>Chưa cần ép mình chọn một task.</h2>
+      <p className="eyebrow">BẮT ĐẦU TỪ ĐÂY</p>
+      <h2>Chào mừng tới LifeOS.</h2>
       <p>{view.message}</p>
+
+      <ol className="now-onboarding-steps">
+        <li>
+          <strong>1. Xác định hướng hiện tại</strong>
+          <span>Một câu bạn muốn cuộc sống 90 ngày tới đi về đâu. LifeOS chỉ đề xuất việc khi đã có hướng.</span>
+        </li>
+        <li>
+          <strong>2. Brain Dump mọi thứ trong đầu</strong>
+          <span>Viết, nói hoặc gửi tệp. Mọi thứ vào Inbox rồi mới quyết định giữ hay để trong Incubator.</span>
+        </li>
+        <li>
+          <strong>3. Vào Focus với một việc duy nhất</strong>
+          <span>NOW luôn chỉ đưa một việc, kết thúc phiên bạn ghi lại kết quả — đó là dữ liệu cho REFLECT và AI Coach.</span>
+        </li>
+      </ol>
+
       <div className="now-empty-actions">
         <a className="primary-button link-button" href="/direction">Xác định hướng hiện tại</a>
         <a className="text-button link-button" href="/clarity">Brain Dump trước</a>
+      </div>
+
+      <div className="now-onboarding-demo">
+        <p>Muốn xem trước khi nhập gì? Tạo một tuần dữ liệu mẫu (có nhãn demo) để thử mọi màn hình.</p>
+        <button className="secondary-button" type="button" onClick={() => void fillDemo()} disabled={busy}>
+          {busy ? "Đang tạo dữ liệu mẫu..." : "Dùng dữ liệu mẫu"}
+        </button>
+        {seedError ? <p className="now-error" role="alert">{seedError}</p> : null}
       </div>
     </section>
   );
@@ -411,4 +591,57 @@ function formatDateTime(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short" }).format(date);
+}
+
+/**
+ * "Đừng nghĩ bây giờ": the first few incubated items, so parked material is visible
+ * without competing with the one Action NOW is asking about. Read-only on purpose.
+ */
+function ParkedIdeas({ apiUrl }: { apiUrl: string }) {
+  const api = useMemo(() => createApiClient(apiUrl), [apiUrl]);
+  const [items, setItems] = useState<IncubatorItemView[] | null>(null);
+  const [total, setTotal] = useState(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    api
+      .getInbox(controller.signal)
+      .then((inbox) => {
+        if (!inbox) return;
+        setItems(inbox.incubated.slice(0, 3));
+        setTotal(inbox.counts.incubated);
+      })
+      .catch(() => setItems(null));
+    return () => controller.abort();
+  }, [api]);
+
+  if (!items || items.length === 0) return null;
+
+  return (
+    <section className="mt-5">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[10px] font-extrabold tracking-widest" style={{ color: "var(--text-3)", letterSpacing: "0.12em" }}>
+          ĐỪNG NGHĨ BÂY GIỜ · {total}
+        </span>
+        <a href="/incubator" className="text-xs font-bold" style={{ color: "var(--primary)", textDecoration: "none" }}>
+          Xem tất cả →
+        </a>
+      </div>
+      <div className="rounded-2xl overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "var(--shadow-card)" }}>
+        {items.map((item, index) => (
+          <div
+            key={item.id}
+            className="flex items-center gap-3.5 px-4 py-3.5"
+            style={{ borderBottom: index < items.length - 1 ? "1px solid var(--border)" : "none" }}
+          >
+            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "var(--primary)" }} aria-hidden="true" />
+            <span className="text-sm flex-1 font-medium truncate" style={{ color: "var(--text-2)" }}>{item.title}</span>
+            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full flex-shrink-0" style={{ background: "var(--bg-2)", color: "var(--text-3)" }}>
+              {item.kind}
+            </span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
 }

@@ -24,6 +24,8 @@ export type ActionView = {
   estimatedMinutes?: number;
   status: ActionStatus;
   priority?: number;
+  /** When the user planned to do this Action, if they scheduled it at all. */
+  scheduledFor?: string;
   createdAt: string;
   updatedAt: string;
 };

@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import type { ActionResultOutcome, DailyCloseView } from "@lifeos/domain";
 import { createApiClient } from "./api";
 import { browserLocalDate, browserTzOffsetMinutes, createResultApiClient } from "./result-api";
+import { ReflectAnalytics } from "./ReflectAnalytics";
+import { ReflectWeek } from "./ReflectWeek";
 import { resultErrorMessage } from "./ResultPanel";
-import { ErrorState, type AsyncState } from "./ui-states";
+import type { AsyncState } from "./ui-states";
 
 const OUTCOME_LABELS: Record<ActionResultOutcome, string> = {
   completed: "Đã xong",
@@ -27,6 +29,7 @@ export function ReflectPage({ apiUrl }: { apiUrl: string }) {
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [mutationError, setMutationError] = useState<string | null>(null);
+  const [tab, setTab] = useState<"day" | "week" | "energy" | "habits">("day");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -67,89 +70,171 @@ export function ReflectPage({ apiUrl }: { apiUrl: string }) {
 
   if (state.kind === "loading") {
     return (
-      <section className="daily-close" aria-busy="true">
-        <p>Đang tải tổng kết ngày…</p>
-      </section>
+      <div className="px-5 pt-9" aria-busy="true">
+        <p className="text-sm" style={{ color: "var(--text-3)" }}>Đang tải tổng kết ngày…</p>
+      </div>
     );
   }
   if (state.kind === "error") {
-    return <ErrorState title="Chưa tải được tổng kết ngày">{state.message}</ErrorState>;
+    return (
+      <div className="px-5 pt-9">
+        <div className="rounded-2xl p-4" style={{ background: "var(--red-bg)", border: "1px solid var(--border)" }}>
+          <p className="text-[10px] font-extrabold tracking-widest mb-1" style={{ color: "var(--red)" }}>CHƯA TẢI ĐƯỢC TỔNG KẾT NGÀY</p>
+          <p className="text-sm" style={{ color: "var(--text-2)" }}>{state.message}</p>
+        </div>
+      </div>
+    );
   }
 
   const view = state.data;
   const summary = view.summary;
+  const stats = [
+    { label: "kết quả đã ghi", value: summary.resultsRecorded, color: "var(--text)" },
+    { label: "đã xong", value: summary.completed, color: "var(--green)" },
+    { label: "một phần", value: summary.partial, color: "var(--primary)" },
+    { label: "dời lại", value: summary.postponed, color: "var(--amber)" },
+    { label: "bị chặn", value: summary.blocked, color: "var(--red)" },
+    { label: "bỏ", value: summary.dropped, color: "var(--text-3)" },
+    { label: "phiên Focus", value: summary.focusSessions, color: "var(--text)" },
+    { label: "phút Focus", value: summary.focusMinutes, color: "var(--text)" },
+    { label: "phân tâm đã ghi", value: summary.distractionsCaptured, color: "var(--text-2)" }
+  ];
 
   return (
-    <section className="daily-close">
-      <p className="eyebrow">CHỐT NGÀY · {view.localDate}</p>
-      <h2>Hôm nay thực tế đã diễn ra như thế nào</h2>
+    <div className="pb-6 md:max-w-3xl">
+      {/* Hero — ported from the Figma prototype (ReflectScreen) */}
+      <div className="hero-reflect relative overflow-hidden px-5 pt-9 pb-5 md:px-8">
+        <svg className="absolute pointer-events-none" style={{ top: 12, right: 22, opacity: 0.2 }} width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <path d="M16 2L19 11H28L21 17L24 26L16 20L8 26L11 17L4 11H13L16 2Z" stroke="var(--text)" strokeWidth="1.7" strokeLinejoin="round" />
+        </svg>
+        <div className="relative z-10">
+          <p className="text-[9px] font-extrabold tracking-widest mb-1.5" style={{ color: "var(--text-3)", letterSpacing: "0.14em" }}>CHỐT NGÀY</p>
+          <h1 className="text-[48px] leading-none mb-1.5 font-display" style={{ color: "var(--text)", textTransform: "uppercase" }}>NHÌN LẠI</h1>
+          <p className="font-hand" style={{ color: "var(--text-3)", fontSize: 17 }}>Hôm nay thực tế đã diễn ra như thế nào · {view.localDate}</p>
+        </div>
+      </div>
 
-      <ul className="daily-close-summary">
-        <li>
-          <strong>{summary.resultsRecorded}</strong> kết quả đã ghi
-        </li>
-        <li>
-          <strong>{summary.completed}</strong> đã xong · <strong>{summary.partial}</strong> một phần
-        </li>
-        <li>
-          <strong>{summary.postponed}</strong> dời lại · <strong>{summary.blocked}</strong> bị chặn ·{" "}
-          <strong>{summary.dropped}</strong> bỏ
-        </li>
-        <li>
-          <strong>{summary.focusSessions}</strong> phiên Focus · <strong>{summary.focusMinutes}</strong> phút
-        </li>
-        <li>
-          <strong>{summary.distractionsCaptured}</strong> phân tâm đã ghi · <strong>{summary.capturesCreated}</strong>{" "}
-          capture khác
-        </li>
-      </ul>
-
-      {view.results.length > 0 ? (
-        <ol className="daily-close-results">
-          {view.results.map((result) => (
-            <li key={result.id}>
-              <span className="chip">{OUTCOME_LABELS[result.outcome]}</span>
-              {result.note ? <span className="result-note"> {result.note}</span> : null}
-              {result.reason ? <span className="result-note"> Lý do: {result.reason}</span> : null}
-              {result.focusMinutes === undefined ? null : <span className="result-note"> {result.focusMinutes} phút</span>}
-            </li>
+      <div className="px-4 pt-4 md:px-8 space-y-3">
+        <div className="flex flex-wrap gap-1 p-1 rounded-xl" style={{ background: "var(--bg-2)", width: "fit-content", maxWidth: "100%" }} role="tablist" aria-label="Khu vực nhìn lại">
+          {([
+            { id: "day" as const, label: "Hôm nay" },
+            { id: "week" as const, label: "Tuần" },
+            { id: "energy" as const, label: "Năng lượng" },
+            { id: "habits" as const, label: "Habits" }
+          ]).map(({ id, label }) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={tab === id}
+              onClick={() => setTab(id)}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold"
+              style={{
+                background: tab === id ? "var(--card)" : "transparent",
+                color: tab === id ? "var(--text)" : "var(--text-3)",
+                boxShadow: tab === id ? "var(--shadow-card)" : "none"
+              }}
+            >
+              {label}
+            </button>
           ))}
-        </ol>
-      ) : (
-        <p className="daily-close-empty">Chưa có kết quả nào được ghi cho ngày này.</p>
-      )}
+        </div>
 
-      {view.closed ? (
-        <div className="daily-close-done" role="status">
-          <p>Đã chốt lúc {formatDateTime(view.closed.closedAt)}.</p>
-          {view.closed.note ? <p className="result-note">{view.closed.note}</p> : null}
+        {tab === "week" ? <ReflectWeek apiUrl={apiUrl} tzOffsetMinutes={tzOffsetMinutes} /> : null}
+
+        {tab === "energy" || tab === "habits" ? (
+          <ReflectAnalytics apiUrl={apiUrl} tzOffsetMinutes={tzOffsetMinutes} tab={tab} />
+        ) : null}
+
+        {tab === "day" ? (
+        <>
+        <div className="rounded-2xl p-4" style={CARD_STYLE}>
+          <p className="text-[10px] font-extrabold tracking-widest mb-3" style={{ color: "var(--text-3)" }}>SỰ THẬT ĐÃ GHI</p>
+          <div className="grid grid-cols-3 gap-2">
+            {stats.map((stat) => (
+              <div key={stat.label} className="text-center px-2 py-2.5 rounded-xl" style={{ background: "var(--bg)" }}>
+                <p className="text-lg font-bold" style={{ color: stat.color }}>{stat.value}</p>
+                <p className="text-[10px]" style={{ color: "var(--text-3)" }}>{stat.label}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      ) : (
-        <div className="daily-close-form">
-          <label>
-            <span>Ghi chú của bạn (tuỳ chọn)</span>
-            <textarea
-              value={note}
-              rows={3}
-              maxLength={2000}
+
+        {view.results.length > 0 ? (
+          <div className="rounded-2xl overflow-hidden" style={CARD_STYLE}>
+            {view.results.map((result, index) => (
+              <div
+                key={result.id}
+                className="px-4 py-3.5 flex items-start gap-3"
+                style={{ borderBottom: index < view.results.length - 1 ? "1px solid var(--border)" : "none" }}
+              >
+                <span className="text-[10px] font-extrabold px-2 py-1 rounded-lg flex-shrink-0" style={{ background: "var(--primary-bg)", color: "var(--primary)" }}>
+                  {OUTCOME_LABELS[result.outcome]}
+                </span>
+                <div className="flex-1 min-w-0">
+                  {result.note ? <p className="text-sm leading-relaxed" style={{ color: "var(--text-2)" }}>{result.note}</p> : null}
+                  {result.reason ? <p className="text-xs mt-1" style={{ color: "var(--text-3)" }}>Lý do: {result.reason}</p> : null}
+                </div>
+                {result.focusMinutes === undefined ? null : (
+                  <span className="text-xs font-bold flex-shrink-0" style={{ color: "var(--text-3)" }}>{result.focusMinutes} ph</span>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl p-5 text-center" style={CARD_STYLE}>
+            <p className="text-sm" style={{ color: "var(--text-3)" }}>Chưa có kết quả nào được ghi cho ngày này.</p>
+          </div>
+        )}
+
+        {view.closed ? (
+          <div className="rounded-2xl p-4" role="status" style={{ background: "var(--green-bg)", border: "1px solid var(--border)" }}>
+            <p className="text-[10px] font-extrabold tracking-widest mb-1" style={{ color: "var(--green)" }}>ĐÃ CHỐT</p>
+            <p className="text-sm" style={{ color: "var(--text-2)" }}>Lúc {formatDateTime(view.closed.closedAt)}.</p>
+            {view.closed.note ? <p className="text-sm mt-1 leading-relaxed" style={{ color: "var(--text-2)" }}>{view.closed.note}</p> : null}
+          </div>
+        ) : (
+          <div className="rounded-2xl p-4" style={CARD_STYLE}>
+            <label className="block mb-3">
+              <span className="block text-[10px] font-extrabold tracking-widest mb-1.5" style={{ color: "var(--text-3)" }}>GHI CHÚ CỦA BẠN (TUỲ CHỌN)</span>
+              <textarea
+                value={note}
+                rows={3}
+                maxLength={2000}
+                disabled={busy}
+                onChange={(event) => setNote(event.target.value)}
+                className="w-full px-3.5 py-3 rounded-2xl text-sm"
+                style={{ background: "var(--bg)", border: "1px solid var(--border-2)", color: "var(--text)" }}
+                placeholder="Chỉ những gì bạn muốn tự nhớ lại. LifeOS không tự suy diễn thêm."
+              />
+            </label>
+            {mutationError ? (
+              <p className="text-xs px-3.5 py-3 rounded-2xl mb-3" role="alert" style={{ color: "var(--red)", background: "var(--red-bg)", border: "1px solid var(--border)" }}>
+                {mutationError}
+              </p>
+            ) : null}
+            <button
+              type="button"
               disabled={busy}
-              onChange={(event) => setNote(event.target.value)}
-              placeholder="Chỉ những gì bạn muốn tự nhớ lại. LifeOS không tự suy diễn thêm."
-            />
-          </label>
-          {mutationError ? (
-            <p className="now-inline-error" role="alert">
-              {mutationError}
-            </p>
-          ) : null}
-          <button className="primary-button" type="button" disabled={busy} onClick={() => void close()}>
-            {busy ? "Đang chốt…" : "Chốt ngày"}
-          </button>
-        </div>
-      )}
-    </section>
+              onClick={() => void close()}
+              className="btn-primary-action w-full h-12 rounded-2xl font-display text-sm active:scale-[0.97] disabled:opacity-50"
+            >
+              {busy ? "Đang chốt…" : "Chốt ngày"}
+            </button>
+          </div>
+        )}
+        </>
+        ) : null}
+      </div>
+    </div>
   );
 }
+
+const CARD_STYLE = {
+  background: "var(--card)",
+  border: "1px solid var(--border)",
+  boxShadow: "var(--shadow-card)"
+} as const;
 
 function formatDateTime(value: string) {
   const date = new Date(value);

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { CurrentDirectionView } from "@lifeos/domain";
 import { ApiRequestError, createApiClient } from "./api";
+import { DirectionOutlook } from "./DirectionOutlook";
 
 export function DirectionPage({ apiUrl }: { apiUrl: string }) {
   const api = useMemo(() => createApiClient(apiUrl), [apiUrl]);
@@ -32,84 +33,148 @@ export function DirectionPage({ apiUrl }: { apiUrl: string }) {
 
   if (state.kind === "loading") {
     return (
-      <section className="state-message" role="status">
-        <p className="eyebrow">DIRECTION</p>
-        <h2>Đang đọc Current Season...</h2>
-        <p>LifeOS đang tải trạng thái đã xác nhận, không dựng dữ liệu tạm trên client.</p>
-      </section>
+      <div className="px-5 pt-9" role="status">
+        <p className="text-sm" style={{ color: "var(--text-3)" }}>Đang đọc Current Season…</p>
+      </div>
     );
   }
 
   if (state.kind === "error") {
     return (
-      <section className="state-message error-message" role="alert">
-        <p className="eyebrow">DIRECTION</p>
-        <h2>Chưa tải được Direction.</h2>
-        <p>{state.message}</p>
-      </section>
+      <div className="px-5 pt-9">
+        <div className="rounded-2xl p-4" style={{ background: "var(--red-bg)", border: "1px solid var(--border)" }} role="alert">
+          <p className="text-[10px] font-extrabold tracking-widest mb-1" style={{ color: "var(--red)" }}>DIRECTION</p>
+          <p className="text-sm" style={{ color: "var(--text-2)" }}>{state.message}</p>
+        </div>
+      </div>
     );
   }
 
   if (state.kind === "empty") {
     return (
-      <section className="hero-card direction-empty">
-        <p className="eyebrow">NO CURRENT SEASON</p>
-        <h2>Bạn chưa xác nhận một hướng hiện tại.</h2>
-        <p>
-          LifeOS không tự chọn Direction từ Brain Dump. Clarity Reset giúp bạn làm rõ, trade-off rồi tự xác nhận hướng muốn bảo vệ.
-        </p>
-        <a className="primary-button link-button" href="/clarity">Bắt đầu Clarity Reset</a>
-      </section>
+      <div className="pb-8 md:max-w-2xl">
+        <DirectionHero subtitle="Chưa có hướng nào được xác nhận" />
+        <div className="px-4 md:px-6">
+          <div className="rounded-3xl p-6" style={CARD}>
+            <p className="text-[10px] font-extrabold tracking-widest mb-2" style={{ color: "var(--text-3)" }}>NO CURRENT SEASON</p>
+            <h2 className="text-xl font-display mb-2" style={{ color: "var(--text)" }}>Bạn chưa xác nhận một hướng hiện tại.</h2>
+            <p className="text-sm leading-relaxed mb-5" style={{ color: "var(--text-2)" }}>
+              LifeOS không tự chọn Direction từ Brain Dump. Clarity Reset giúp bạn làm rõ, cân nhắc trade-off rồi tự xác nhận hướng muốn bảo vệ.
+            </p>
+            <a href="/clarity" className="btn-primary-action inline-flex items-center justify-center w-full h-12 rounded-2xl font-display text-sm" style={{ textDecoration: "none" }}>
+              Bắt đầu Clarity Reset
+            </a>
+          </div>
+        </div>
+      </div>
     );
   }
 
   const { direction, season } = state.current;
+  const progress = seasonProgress(season.startsOn, season.targetEndsOn);
+
   return (
-    <section className="direction-current" aria-labelledby="current-direction-title">
-      <div className="hero-card direction-hero">
-        <p className="eyebrow">CURRENT DIRECTION</p>
-        <h2 id="current-direction-title">{direction.title}</h2>
-        {direction.description ? <p>{direction.description}</p> : null}
-        <div className="direction-meta">
-          <span>Confirmed</span>
-          {direction.confirmedAt ? <span>{formatDateTime(direction.confirmedAt)}</span> : null}
-        </div>
-      </div>
+    <div className="pb-8 md:max-w-2xl" aria-labelledby="current-direction-title">
+      <DirectionHero subtitle={direction.confirmedAt ? `Đã xác nhận ${formatDateTime(direction.confirmedAt)}` : "Đã xác nhận"} />
 
-      <article className="current-season-card">
-        <div>
-          <p className="eyebrow">CURRENT SEASON</p>
-          <h3>{season.title}</h3>
-          <p>{season.purpose}</p>
-        </div>
-        <div className="season-facts">
-          {season.primaryFocusText ? (
-            <div>
-              <span>PRIMARY FOCUS</span>
-              <strong>{season.primaryFocusText}</strong>
+      <div className="px-4 md:px-6">
+        <div className="rounded-3xl overflow-hidden mb-4" style={{ boxShadow: "var(--shadow-raise)" }}>
+          <div className="px-5 pt-6 pb-5 relative overflow-hidden" style={{ background: "linear-gradient(135deg, var(--primary), var(--blue))" }}>
+            <div className="absolute inset-0 opacity-20" style={{ background: "radial-gradient(circle at 80% 20%, white 0%, transparent 60%)" }} />
+            <div className="relative z-10">
+              <p className="text-[10px] font-bold tracking-widest mb-1" style={{ color: "rgba(255,255,255,0.7)" }}>SEASON HIỆN TẠI</p>
+              <p className="text-xs font-semibold mb-3" style={{ color: "rgba(255,255,255,0.8)" }}>{season.title}</p>
+              <h2 id="current-direction-title" className="text-2xl leading-snug font-display" style={{ color: "#fff" }}>{direction.title}</h2>
+              {direction.description ? (
+                <p className="text-sm mt-2 leading-relaxed" style={{ color: "rgba(255,255,255,0.78)" }}>{direction.description}</p>
+              ) : null}
             </div>
-          ) : null}
-          {season.startsOn ? (
-            <div>
-              <span>START</span>
-              <strong>{formatDate(season.startsOn)}</strong>
-            </div>
-          ) : null}
-          {season.targetEndsOn ? (
-            <div>
-              <span>TARGET END</span>
-              <strong>{formatDate(season.targetEndsOn)}</strong>
-            </div>
-          ) : null}
-        </div>
-      </article>
+          </div>
 
-      <div className="direction-principle-note">
-        <strong>Một Current Season đang active.</strong>
-        <span>LifeOS sẽ không âm thầm thay nó bằng một hướng mới.</span>
+          <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderTop: "none", borderRadius: "0 0 24px 24px" }}>
+            <div className="px-5 pt-4">
+              <p className="text-[10px] font-bold tracking-widest mb-2" style={{ color: "var(--text-3)" }}>MỤC ĐÍCH CỦA SEASON</p>
+              <p className="text-sm leading-relaxed" style={{ color: "var(--text-2)" }}>{season.purpose}</p>
+            </div>
+
+            {season.primaryFocusText ? (
+              <div className="px-5 pt-4">
+                <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl" style={{ background: "var(--primary-bg)", border: "1px solid var(--primary-border)" }}>
+                  <div>
+                    <p className="text-[9px] font-bold tracking-widest" style={{ color: "var(--primary)" }}>PRIMARY FOCUS</p>
+                    <p className="text-xs font-medium" style={{ color: "var(--text)" }}>{season.primaryFocusText}</p>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            {progress ? (
+              <div className="px-5 pt-4">
+                <div className="flex items-center justify-between mb-1.5">
+                  <p className="text-[10px] font-bold tracking-widest" style={{ color: "var(--text-3)" }}>TIẾN ĐỘ SEASON</p>
+                  <span className="text-xs font-semibold" style={{ color: "var(--text-2)" }}>
+                    {formatDate(progress.startsOn)} → {formatDate(progress.targetEndsOn)}
+                  </span>
+                </div>
+                <div className="h-2 rounded-full overflow-hidden" style={{ background: "var(--bg-2)" }}>
+                  <div className="h-full rounded-full" style={{ width: `${progress.percent}%`, background: "linear-gradient(90deg, var(--primary), var(--blue))" }} />
+                </div>
+                <p className="text-[11px] mt-1.5" style={{ color: "var(--text-3)" }}>
+                  Tính từ ngày bắt đầu và ngày kết thúc dự kiến bạn đã xác nhận.
+                </p>
+              </div>
+            ) : null}
+
+            <div className="px-5 py-4">
+              <p className="text-xs leading-relaxed" style={{ color: "var(--text-3)" }}>
+                Một Current Season đang active. LifeOS sẽ không âm thầm thay nó bằng một hướng mới.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <DirectionOutlook apiUrl={apiUrl} />
+
+        <a
+          href="/clarity"
+          className="flex items-center justify-center w-full h-11 rounded-2xl font-semibold text-sm"
+          style={{ background: "var(--bg-2)", border: "1.5px solid var(--border)", color: "var(--text-2)", textDecoration: "none" }}
+        >
+          Chạy Clarity Reset để đổi hướng
+        </a>
       </div>
-    </section>
+    </div>
   );
+}
+
+const CARD = {
+  background: "var(--card)",
+  border: "1px solid var(--border)",
+  boxShadow: "var(--shadow-card)"
+} as const;
+
+function DirectionHero({ subtitle }: { subtitle: string }) {
+  return (
+    <div className="hero-execute relative overflow-hidden px-5 pt-9 pb-5 md:px-8">
+      <svg className="absolute pointer-events-none" style={{ top: 14, right: 22, opacity: 0.18 }} width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <polygon points="16,3 28,27 16,22 4,27" stroke="var(--text)" strokeWidth="1.7" fill="none" strokeLinejoin="round" />
+      </svg>
+      <div className="relative z-10">
+        <p className="text-[9px] font-extrabold tracking-widest mb-1.5" style={{ color: "var(--text-3)", letterSpacing: "0.14em" }}>DIRECTION</p>
+        <h1 className="text-[48px] leading-none mb-1.5 font-display" style={{ color: "var(--text)", textTransform: "uppercase" }}>HƯỚNG ĐI</h1>
+        <p className="font-hand" style={{ color: "var(--text-3)", fontSize: 17 }}>{subtitle}</p>
+      </div>
+    </div>
+  );
+}
+
+function seasonProgress(startsOn?: string, targetEndsOn?: string) {
+  if (!startsOn || !targetEndsOn) return null;
+  const start = new Date(`${startsOn}T00:00:00Z`).getTime();
+  const end = new Date(`${targetEndsOn}T00:00:00Z`).getTime();
+  if (Number.isNaN(start) || Number.isNaN(end) || end <= start) return null;
+  const percent = Math.min(100, Math.max(0, Math.round(((Date.now() - start) / (end - start)) * 100)));
+  return { startsOn, targetEndsOn, percent };
 }
 
 function formatDate(value: string): string {

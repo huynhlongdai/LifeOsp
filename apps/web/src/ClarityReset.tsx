@@ -219,87 +219,120 @@ export function ClarityReset({ apiUrl }: { apiUrl: string }) {
 
   if (stage === "need") {
     return (
-      <section className="clarity-flow" aria-labelledby="clarity-title">
-        <div className="flow-intro">
-          <p className="eyebrow">CLARITY RESET · 1/3</p>
-          <h2 id="clarity-title">Bạn cần LifeOS giúp điều gì ngay lúc này?</h2>
-          <p>Không cần có mục tiêu dài hạn. Chọn vấn đề gần với hiện tại nhất; đây không phải nhãn tính cách của bạn.</p>
+      <section aria-labelledby="clarity-title">
+        <StepHeader step={1} title="Bạn cần LifeOS giúp điều gì ngay lúc này?" />
+        <p className="text-sm leading-relaxed mb-5" style={{ color: "var(--text-2)" }}>
+          Không cần có mục tiêu dài hạn. Chọn vấn đề gần với hiện tại nhất; đây không phải nhãn tính cách của bạn.
+        </p>
+        <div className="grid gap-2.5 mb-5" role="radiogroup" aria-label="Nhu cầu hiện tại">
+          {NEED_STATE_OPTIONS.map((option) => {
+            const selected = need === option.value;
+            return (
+              <button
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                key={option.value}
+                onClick={() => setNeed(option.value)}
+                className="rounded-2xl p-4 text-left transition-transform active:scale-[0.99]"
+                style={{
+                  background: selected ? "var(--primary-bg)" : "var(--card)",
+                  border: `1.5px solid ${selected ? "var(--primary-border)" : "var(--border)"}`,
+                  boxShadow: selected ? "var(--shadow-raise)" : "var(--shadow-card)"
+                }}
+              >
+                <span className="block text-sm font-bold mb-0.5" style={{ color: "var(--text)" }}>{option.label}</span>
+                <span className="block text-xs leading-relaxed" style={{ color: "var(--text-2)" }}>{option.hint}</span>
+              </button>
+            );
+          })}
         </div>
-        <div className="need-grid" role="radiogroup" aria-label="Nhu cầu hiện tại">
-          {NEED_STATE_OPTIONS.map((option) => (
-            <button
-              type="button"
-              role="radio"
-              aria-checked={need === option.value}
-              className={need === option.value ? "need-card selected" : "need-card"}
-              key={option.value}
-              onClick={() => setNeed(option.value)}
-            >
-              <strong>{option.label}</strong>
-              <span>{option.hint}</span>
-            </button>
-          ))}
-        </div>
-        <div className="flow-actions">
-          <button className="primary-button" type="button" disabled={!need} onClick={startCapture}>
-            Tiếp tục
-          </button>
-        </div>
+        <button
+          type="button"
+          disabled={!need}
+          onClick={startCapture}
+          className="btn-primary-action w-full h-12 rounded-2xl font-display text-sm"
+          style={{ opacity: need ? 1 : 0.5 }}
+        >
+          Tiếp tục
+        </button>
       </section>
     );
   }
 
   if (stage === "capture" || stage === "saving") {
     return (
-      <section className="clarity-flow" aria-labelledby="capture-title">
-        <div className="flow-intro">
-          <p className="eyebrow">CLARITY RESET · 2/3</p>
-          <h2 id="capture-title">Đưa mọi thứ trong đầu bạn ra ngoài.</h2>
-          <p>Đừng phân loại. LifeOS sẽ lưu bản gốc trước, rồi mới thử giúp bạn sắp xếp.</p>
-        </div>
+      <section aria-labelledby="capture-title">
+        <StepHeader step={2} title="Đưa mọi thứ trong đầu bạn ra ngoài." />
+        <p className="text-sm leading-relaxed mb-4" style={{ color: "var(--text-2)" }}>
+          Đừng phân loại. LifeOS sẽ lưu bản gốc trước, rồi mới thử giúp bạn sắp xếp.
+        </p>
 
         {selectedNeed ? (
-          <div className="selected-context">
-            <span>Nhu cầu bạn vừa chọn</span>
-            <strong>{selectedNeed.label}</strong>
-            <button type="button" className="text-button" onClick={() => setStage("need")} disabled={stage === "saving"}>
-              Đổi lựa chọn
+          <div className="rounded-2xl p-4 mb-4 flex items-center justify-between gap-3" style={{ background: "var(--primary-bg)", border: "1px solid var(--primary-border)" }}>
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold tracking-widest" style={{ color: "var(--primary)" }}>NHU CẦU BẠN VỪA CHỌN</p>
+              <p className="text-sm font-semibold truncate" style={{ color: "var(--text)" }}>{selectedNeed.label}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setStage("need")}
+              disabled={stage === "saving"}
+              className="text-xs font-bold px-3 py-1.5 rounded-xl flex-shrink-0"
+              style={{ background: "var(--card)", color: "var(--text-2)", border: "1px solid var(--border)" }}
+            >
+              Đổi
             </button>
           </div>
         ) : null}
 
-        <label className="field-label" htmlFor="quick-context">
-          Bối cảnh hiện tại <span>tùy chọn</span>
+        <label className="block text-[10px] font-bold tracking-widest mb-1.5" style={{ color: "var(--text-3)" }} htmlFor="quick-context">
+          BỐI CẢNH HIỆN TẠI (TUỲ CHỌN)
         </label>
         <textarea
           id="quick-context"
-          className="context-input"
           value={quickContext}
           onChange={(event) => setQuickContext(event.target.value)}
           placeholder="Ví dụ: hôm nay tôi chỉ có khoảng một giờ; có một việc gia đình cần ưu tiên..."
           rows={3}
           disabled={stage === "saving"}
+          className="w-full rounded-2xl p-3.5 text-sm outline-none resize-none mb-4"
+          style={{ background: "var(--bg)", border: "1px solid var(--border)", color: "var(--text)" }}
         />
 
-        <label className="field-label" htmlFor="brain-dump">Brain Dump</label>
+        <label className="block text-[10px] font-bold tracking-widest mb-1.5" style={{ color: "var(--text-3)" }} htmlFor="brain-dump">
+          BRAIN DUMP
+        </label>
         <textarea
           id="brain-dump"
-          className="brain-dump-input"
           value={brainDump}
           onChange={(event) => setBrainDump(event.target.value)}
           placeholder="Viết tất cả những gì đang chiếm đầu óc bạn. Không cần thứ tự, không cần viết hay."
           rows={10}
           autoFocus
           disabled={stage === "saving"}
+          className="w-full rounded-2xl p-4 text-sm outline-none resize-none leading-relaxed"
+          style={{
+            background: "var(--bg)",
+            border: `1.5px solid ${brainDump.length > 0 ? "var(--primary-border)" : "var(--border)"}`,
+            color: "var(--text)",
+            minHeight: 200
+          }}
         />
 
         {error ? <InlineError message={error} /> : null}
-        <div className="save-first-note">Capture được lưu trước. AI lỗi cũng không làm mất nội dung này.</div>
-        <div className="flow-actions">
-          <button className="primary-button" type="button" disabled={!canSaveCapture || stage === "saving"} onClick={saveCapture}>
-            {stage === "saving" ? "Đang lưu..." : "Lưu Brain Dump"}
-          </button>
-        </div>
+        <p className="text-[11px] mt-2 mb-4" style={{ color: "var(--text-3)" }}>
+          Capture được lưu trước. AI lỗi cũng không làm mất nội dung này.
+        </p>
+        <button
+          type="button"
+          disabled={!canSaveCapture || stage === "saving"}
+          onClick={saveCapture}
+          className="btn-primary-action w-full h-12 rounded-2xl font-display text-sm"
+          style={{ opacity: canSaveCapture && stage !== "saving" ? 1 : 0.5 }}
+        >
+          {stage === "saving" ? "Đang lưu..." : "Lưu Brain Dump"}
+        </button>
       </section>
     );
   }
@@ -342,13 +375,10 @@ export function ClarityReset({ apiUrl }: { apiUrl: string }) {
   if (stage === "review" || stage === "manual") {
     return (
       <section className="clarity-flow" aria-labelledby="review-title">
-        <div className="flow-intro">
-          <p className="eyebrow">CLARITY RESET · 3/3</p>
-          <h2 id="review-title">Kiểm tra xem LifeOS hiểu đúng chưa.</h2>
-          <p>
-            Đây là bản làm rõ có thể sửa. Không mục nào tự trở thành Direction, Project hay Action ở bước này.
-          </p>
-        </div>
+        <StepHeader step={3} title="Kiểm tra xem LifeOS hiểu đúng chưa." />
+        <p className="text-sm leading-relaxed mb-4" style={{ color: "var(--text-2)" }}>
+          Đây là bản làm rõ có thể sửa. Không mục nào tự trở thành Direction, Project hay Action ở bước này.
+        </p>
         <SavedCapture capture={capture} compact />
         {message ? <InlineNotice message={message} /> : null}
         {error ? <InlineError message={error} /> : null}
@@ -535,4 +565,24 @@ function readableError(reason: unknown): string {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/** Prototype step header: a small progress bar plus the step question. */
+function StepHeader({ step, title }: { step: 1 | 2 | 3; title: string }) {
+  return (
+    <div className="mb-3">
+      <div className="flex items-center gap-2 mb-3">
+        {[1, 2, 3].map((value) => (
+          <span
+            key={value}
+            className="h-1.5 rounded-full flex-1"
+            style={{ background: value <= step ? "var(--primary)" : "var(--bg-2)" }}
+            aria-hidden="true"
+          />
+        ))}
+      </div>
+      <p className="text-[10px] font-bold tracking-widest mb-1.5" style={{ color: "var(--text-3)" }}>BƯỚC {step}/3</p>
+      <h2 className="text-xl leading-snug font-display" style={{ color: "var(--text)" }}>{title}</h2>
+    </div>
+  );
 }

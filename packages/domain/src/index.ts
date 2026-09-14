@@ -19,12 +19,22 @@ export type {
   UserId
 } from "./ids.js";
 export * from "./action.js";
+export * from "./coach.js";
+export * from "./execute-board.js";
 export * from "./execution-context.js";
 export * from "./focus.js";
 export * from "./interpretation.js";
+export * from "./inbox.js";
+export * from "./me.js";
 export * from "./next-action.js";
 export * from "./now.js";
+export * from "./preferences.js";
+export * from "./admin-settings.js";
+export * from "./coach-chat.js";
 export * from "./promotion.js";
+export * from "./reflect-week.js";
+export * from "./reflect-analytics.js";
+export * from "./direction-outlook.js";
 export * from "./result.js";
 
 export const NEED_STATES = [

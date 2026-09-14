@@ -1,0 +1,308 @@
+/*
+ * LifeOS design system — vendored verbatim from the approved Figma Make export
+ * ("Review GitHub Repository.zip", src/index.css, 2026-09-14). Do not restyle by hand:
+ * re-export from Figma and replace this file so the app stays identical to the prototype.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Caveat:wght@400;600;700&display=swap');
+@import 'tailwindcss';
+
+/* ── Light theme — Wellness: soft blue-gray teal + pastel cards ─ */
+:root {
+  --bg:             #e4eeee;
+  --bg-2:           #dde9e9;
+  --surface:        #d4e2e2;
+  --card:           #fafaf8;
+  --card-hover:     #f5f5f2;
+  --border:         rgba(30,35,38,0.09);
+  --border-2:       rgba(30,35,38,0.16);
+
+  --text:           #1e2326;
+  --text-2:         #5a6870;
+  --text-3:         #96a4a8;
+
+  /* calm teal — wellness primary */
+  --primary:        #3d7e7e;
+  --primary-2:      #4d9292;
+  --primary-fg:     #ffffff;
+  --primary-bg:     rgba(61,126,126,0.10);
+  --primary-border: rgba(61,126,126,0.22);
+
+  /* warm orange accent */
+  --accent:         #fc9163;
+  --accent-bg:      rgba(252,145,99,0.14);
+  --accent-fg:      #1e2326;
+
+  --green:          #6a9e58;
+  --green-bg:       #dcebcf;
+  --amber:          #e07a30;
+  --amber-bg:       rgba(224,122,48,0.13);
+  --red:            #d94f4f;
+  --red-bg:         rgba(217,79,79,0.09);
+  --blue:           #4a8a9e;
+  --blue-bg:        #d8eef1;
+
+  /* Wellness pastel card fills */
+  --pastel-lavender: #e5d8f0;
+  --pastel-mint:     #dcebcf;
+  --pastel-peach:    #f4d8c8;
+  --pastel-sky:      #d8eef1;
+  --pastel-yellow:   rgba(253,203,0,0.22);
+  --pastel-pink:     #f0d4e0;
+
+  --shadow-card:    0 2px 12px rgba(30,35,38,0.06), 0 1px 4px rgba(30,35,38,0.04);
+  --shadow-raise:   0 4px 20px rgba(30,35,38,0.08), 0 12px 40px rgba(30,35,38,0.05);
+  --shadow-float:   0 12px 50px rgba(30,35,38,0.12), 0 32px 80px rgba(30,35,38,0.06);
+
+  --nav-icon-active: var(--text);
+  --logo-bg:    var(--text);
+  --logo-fg:    var(--card);
+}
+
+/* ── Futuristic HealthTech: muted blue-gray + cyan + orange ─── */
+[data-theme="futuristic"] {
+  --bg:             #aebccc;
+  --bg-2:           #a4b3c4;
+  --surface:        #bcc8d6;
+  --card:           #f0f4f8;
+  --card-hover:     #e8eef4;
+  --border:         rgba(28,32,31,0.11);
+  --border-2:       rgba(28,32,31,0.20);
+
+  --text:           #1c201f;
+  --text-2:         #4a5760;
+  --text-3:         #8a9aaa;
+
+  /* bright aqua/cyan — health & activity */
+  --primary:        #72c7d8;
+  --primary-2:      #8ed8e7;
+  --primary-fg:     #1c201f;
+  --primary-bg:     rgba(114,199,216,0.20);
+  --primary-border: rgba(114,199,216,0.35);
+
+  /* warm orange — active actions */
+  --accent:         #f2703e;
+  --accent-bg:      rgba(242,112,62,0.15);
+  --accent-fg:      #ffffff;
+
+  /* lime — positive status */
+  --green:          #7a9e28;
+  --green-bg:       rgba(214,231,122,0.38);
+  --amber:          #f2703e;
+  --amber-bg:       rgba(242,112,62,0.14);
+  --red:            #e03838;
+  --red-bg:         rgba(224,56,56,0.11);
+  --blue:           #72c7d8;
+  --blue-bg:        #dcecef;
+
+  /* Pastel card fills */
+  --pastel-lavender: #dcecef;
+  --pastel-mint:     rgba(214,231,122,0.35);
+  --pastel-peach:    rgba(242,112,62,0.16);
+  --pastel-sky:      rgba(142,216,231,0.35);
+  --pastel-yellow:   rgba(214,231,122,0.28);
+  --pastel-pink:     rgba(242,112,62,0.12);
+
+  --shadow-card:    0 4px 16px rgba(28,32,31,0.08), 0 8px 32px rgba(100,130,160,0.10);
+  --shadow-raise:   0 6px 24px rgba(28,32,31,0.10), 0 16px 48px rgba(100,130,160,0.12);
+  --shadow-float:   0 16px 60px rgba(28,32,31,0.14), 0 40px 100px rgba(100,130,160,0.10);
+
+  --nav-icon-active: var(--primary);
+  --logo-bg:    var(--primary);
+  --logo-fg:    var(--primary-fg);
+}
+
+/* ── Dark theme — ToyCad style: pure black + lime-green CTA ─── */
+[data-theme="dark"] {
+  --bg:             #0a0a0a;
+  --bg-2:           #070707;
+  --surface:        #111111;
+  --card:           #1a1a1a;
+  --card-hover:     #202020;
+  --border:         rgba(255,255,255,0.06);
+  --border-2:       rgba(255,255,255,0.10);
+
+  --text:           #ffffff;
+  --text-2:         #8a8a8a;
+  --text-3:         #444444;
+
+  /* lime-green CTA — ToyCad signature */
+  --primary:        #aaeb3c;
+  --primary-2:      #c0f550;
+  --primary-fg:     #0a1400;
+  --primary-bg:     rgba(170,235,60,0.10);
+  --primary-border: rgba(170,235,60,0.20);
+
+  /* orange accent */
+  --accent:         #ff7b2c;
+  --accent-bg:      rgba(255,123,44,0.12);
+  --accent-fg:      #ffffff;
+
+  --nav-icon-active: var(--primary);
+  --logo-bg:    var(--primary);
+  --logo-fg:    var(--primary-fg);
+
+  --green:          #aaeb3c;
+  --green-bg:       rgba(170,235,60,0.10);
+  --amber:          #fbbf24;
+  --amber-bg:       rgba(251,191,36,0.10);
+  --red:            #ff5252;
+  --red-bg:         rgba(255,82,82,0.10);
+  --blue:           #60a5fa;
+  --blue-bg:        rgba(96,165,250,0.09);
+
+  --shadow-card:    0 1px 0 rgba(255,255,255,0.04), 0 4px 16px rgba(0,0,0,0.80);
+  --shadow-raise:   0 1px 0 rgba(255,255,255,0.04), 0 8px 32px rgba(0,0,0,0.90);
+  --shadow-float:   0 16px 60px rgba(0,0,0,0.95), 0 40px 100px rgba(0,0,0,0.70);
+}
+
+html, body, #root { height: 100%; }
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Nunito', ui-sans-serif, system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Subtle noise texture for depth */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.02;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+.font-display { font-family: 'Nunito', system-ui, sans-serif; font-weight: 900; }
+.font-hand    { font-family: 'Caveat', cursive; }
+
+::-webkit-scrollbar { width: 0; height: 0; }
+* { scrollbar-width: none; }
+
+/* ── Page transition ────────────────────────────────────────── */
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-enter { animation: pageEnter 0.22s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* ── Hero section gradients (theme-responsive) ─────────────── */
+.hero-now {
+  background: radial-gradient(ellipse 65% 75% at 85% 5%, rgba(216,238,241,0.80) 0%, transparent 55%),
+              radial-gradient(ellipse 55% 65% at 8% 85%, rgba(229,216,240,0.55) 0%, transparent 60%),
+              #e4eeee;
+  border-bottom: 1px solid rgba(30,35,38,0.07);
+}
+[data-theme="futuristic"] .hero-now {
+  background: radial-gradient(ellipse 60% 70% at 85% 5%, rgba(142,216,231,0.55) 0%, transparent 55%),
+              radial-gradient(ellipse 50% 60% at 10% 80%, rgba(214,231,122,0.32) 0%, transparent 60%),
+              #aebccc;
+  border-bottom: 1px solid rgba(28,32,31,0.08);
+}
+[data-theme="dark"] .hero-now {
+  background: radial-gradient(ellipse 60% 70% at 85% 10%, rgba(170,235,60,0.07) 0%, transparent 60%), #0a0a0a;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.hero-execute {
+  background: radial-gradient(ellipse 65% 75% at 90% 8%, rgba(220,235,207,0.75) 0%, transparent 55%),
+              radial-gradient(ellipse 50% 65% at 5% 80%, rgba(216,238,241,0.65) 0%, transparent 60%),
+              #dde9e9;
+  border-bottom: 1px solid rgba(30,35,38,0.07);
+}
+[data-theme="futuristic"] .hero-execute {
+  background: radial-gradient(ellipse 60% 70% at 90% 8%, rgba(214,231,122,0.45) 0%, transparent 55%),
+              radial-gradient(ellipse 50% 60% at 5% 80%, rgba(142,216,231,0.45) 0%, transparent 60%),
+              #a4b3c4;
+  border-bottom: 1px solid rgba(28,32,31,0.08);
+}
+[data-theme="dark"] .hero-execute {
+  background: radial-gradient(ellipse 60% 70% at 90% 10%, rgba(170,235,60,0.06) 0%, transparent 60%), #0a0a0a;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.hero-reflect {
+  background: radial-gradient(ellipse 65% 75% at 80% 10%, rgba(229,216,240,0.75) 0%, transparent 55%),
+              radial-gradient(ellipse 50% 65% at 10% 80%, rgba(244,216,200,0.55) 0%, transparent 60%),
+              #e4eeee;
+  border-bottom: 1px solid rgba(30,35,38,0.07);
+}
+[data-theme="futuristic"] .hero-reflect {
+  background: radial-gradient(ellipse 60% 70% at 80% 10%, rgba(142,216,231,0.48) 0%, transparent 55%),
+              radial-gradient(ellipse 50% 60% at 10% 75%, rgba(242,112,62,0.20) 0%, transparent 60%),
+              #aebccc;
+  border-bottom: 1px solid rgba(28,32,31,0.08);
+}
+[data-theme="dark"] .hero-reflect {
+  background: radial-gradient(ellipse 60% 70% at 80% 15%, rgba(170,235,60,0.06) 0%, transparent 60%), #0a0a0a;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+/* ── Task card gradient border (theme-responsive) ───────────── */
+.card-gradient-border {
+  background: linear-gradient(135deg, #dcebcf 0%, #d8eef1 45%, #e5d8f0 100%);
+}
+[data-theme="futuristic"] .card-gradient-border {
+  background: linear-gradient(135deg, #8ed8e7 0%, #d6e77a 50%, #f2703e 100%);
+}
+[data-theme="dark"] .card-gradient-border {
+  background: linear-gradient(135deg, #aaeb3c 0%, #60a5fa 55%, #ff7b2c 100%);
+}
+
+/* ── Primary action button (theme-responsive) ───────────────── */
+.btn-primary-action {
+  background: var(--text);
+  color: var(--card);
+  box-shadow: 0 6px 20px rgba(30,35,38,0.22);
+}
+[data-theme="futuristic"] .btn-primary-action {
+  background: #1c201f;
+  color: #f0f4f8;
+  box-shadow: 0 6px 20px rgba(28,32,31,0.30);
+}
+[data-theme="dark"] .btn-primary-action {
+  background: var(--primary);
+  color: var(--primary-fg);
+  box-shadow: 0 8px 32px rgba(170,235,60,0.30);
+}
+
+/* ── Sidebar active indicator ───────────────────────────────── */
+.sidebar-active {
+  position: relative;
+  background: var(--primary-bg);
+  border: 1px solid transparent;
+  border-left: 3px solid var(--primary) !important;
+  border-radius: 0 12px 12px 0 !important;
+  padding-left: 13px !important;
+}
+[data-theme="futuristic"] .sidebar-active {
+  background: rgba(114,199,216,0.14);
+  border: 1px solid transparent;
+  border-left: 3px solid var(--primary) !important;
+  border-radius: 0 10px 10px 0 !important;
+  padding-left: 13px !important;
+}
+[data-theme="dark"] .sidebar-active {
+  background: rgba(170,235,60,0.07);
+  border: 1px solid transparent;
+  border-left: 2px solid var(--primary) !important;
+  border-radius: 0 10px 10px 0 !important;
+  padding-left: 14px !important;
+}
+
+/* ── Glow for primary elements in dark ─────────────────────── */
+[data-theme="dark"] .neon-glow {
+  box-shadow: 0 0 0 1px rgba(170,235,60,0.25), 0 4px 20px rgba(170,235,60,0.18);
+}
+[data-theme="dark"] .neon-text { color: var(--primary) !important; }
+
+/* Utility */
+.hide-scrollbar { scrollbar-width: none; }
+.hide-scrollbar::-webkit-scrollbar { display: none; }

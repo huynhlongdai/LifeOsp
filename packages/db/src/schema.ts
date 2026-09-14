@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   date,
   index,
@@ -429,6 +430,54 @@ export type OutcomeRow = typeof outcomes.$inferSelect;
 export type NewOutcomeRow = typeof outcomes.$inferInsert;
 export type ProjectRow = typeof projects.$inferSelect;
 export type NewProjectRow = typeof projects.$inferInsert;
+export const userPreferences = pgTable(
+  "user_preferences",
+  {
+    userId: uuid("user_id")
+      .primaryKey()
+      .references(() => users.id, { onDelete: "cascade" }),
+    timezone: text("timezone").default("Asia/Ho_Chi_Minh").notNull(),
+    workStartMinute: integer("work_start_minute").default(480).notNull(),
+    workEndMinute: integer("work_end_minute").default(1080).notNull(),
+    workDays: text("work_days").default("1,2,3,4,5").notNull(),
+    focusMinutes: integer("focus_minutes").default(40).notNull(),
+    breakMinutes: integer("break_minutes").default(10).notNull(),
+    aiSuggestsActions: boolean("ai_suggests_actions").default(true).notNull(),
+    aiDailySummary: boolean("ai_daily_summary").default(false).notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    check("user_preferences_work_window_check", sql`${table.workStartMinute} >= 0 and ${table.workEndMinute} <= 1440 and ${table.workStartMinute} < ${table.workEndMinute}`),
+    check("user_preferences_focus_minutes_check", sql`${table.focusMinutes} between 5 and 240`),
+    check("user_preferences_break_minutes_check", sql`${table.breakMinutes} between 0 and 120`)
+  ]
+);
+
+export const appSettings = pgTable(
+  "app_settings",
+  {
+    userId: uuid("user_id")
+      .primaryKey()
+      .references(() => users.id, { onDelete: "cascade" }),
+    aiProvider: text("ai_provider"),
+    aiModel: text("ai_model"),
+    aiBaseUrl: text("ai_base_url"),
+    /** AES-256-GCM ciphertext. The plaintext key never leaves the server. */
+    aiKeyCiphertext: text("ai_key_ciphertext"),
+    /** Last 4 characters, the only part ever shown back in the admin panel. */
+    aiKeyHint: text("ai_key_hint"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    check("app_settings_provider_check", sql`${table.aiProvider} is null or ${table.aiProvider} in ('openai','anthropic')`)
+  ]
+);
+
+export type AppSettingsRow = typeof appSettings.$inferSelect;
+
+export type UserPreferencesRow = typeof userPreferences.$inferSelect;
+export type NewUserPreferencesRow = typeof userPreferences.$inferInsert;
+
 export type ActionRow = typeof actions.$inferSelect;
 export type NewActionRow = typeof actions.$inferInsert;
 export type FocusSessionRow = typeof focusSessions.$inferSelect;
@@ -445,3 +494,28 @@ export type RecommendationEvidenceRow = typeof recommendationEvidence.$inferSele
 export type NewRecommendationEvidenceRow = typeof recommendationEvidence.$inferInsert;
 export type LifeEventRow = typeof lifeEvents.$inferSelect;
 export type NewLifeEventRow = typeof lifeEvents.$inferInsert;
+
+/**
+ * Steps a user writes for a single Action ("TRONG PHIÊN NÀY"). They are the user's own
+ * breakdown of the work; LifeOS never generates or ticks them automatically.
+ */
+export const actionSteps = pgTable(
+  "action_steps",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    actionId: uuid("action_id")
+      .notNull()
+      .references(() => actions.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    position: integer("position").default(0).notNull(),
+    doneAt: timestamp("done_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [index("action_steps_action_idx").on(table.actionId, table.position)]
+);
+
+export type ActionStepRow = typeof actionSteps.$inferSelect;
+export type NewActionStepRow = typeof actionSteps.$inferInsert;

@@ -71,6 +71,20 @@
       "when": 1789351206071,
       "tag": "0009_b5_result_daily_close",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1789358665855,
+      "tag": "0010_user_preferences",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1789360743120,
+      "tag": "0011_action_steps",
+      "breakpoints": true
     }
   ]
 }

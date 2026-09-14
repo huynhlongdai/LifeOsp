@@ -1,16 +1,25 @@
-import { useEffect, useState, type MouseEvent } from "react";
+import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
 import type { HealthStatus } from "@lifeos/domain";
 import { createApiClient } from "./api";
+import { AppShell } from "./AppShell";
 import { ClarityReset } from "./ClarityReset";
+import { BrainDumpButton, BrainDumpSheet } from "./BrainDump";
+import { ExecutePage } from "./ExecutePage";
+import { CoachPage } from "./CoachPage";
+import { InboxPage } from "./InboxPage";
+import { IncubatorPage } from "./IncubatorPage";
+import { MePage } from "./MePage";
+import { AdminPage } from "./AdminPage";
 import { DirectionPage } from "./DirectionPage";
 import { NowPage } from "./NowPage";
 import { ReflectPage } from "./ReflectPage";
-import { APP_ROUTES, resolveRoute, type AppRoute } from "./routes";
-import { EmptyState, ErrorState, LoadingState, type AsyncState } from "./ui-states";
+import { resolveRoute, type AppRoute } from "./routes";
+import { ErrorState, type AsyncState } from "./ui-states";
 
 export function App() {
   const [pathname, setPathname] = useState(() => window.location.pathname);
   const [apiState, setApiState] = useState<AsyncState<HealthStatus>>({ kind: "loading" });
+  const [brainDumpOpen, setBrainDumpOpen] = useState(false);
   const apiUrl = import.meta.env.VITE_API_URL ?? "";
   const route = resolveRoute(pathname);
 
@@ -37,6 +46,17 @@ export function App() {
     return () => controller.abort();
   }, [apiUrl]);
 
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setBrainDumpOpen(true);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
   const navigate = (event: MouseEvent<HTMLAnchorElement>, nextPath: string) => {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
@@ -46,78 +66,90 @@ export function App() {
   };
 
   return (
-    <div className="app-shell">
-      <aside className="sidebar" aria-label="LifeOS navigation">
-        <a className="brand" href="/" onClick={(event) => navigate(event, "/")}>
-          LifeOS
-        </a>
-        <nav>
-          {APP_ROUTES.map((item) => (
-            <a
-              className={route?.key === item.key ? "nav-item active" : "nav-item"}
-              href={item.path}
-              key={item.key}
-              aria-current={route?.key === item.key ? "page" : undefined}
-              onClick={(event) => navigate(event, item.path)}
-            >
-              {item.label}
-            </a>
-          ))}
-        </nav>
-        <div className="secondary-links" aria-label="Product status">
-          <span>Vertical Slice B</span>
-          <a href="/clarity" onClick={(event) => navigate(event, "/clarity")}>Clarity Reset</a>
-        </div>
-      </aside>
-
-      <main className="content">
-        <header className="topbar">
-          <div>
-            <p className="eyebrow">{route?.key === "clarity" ? "VERTICAL SLICE A" : "LIFEOS"} / {route?.label ?? "UNKNOWN"}</p>
-            <h1>{route?.key === "now" ? "Biết điều gì quan trọng. Biết việc cần làm tiếp theo." : route?.label ?? "Route không tồn tại"}</h1>
-          </div>
-          <ApiBadge state={apiState} />
-        </header>
-
-        {route ? <RouteContent route={route} apiUrl={apiUrl} /> : <UnknownRoute />}
-      </main>
-    </div>
+    <AppShell route={route} onNavigate={navigate} statusSlot={<ApiBadge state={apiState} />}>
+      {route ? <RouteContent route={route} apiUrl={apiUrl} /> : <UnknownRoute />}
+      <BrainDumpButton onOpen={() => setBrainDumpOpen(true)} />
+      {brainDumpOpen ? <BrainDumpSheet apiUrl={apiUrl} onClose={() => setBrainDumpOpen(false)} /> : null}
+    </AppShell>
   );
 }
 
 function RouteContent({ route, apiUrl }: { route: AppRoute; apiUrl: string }) {
-  if (route.key === "clarity") return <ClarityReset apiUrl={apiUrl} />;
-  if (route.key === "direction") return <DirectionPage apiUrl={apiUrl} />;
   if (route.key === "now") return <NowPage apiUrl={apiUrl} />;
   if (route.key === "reflect") return <ReflectPage apiUrl={apiUrl} />;
+  if (route.key === "clarity") {
+    return (
+      <>
+        <ClarityHero />
+        <LegacyPage>
+          <ClarityReset apiUrl={apiUrl} />
+        </LegacyPage>
+      </>
+    );
+  }
+  if (route.key === "direction") return <DirectionPage apiUrl={apiUrl} />;
 
+  if (route.key === "execute") return <ExecutePage apiUrl={apiUrl} />;
+  if (route.key === "inbox") return <InboxPage apiUrl={apiUrl} />;
+  if (route.key === "incubator") return <IncubatorPage apiUrl={apiUrl} />;
+  if (route.key === "coach") return <CoachPage apiUrl={apiUrl} />;
+  if (route.key === "admin") return <AdminPage apiUrl={apiUrl} />;
+  return <MePage apiUrl={apiUrl} />;
+}
+
+
+/** Slice A screens keep their current markup until their own design pass. */
+/**
+ * Prototype header for Clarity Reset. The flow itself still uses the Slice A markup;
+ * only its colours and typography are bridged onto the design tokens.
+ */
+function ClarityHero() {
   return (
-    <EmptyState title={`${route.label} chưa có dữ liệu`}>
-      Route đã có ownership trong app shell, nhưng feature và dữ liệu chỉ được thêm khi vertical slice tương ứng bắt đầu.
-    </EmptyState>
+    <div className="hero-execute relative overflow-hidden px-5 pt-9 pb-5 md:px-8">
+      <svg className="absolute pointer-events-none" style={{ top: 14, right: 22, opacity: 0.16 }} width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 2.38 1.19 4.47 3 5.74V17a1 1 0 001 1h6a1 1 0 001-1v-2.26C17.81 13.47 19 11.38 19 9c0-3.87-3.13-7-7-7z" stroke="var(--text)" strokeWidth="1.6" />
+        <path d="M9 21h6" stroke="var(--text)" strokeWidth="1.6" strokeLinecap="round" />
+      </svg>
+      <div className="relative z-10">
+        <p className="text-[9px] font-extrabold tracking-widest mb-1.5" style={{ color: "var(--text-3)", letterSpacing: "0.14em" }}>CLARITY RESET</p>
+        <h1 className="text-[44px] leading-none font-display" style={{ color: "var(--text)", textTransform: "uppercase" }}>LÀM RÕ</h1>
+        <p className="font-hand mt-1" style={{ color: "var(--text-3)", fontSize: 17 }}>Bạn quyết định, LifeOS chỉ sắp xếp</p>
+      </div>
+    </div>
   );
+}
+
+function LegacyPage({ children }: { children: ReactNode }) {
+  return <div className="px-5 pt-8 pb-10 md:px-8 md:max-w-3xl">{children}</div>;
 }
 
 function UnknownRoute() {
   return (
+    <LegacyPage>
     <ErrorState title="Route không tồn tại">
       Dùng navigation của LifeOS để quay về một khu vực đã được định nghĩa.
     </ErrorState>
+    </LegacyPage>
   );
 }
 
 function ApiBadge({ state }: { state: AsyncState<HealthStatus> }) {
-  if (state.kind === "loading") return <LoadingState label="API checking" />;
-  if (state.kind === "error") {
-    return (
-      <span className="status offline" title={state.message} role="status">
-        API offline
-      </span>
-    );
-  }
+  const tone =
+    state.kind === "loading"
+      ? { label: "API…", color: "var(--amber)", background: "var(--amber-bg)" }
+      : state.kind === "error"
+        ? { label: "API offline", color: "var(--red)", background: "var(--red-bg)" }
+        : { label: "API online", color: "var(--green)", background: "var(--green-bg)" };
+
   return (
-    <span className="status online" title={`Healthy at ${state.data.timestamp}`} role="status">
-      API online
+    <span
+      className="flex items-center gap-1.5 px-2.5 h-8 rounded-xl text-[10px] font-extrabold uppercase"
+      style={{ color: tone.color, background: tone.background, border: "1px solid var(--border-2)", letterSpacing: "0.06em" }}
+      title={state.kind === "error" ? state.message : state.kind === "success" ? `Healthy at ${state.data.timestamp}` : undefined}
+      role="status"
+    >
+      <span className="rounded-full" style={{ width: 7, height: 7, background: tone.color }} />
+      {tone.label}
     </span>
   );
 }

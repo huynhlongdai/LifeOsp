@@ -228,10 +228,21 @@ export async function findLatestCaptureInterpretation(
 }
 
 export * from "./action.js";
+export * from "./demo-seed.js";
+export * from "./coach.js";
+export * from "./execute-board.js";
 export * from "./execution-context.js";
 export * from "./focus.js";
+export * from "./inbox.js";
+export * from "./me.js";
 export * from "./next-action.js";
 export * from "./now.js";
+export * from "./preferences.js";
+export * from "./app-settings.js";
 export * from "./promotion.js";
+export * from "./reflect-week.js";
+export * from "./reflect-analytics.js";
+export * from "./direction-outlook.js";
+export * from "./action-steps.js";
 export * from "./result.js";
 export * from "./schema.js";

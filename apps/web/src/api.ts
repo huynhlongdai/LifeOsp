@@ -14,12 +14,25 @@ import {
   type CaptureView,
   type ClarityPromotionDraftInput,
   type ClarityPromotionDraftView,
+  type CoachView,
   type CurrentDirectionView,
+  type DirectionOutlookView,
   type DirectionView,
+  type ExecuteBoardView,
   type HealthStatus,
+  type InboxView,
+  type MeView,
+  type ReflectAnalyticsView,
+  type ReflectWeekView,
+  type UpdateUserPreferencesInput,
+  type UserPreferencesView,
   type IncubatorItemView,
   type SeasonView,
-  type SessionView
+  type SessionView,
+  type AdminSettingsView,
+  type CoachChatMessage,
+  type CoachChatReply,
+  type AdminSettingsUpdateInput
 } from "@lifeos/domain";
 
 export type InterpretationFailure = {
@@ -89,6 +102,19 @@ export type ApiClient = {
   rejectClarityPromotion(recommendationId: string, signal?: AbortSignal): Promise<PromotionResolutionView>;
   deferClarityPromotion(recommendationId: string, signal?: AbortSignal): Promise<PromotionResolutionView>;
   getCurrentDirection(signal?: AbortSignal): Promise<CurrentDirectionView | null>;
+  getExecuteBoard(signal?: AbortSignal): Promise<ExecuteBoardView | null>;
+  getMe(signal?: AbortSignal): Promise<MeView | null>;
+  getInbox(signal?: AbortSignal): Promise<InboxView | null>;
+  getCoach(signal?: AbortSignal): Promise<CoachView | null>;
+  getReflectWeek(tzOffsetMinutes: number, signal?: AbortSignal): Promise<ReflectWeekView>;
+  getReflectAnalytics(tzOffsetMinutes: number, signal?: AbortSignal): Promise<ReflectAnalyticsView>;
+  getDirectionOutlook(signal?: AbortSignal): Promise<DirectionOutlookView>;
+  getPreferences(signal?: AbortSignal): Promise<UserPreferencesView>;
+  updatePreferences(input: UpdateUserPreferencesInput, signal?: AbortSignal): Promise<UserPreferencesView>;
+  seedDemoData(): Promise<{ seeded: boolean }>;
+  sendCoachMessage(messages: CoachChatMessage[], signal?: AbortSignal): Promise<CoachChatReply>;
+  getAdminSettings(signal?: AbortSignal): Promise<AdminSettingsView | null>;
+  updateAdminSettings(input: AdminSettingsUpdateInput, signal?: AbortSignal): Promise<AdminSettingsView>;
 };
 
 export function createApiClient(baseUrl = ""): ApiClient {
@@ -215,6 +241,127 @@ export function createApiClient(baseUrl = ""): ApiClient {
         const value = await request("/v1/direction/current", signal ? { signal } : {});
         if (!isCurrentDirectionView(value)) {
           throw new Error("Current Direction response does not match the LifeOS contract");
+        }
+        return value;
+      } catch (error) {
+        if (error instanceof ApiRequestError && error.status === 404) return null;
+        throw error;
+      }
+    },
+
+    async getDirectionOutlook(signal) {
+      const value = await request("/v1/direction/outlook", signal ? { signal } : {});
+      if (typeof value !== "object" || value === null || !Array.isArray((value as DirectionOutlookView).focusAreas)) {
+        throw new Error("Direction outlook response does not match the LifeOS contract");
+      }
+      return value as DirectionOutlookView;
+    },
+
+    async getReflectAnalytics(tzOffsetMinutes, signal) {
+      const value = await request(
+        `/v1/reflect/analytics?tzOffsetMinutes=${encodeURIComponent(String(tzOffsetMinutes))}`,
+        signal ? { signal } : {}
+      );
+      if (typeof value !== "object" || value === null || !Array.isArray((value as ReflectAnalyticsView).habits)) {
+        throw new Error("Reflect analytics response does not match the LifeOS contract");
+      }
+      return value as ReflectAnalyticsView;
+    },
+
+    async getReflectWeek(tzOffsetMinutes, signal) {
+      const value = await request(
+        `/v1/reflect/week?tzOffsetMinutes=${encodeURIComponent(String(tzOffsetMinutes))}`,
+        signal ? { signal } : {}
+      );
+      if (typeof value !== "object" || value === null || !Array.isArray((value as ReflectWeekView).days)) {
+        throw new Error("Reflect week response does not match the LifeOS contract");
+      }
+      return value as ReflectWeekView;
+    },
+
+    async getCoach(signal) {
+      try {
+        const value = await request("/v1/coach", signal ? { signal } : {});
+        if (!isCoachView(value)) throw new Error("Coach response does not match the LifeOS contract");
+        return value;
+      } catch (error) {
+        if (error instanceof ApiRequestError && error.status === 401) return null;
+        throw error;
+      }
+    },
+
+    async getPreferences(signal) {
+      const value = await request("/v1/me/preferences", signal ? { signal } : {});
+      if (!isPreferencesView(value)) throw new Error("Preferences response does not match the LifeOS contract");
+      return value;
+    },
+
+    async updatePreferences(input, signal) {
+      const value = await request("/v1/me/preferences", {
+        method: "PATCH",
+        body: JSON.stringify(input),
+        ...(signal ? { signal } : {})
+      });
+      if (!isPreferencesView(value)) throw new Error("Preferences response does not match the LifeOS contract");
+      return value;
+    },
+
+    async seedDemoData() {
+      return (await request("/v1/demo/seed", { method: "POST" })) as { seeded: boolean };
+    },
+
+    async sendCoachMessage(messages, signal) {
+      return (await request("/v1/coach/chat", {
+        method: "POST",
+        body: JSON.stringify({ messages }),
+        ...(signal ? { signal } : {})
+      })) as CoachChatReply;
+    },
+
+    async getAdminSettings(signal) {
+      try {
+        return (await request("/v1/admin/settings", signal ? { signal } : {})) as AdminSettingsView;
+      } catch (error) {
+        if (error instanceof ApiRequestError && error.status === 401) return null;
+        throw error;
+      }
+    },
+
+    async updateAdminSettings(input, signal) {
+      return (await request("/v1/admin/settings", {
+        method: "PUT",
+        body: JSON.stringify(input),
+        ...(signal ? { signal } : {})
+      })) as AdminSettingsView;
+    },
+
+    async getInbox(signal) {
+      try {
+        const value = await request("/v1/inbox", signal ? { signal } : {});
+        if (!isInboxView(value)) throw new Error("Inbox response does not match the LifeOS contract");
+        return value;
+      } catch (error) {
+        if (error instanceof ApiRequestError && error.status === 401) return null;
+        throw error;
+      }
+    },
+
+    async getMe(signal) {
+      try {
+        const value = await request("/v1/me", signal ? { signal } : {});
+        if (!isMeView(value)) throw new Error("Profile response does not match the LifeOS contract");
+        return value;
+      } catch (error) {
+        if (error instanceof ApiRequestError && (error.status === 404 || error.status === 401)) return null;
+        throw error;
+      }
+    },
+
+    async getExecuteBoard(signal) {
+      try {
+        const value = await request("/v1/execute", signal ? { signal } : {});
+        if (!isExecuteBoardView(value)) {
+          throw new Error("Execute board response does not match the LifeOS contract");
         }
         return value;
       } catch (error) {
@@ -424,4 +571,43 @@ function isStringArray(value: unknown): value is string[] {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isExecuteBoardView(value: unknown): value is ExecuteBoardView {
+  if (typeof value !== "object" || value === null) return false;
+  const candidate = value as Partial<ExecuteBoardView>;
+  return (
+    typeof candidate.seasonId === "string" &&
+    typeof candidate.seasonTitle === "string" &&
+    Array.isArray(candidate.outcomes)
+  );
+}
+
+function isMeView(value: unknown): value is MeView {
+  if (typeof value !== "object" || value === null) return false;
+  const candidate = value as Partial<MeView>;
+  return typeof candidate.memberSince === "string" && typeof candidate.stats === "object" && candidate.stats !== null;
+}
+
+function isInboxView(value: unknown): value is InboxView {
+  if (typeof value !== "object" || value === null) return false;
+  const candidate = value as Partial<InboxView>;
+  return Array.isArray(candidate.captures) && Array.isArray(candidate.incubated) && typeof candidate.counts === "object";
+}
+
+function isPreferencesView(value: unknown): value is UserPreferencesView {
+  if (typeof value !== "object" || value === null) return false;
+  const candidate = value as Partial<UserPreferencesView>;
+  return (
+    typeof candidate.timezone === "string" &&
+    typeof candidate.focusMinutes === "number" &&
+    Array.isArray(candidate.workDays) &&
+    typeof candidate.aiSuggestsActions === "boolean"
+  );
+}
+
+function isCoachView(value: unknown): value is CoachView {
+  if (typeof value !== "object" || value === null) return false;
+  const candidate = value as Partial<CoachView>;
+  return Array.isArray(candidate.insights) && typeof candidate.capacity === "object" && typeof candidate.facts === "object";
 }
