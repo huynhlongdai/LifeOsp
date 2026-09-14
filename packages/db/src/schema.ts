@@ -461,6 +461,7 @@ export const appSettings = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     aiProvider: text("ai_provider"),
     aiModel: text("ai_model"),
+    aiBaseUrl: text("ai_base_url"),
     /** AES-256-GCM ciphertext. The plaintext key never leaves the server. */
     aiKeyCiphertext: text("ai_key_ciphertext"),
     /** Last 4 characters, the only part ever shown back in the admin panel. */

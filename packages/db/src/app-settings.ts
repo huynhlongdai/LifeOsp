@@ -5,6 +5,7 @@ import * as schema from "./schema.js";
 export type AppSettingsUpdate = {
   aiProvider?: string | null;
   aiModel?: string | null;
+  aiBaseUrl?: string | null;
   aiKeyCiphertext?: string | null;
   aiKeyHint?: string | null;
 };

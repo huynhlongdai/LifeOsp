@@ -41,3 +41,21 @@ test("an empty body is rejected", () => {
 test("maskKey shows only the last four characters", () => {
   assert.equal(maskKey("sk-1234567890abcdefghij"), "••••ghij");
 });
+
+test("custom provider requires a base url", () => {
+  const parsed = parseAdminSettingsUpdate({ aiProvider: "custom", aiBaseUrl: "" });
+  assert.equal(isAdminSettingsError(parsed), true);
+});
+
+test("custom provider keeps a normalised base url", () => {
+  const parsed = parseAdminSettingsUpdate({ aiProvider: "custom", aiBaseUrl: "https://openrouter.ai/api/v1/" });
+  assert.equal(isAdminSettingsError(parsed), false);
+  if (isAdminSettingsError(parsed)) return;
+  assert.equal(parsed.aiBaseUrl, "https://openrouter.ai/api/v1");
+});
+
+test("base url must be an absolute http(s) url", () => {
+  for (const value of ["openrouter.ai/api", "ftp://x.dev/v1", "https://x.dev/v1?key=1"]) {
+    assert.equal(isAdminSettingsError(parseAdminSettingsUpdate({ aiBaseUrl: value })), true, value);
+  }
+});

@@ -1,5 +1,11 @@
 import { findCoachFacts, findOrCreatePreferences, parseWorkDays, type DatabaseClient } from "@lifeos/db";
-import { computeLifeScore, parseCoachChatRequest, isCoachChatError, type CoachChatReply } from "@lifeos/domain";
+import {
+  computeLifeScore,
+  parseCoachChatRequest,
+  isCoachChatError,
+  DEFAULT_AI_MODELS,
+  type CoachChatReply
+} from "@lifeos/domain";
 import type { FastifyInstance } from "fastify";
 import { resolveActorUserId } from "./identity.js";
 import { loadAiCredentials } from "./admin-settings.js";
@@ -26,13 +32,18 @@ function buildSystemPrompt(evidence: string): string {
   ].join("\n");
 }
 
-async function callOpenAi(
+/**
+ * One call shape for OpenAI and for any OpenAI-compatible endpoint the user configures
+ * (OpenRouter, Groq, Together, a local Ollama/vLLM). Only the base URL changes.
+ */
+async function callOpenAiCompatible(
+  baseUrl: string,
   apiKey: string,
   model: string,
   system: string,
   messages: { role: "user" | "assistant"; content: string }[]
 ): Promise<string> {
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+  const response = await fetch(`${baseUrl}/chat/completions`, {
     method: "POST",
     headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
     body: JSON.stringify({
@@ -42,10 +53,13 @@ async function callOpenAi(
       messages: [{ role: "system", content: system }, ...messages]
     })
   });
-  if (!response.ok) throw new Error(`OpenAI trả về ${response.status}`);
+  if (!response.ok) {
+    const detail = (await response.text().catch(() => "")).slice(0, 200);
+    throw new Error(`Nhà cung cấp trả về ${response.status}${detail ? `: ${detail}` : ""}`);
+  }
   const body = (await response.json()) as { choices?: { message?: { content?: string } }[] };
   const text = body.choices?.[0]?.message?.content?.trim();
-  if (!text) throw new Error("OpenAI không trả về nội dung");
+  if (!text) throw new Error("Nhà cung cấp không trả về nội dung");
   return text;
 }
 
@@ -125,14 +139,34 @@ export function registerCoachChatRoutes(app: FastifyInstance, database: Database
       `- Giờ làm việc: ${parseWorkDays(preferences.workDays).length} ngày/tuần, mục tiêu focus ${preferences.focusMinutes} phút/phiên`
     ].join("\n");
 
-    const model = credentials.model ?? (credentials.provider === "openai" ? "gpt-4o-mini" : "claude-3-5-sonnet-latest");
+    const model = credentials.model ?? DEFAULT_AI_MODELS[credentials.provider];
+    if (!model) {
+      reply.code(409);
+      return {
+        error: "ai_not_configured",
+        message: "Provider tuỳ chỉnh cần tên model. Vào Admin → Cài đặt AI để điền model rồi thử lại."
+      };
+    }
+    if (credentials.provider === "custom" && !credentials.baseUrl) {
+      reply.code(409);
+      return {
+        error: "ai_not_configured",
+        message: "Provider tuỳ chỉnh cần Base URL. Vào Admin → Cài đặt AI để điền rồi thử lại."
+      };
+    }
     const system = buildSystemPrompt(evidence);
 
     try {
       const text =
-        credentials.provider === "openai"
-          ? await callOpenAi(credentials.apiKey, model, system, parsed.messages)
-          : await callAnthropic(credentials.apiKey, model, system, parsed.messages);
+        credentials.provider === "anthropic"
+          ? await callAnthropic(credentials.apiKey, model, system, parsed.messages)
+          : await callOpenAiCompatible(
+              credentials.provider === "custom" ? credentials.baseUrl! : "https://api.openai.com/v1",
+              credentials.apiKey,
+              model,
+              system,
+              parsed.messages
+            );
       return { reply: text, provider: credentials.provider, model };
     } catch (error) {
       request.log.error({ err: error }, "coach chat failed");

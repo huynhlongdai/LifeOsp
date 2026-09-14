@@ -55,14 +55,14 @@ export function decryptSecret(payload: string, key: Buffer): string | null {
 export async function loadAiCredentials(
   database: DatabaseClient,
   userId: string
-): Promise<{ provider: AiProvider; model: string | null; apiKey: string } | null> {
+): Promise<{ provider: AiProvider; model: string | null; baseUrl: string | null; apiKey: string } | null> {
   const key = secretKey();
   if (!key) return null;
   const row = await findOrCreateAppSettings(database, userId);
   if (!row.aiProvider || !row.aiKeyCiphertext) return null;
   const apiKey = decryptSecret(row.aiKeyCiphertext, key);
   if (!apiKey) return null;
-  return { provider: row.aiProvider as AiProvider, model: row.aiModel, apiKey };
+  return { provider: row.aiProvider as AiProvider, model: row.aiModel, baseUrl: row.aiBaseUrl, apiKey };
 }
 
 export function registerAdminSettingsRoutes(app: FastifyInstance, database: DatabaseClient | null) {
@@ -105,6 +105,7 @@ export function registerAdminSettingsRoutes(app: FastifyInstance, database: Data
     const update: Parameters<typeof updateAppSettings>[2] = {};
     if (parsed.aiProvider !== undefined) update.aiProvider = parsed.aiProvider;
     if (parsed.aiModel !== undefined) update.aiModel = parsed.aiModel;
+    if (parsed.aiBaseUrl !== undefined) update.aiBaseUrl = parsed.aiBaseUrl;
 
     if (parsed.aiApiKey !== undefined) {
       if (parsed.aiApiKey === null) {
@@ -134,6 +135,7 @@ function toView(row: AppSettingsRow, stats: AdminSettingsView["stats"]): AdminSe
   return {
     aiProvider: (row.aiProvider as AiProvider | null) ?? null,
     aiModel: row.aiModel,
+    aiBaseUrl: row.aiBaseUrl,
     aiKeySet: Boolean(row.aiKeyCiphertext),
     aiKeyHint: row.aiKeyHint,
     keyStorageReady: secretKey() !== null,

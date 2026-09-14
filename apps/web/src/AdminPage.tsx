@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { AdminSettingsView, AiProvider } from "@lifeos/domain";
-import { DEFAULT_AI_MODELS } from "@lifeos/domain";
+import { AI_PROVIDERS, DEFAULT_AI_MODELS, PROVIDER_LABELS } from "@lifeos/domain";
 import { ApiRequestError, createApiClient } from "./api";
 
 const CARD = { background: "var(--card)", border: "1px solid var(--border)", boxShadow: "var(--shadow-card)" } as const;
@@ -16,6 +16,7 @@ export function AdminPage({ apiUrl }: { apiUrl: string }) {
   >({ kind: "loading" });
   const [provider, setProvider] = useState<AiProvider>("openai");
   const [model, setModel] = useState("");
+  const [baseUrl, setBaseUrl] = useState("");
   const [apiKey, setApiKey] = useState("");
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
@@ -32,6 +33,7 @@ export function AdminPage({ apiUrl }: { apiUrl: string }) {
         setState({ kind: "ready", settings });
         if (settings.aiProvider) setProvider(settings.aiProvider);
         setModel(settings.aiModel ?? "");
+        setBaseUrl(settings.aiBaseUrl ?? "");
       })
       .catch((reason: unknown) => {
         if (reason instanceof DOMException && reason.name === "AbortError") return;
@@ -51,6 +53,7 @@ export function AdminPage({ apiUrl }: { apiUrl: string }) {
       const settings = await api.updateAdminSettings({
         aiProvider: provider,
         aiModel: model.trim() === "" ? null : model.trim(),
+        aiBaseUrl: provider === "custom" ? (baseUrl.trim() === "" ? null : baseUrl.trim()) : null,
         ...payload
       });
       setState({ kind: "ready", settings });
@@ -124,7 +127,7 @@ export function AdminPage({ apiUrl }: { apiUrl: string }) {
         <div className="rounded-2xl p-4 mb-5" style={CARD}>
           <label className="text-xs font-semibold block mb-1.5" style={{ color: "var(--text-2)" }}>Nhà cung cấp</label>
           <div className="flex gap-2 mb-4">
-            {(["openai", "anthropic"] as AiProvider[]).map((id) => (
+            {(AI_PROVIDERS as readonly AiProvider[]).map((id) => (
               <button
                 key={id}
                 type="button"
@@ -136,16 +139,36 @@ export function AdminPage({ apiUrl }: { apiUrl: string }) {
                   border: "1px solid var(--border)"
                 }}
               >
-                {id === "openai" ? "OpenAI" : "Anthropic"}
+                {PROVIDER_LABELS[id]}
               </button>
             ))}
           </div>
+
+          {provider === "custom" ? (
+            <>
+              <label className="text-xs font-semibold block mb-1.5" htmlFor="admin-base-url" style={{ color: "var(--text-2)" }}>
+                Base URL
+              </label>
+              <input
+                id="admin-base-url"
+                value={baseUrl}
+                placeholder="https://openrouter.ai/api/v1"
+                onChange={(event) => setBaseUrl(event.target.value)}
+                className="w-full text-sm px-3 py-2.5 rounded-xl"
+                style={{ background: "var(--bg-2)", border: "1px solid var(--border)", color: "var(--text)" }}
+              />
+              <p className="text-[11px] mt-2 mb-4" style={{ color: "var(--text-3)" }}>
+                Endpoint kiểu OpenAI: LifeOS sẽ gọi <code>{(baseUrl.trim() || "…").replace(/\/+$/, "")}/chat/completions</code>.
+                Dùng được với OpenRouter, Groq, Together, vLLM hay Ollama trong mạng nội bộ.
+              </p>
+            </>
+          ) : null}
 
           <label className="text-xs font-semibold block mb-1.5" htmlFor="admin-model" style={{ color: "var(--text-2)" }}>Model</label>
           <input
             id="admin-model"
             value={model}
-            placeholder={DEFAULT_AI_MODELS[provider]}
+            placeholder={DEFAULT_AI_MODELS[provider] || "tên model của nhà cung cấp"}
             onChange={(event) => setModel(event.target.value)}
             className="w-full text-sm px-3 py-2.5 rounded-xl mb-4"
             style={{ background: "var(--bg-2)", border: "1px solid var(--border)", color: "var(--text)" }}
