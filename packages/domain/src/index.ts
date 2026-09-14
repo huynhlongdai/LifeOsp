@@ -23,6 +23,7 @@ export * from "./execute-board.js";
 export * from "./execution-context.js";
 export * from "./focus.js";
 export * from "./interpretation.js";
+export * from "./me.js";
 export * from "./next-action.js";
 export * from "./now.js";
 export * from "./promotion.js";

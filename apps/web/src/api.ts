@@ -18,6 +18,7 @@ import {
   type DirectionView,
   type ExecuteBoardView,
   type HealthStatus,
+  type MeView,
   type IncubatorItemView,
   type SeasonView,
   type SessionView
@@ -91,6 +92,7 @@ export type ApiClient = {
   deferClarityPromotion(recommendationId: string, signal?: AbortSignal): Promise<PromotionResolutionView>;
   getCurrentDirection(signal?: AbortSignal): Promise<CurrentDirectionView | null>;
   getExecuteBoard(signal?: AbortSignal): Promise<ExecuteBoardView | null>;
+  getMe(signal?: AbortSignal): Promise<MeView | null>;
 };
 
 export function createApiClient(baseUrl = ""): ApiClient {
@@ -221,6 +223,17 @@ export function createApiClient(baseUrl = ""): ApiClient {
         return value;
       } catch (error) {
         if (error instanceof ApiRequestError && error.status === 404) return null;
+        throw error;
+      }
+    },
+
+    async getMe(signal) {
+      try {
+        const value = await request("/v1/me", signal ? { signal } : {});
+        if (!isMeView(value)) throw new Error("Profile response does not match the LifeOS contract");
+        return value;
+      } catch (error) {
+        if (error instanceof ApiRequestError && (error.status === 404 || error.status === 401)) return null;
         throw error;
       }
     },
@@ -449,4 +462,10 @@ function isExecuteBoardView(value: unknown): value is ExecuteBoardView {
     typeof candidate.seasonTitle === "string" &&
     Array.isArray(candidate.outcomes)
   );
+}
+
+function isMeView(value: unknown): value is MeView {
+  if (typeof value !== "object" || value === null) return false;
+  const candidate = value as Partial<MeView>;
+  return typeof candidate.memberSince === "string" && typeof candidate.stats === "object" && candidate.stats !== null;
 }

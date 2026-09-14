@@ -4,6 +4,7 @@ import { createApiClient } from "./api";
 import { AppShell } from "./AppShell";
 import { ClarityReset } from "./ClarityReset";
 import { ExecutePage } from "./ExecutePage";
+import { MePage } from "./MePage";
 import { DirectionPage } from "./DirectionPage";
 import { NowPage } from "./NowPage";
 import { ReflectPage } from "./ReflectPage";
@@ -61,28 +62,9 @@ function RouteContent({ route, apiUrl }: { route: AppRoute; apiUrl: string }) {
   if (route.key === "direction") return <DirectionPage apiUrl={apiUrl} />;
 
   if (route.key === "execute") return <ExecutePage apiUrl={apiUrl} />;
-  return <PlaceholderScreen title={route.label} icon="🙂" />;
+  return <MePage apiUrl={apiUrl} />;
 }
 
-/** Prototype PlaceholderScreen: routes that the current vertical slices do not own yet. */
-function PlaceholderScreen({ title, icon }: { title: string; icon: string }) {
-  return (
-    <div className="px-5 pt-8 pb-6 md:px-8">
-      <p className="text-[10px] font-bold tracking-widest mb-2" style={{ color: "var(--text-3)" }}>{title.toUpperCase()}</p>
-      <h1 className="text-3xl mb-1 font-display" style={{ color: "var(--text)" }}>{title}</h1>
-      <p className="text-sm mb-8" style={{ color: "var(--text-2)" }}>
-        Route đã có ownership trong app shell; feature và dữ liệu được thêm khi vertical slice tương ứng bắt đầu.
-      </p>
-      <div
-        className="rounded-2xl p-14 flex flex-col items-center justify-center gap-3"
-        style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "var(--shadow-card)" }}
-      >
-        <span className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl" style={{ background: "var(--bg-2)" }} aria-hidden="true">{icon}</span>
-        <p className="text-sm font-medium" style={{ color: "var(--text-3)" }}>Sắp ra mắt</p>
-      </div>
-    </div>
-  );
-}
 
 /** Slice A screens keep their current markup until their own design pass. */
 function LegacyPage({ children }: { children: ReactNode }) {
