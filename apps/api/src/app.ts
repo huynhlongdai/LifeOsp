@@ -15,6 +15,7 @@ import { registerNextActionRoutes } from "./next-action.js";
 import { registerNowRoutes } from "./now.js";
 import { registerPreferencesRoutes } from "./preferences.js";
 import { registerPromotionRoutes } from "./promotion.js";
+import { registerReflectWeekRoutes } from "./reflect-week.js";
 import { registerResultRoutes } from "./result.js";
 
 export type BuildAppOptions = {
@@ -65,6 +66,7 @@ export function buildApp(options: BuildAppOptions = {}) {
   registerInboxRoutes(app, database);
   registerPreferencesRoutes(app, database);
   registerCoachRoutes(app, database);
+  registerReflectWeekRoutes(app, database);
   registerNowRoutes(app, database);
   registerFocusRoutes(app, database);
   registerResultRoutes(app, database);

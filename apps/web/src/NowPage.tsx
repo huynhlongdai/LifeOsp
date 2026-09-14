@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { NowView, ResolveNowRecommendationInput } from "@lifeos/domain";
+import type { IncubatorItemView, NowView, ResolveNowRecommendationInput } from "@lifeos/domain";
 import { createApiClient } from "./api";
 import { createNowApiClient } from "./now-api";
 import { FocusPanel } from "./FocusPanel";
@@ -253,6 +253,8 @@ export function NowPage({ apiUrl }: { apiUrl: string }) {
           {...(activeFocusSessionId ? { focusSessionId: activeFocusSessionId } : {})}
           onRecorded={() => void refresh()}
         />
+
+        <ParkedIdeas apiUrl={apiUrl} />
 
         <p className="text-[11px] leading-relaxed mt-4" style={{ color: "var(--text-3)" }}>
           NOW chỉ yêu cầu một quyết định. Không có backlog phụ và không có client-side ranking.
@@ -546,4 +548,57 @@ function formatDateTime(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short" }).format(date);
+}
+
+/**
+ * "Đừng nghĩ bây giờ": the first few incubated items, so parked material is visible
+ * without competing with the one Action NOW is asking about. Read-only on purpose.
+ */
+function ParkedIdeas({ apiUrl }: { apiUrl: string }) {
+  const api = useMemo(() => createApiClient(apiUrl), [apiUrl]);
+  const [items, setItems] = useState<IncubatorItemView[] | null>(null);
+  const [total, setTotal] = useState(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    api
+      .getInbox(controller.signal)
+      .then((inbox) => {
+        if (!inbox) return;
+        setItems(inbox.incubated.slice(0, 3));
+        setTotal(inbox.counts.incubated);
+      })
+      .catch(() => setItems(null));
+    return () => controller.abort();
+  }, [api]);
+
+  if (!items || items.length === 0) return null;
+
+  return (
+    <section className="mt-5">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[10px] font-extrabold tracking-widest" style={{ color: "var(--text-3)", letterSpacing: "0.12em" }}>
+          ĐỪNG NGHĨ BÂY GIỜ · {total}
+        </span>
+        <a href="/incubator" className="text-xs font-bold" style={{ color: "var(--primary)", textDecoration: "none" }}>
+          Xem tất cả →
+        </a>
+      </div>
+      <div className="rounded-2xl overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "var(--shadow-card)" }}>
+        {items.map((item, index) => (
+          <div
+            key={item.id}
+            className="flex items-center gap-3.5 px-4 py-3.5"
+            style={{ borderBottom: index < items.length - 1 ? "1px solid var(--border)" : "none" }}
+          >
+            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "var(--primary)" }} aria-hidden="true" />
+            <span className="text-sm flex-1 font-medium truncate" style={{ color: "var(--text-2)" }}>{item.title}</span>
+            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full flex-shrink-0" style={{ background: "var(--bg-2)", color: "var(--text-3)" }}>
+              {item.kind}
+            </span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
 }

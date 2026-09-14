@@ -135,7 +135,13 @@ export function AppShell({ route, onNavigate, statusSlot, children }: AppShellPr
             <LogoMark size={32} />
             <span className="text-[16px] font-display" style={{ color: "var(--text)" }}>LifeOS</span>
           </a>
-          {statusSlot}
+          <div className="flex items-center gap-1.5">
+            <TopBarLink path="/inbox" routeKey="inbox" active={activeKey === "inbox"} onNavigate={onNavigate} />
+            <TopBarLink path="/incubator" routeKey="incubator" active={activeKey === "incubator"} onNavigate={onNavigate} />
+            <TopBarLink path="/coach" routeKey="coach" active={activeKey === "coach"} onNavigate={onNavigate} />
+            <TopBarLink path="/clarity" routeKey="clarity" active={activeKey === "clarity"} onNavigate={onNavigate} />
+            {statusSlot}
+          </div>
         </header>
 
         <main className="flex-1 overflow-y-auto pb-[72px] md:pb-0">
@@ -155,6 +161,32 @@ export function AppShell({ route, onNavigate, statusSlot, children }: AppShellPr
         </nav>
       </div>
     </div>
+  );
+}
+
+/** Tools are not in the mobile tab bar, so they live as icons in the mobile top bar. */
+function TopBarLink({
+  path,
+  routeKey,
+  active,
+  onNavigate
+}: {
+  path: string;
+  routeKey: AppRouteKey;
+  active: boolean;
+  onNavigate: AppShellProps["onNavigate"];
+}) {
+  return (
+    <a
+      href={path}
+      onClick={(event) => onNavigate(event, path)}
+      aria-label={NAV_LABELS[routeKey]}
+      aria-current={active ? "page" : undefined}
+      className="w-8 h-8 rounded-xl flex items-center justify-center"
+      style={{ background: active ? "var(--primary-bg)" : "transparent", textDecoration: "none" }}
+    >
+      {NAV_ICONS[routeKey](active)}
+    </a>
   );
 }
 

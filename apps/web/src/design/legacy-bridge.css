@@ -40,3 +40,19 @@ h1, h2, h3, strong { color: var(--text); }
 .flow-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .primary-button, .secondary-button { min-height: 48px; padding: 0 20px; font-weight: 700; }
 .interpretation-group, .interpretation-item { border-radius: 18px; }
+
+/* NOW fallback states still use the Slice A markup; map them onto the design tokens so
+   they do not render as dark cards inside the light prototype shell. */
+.now-season-strip,
+.now-empty-card,
+.now-blocked-card {
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+}
+.now-season-strip strong,
+.now-empty-card h2 { color: var(--text) !important; }
+.now-season-strip p, .now-empty-card p, .now-empty-card small { color: var(--text-2) !important; }
+.now-empty-card h2 { font-size: clamp(1.3rem, 4vw, 1.9rem); }
+.now-empty-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; align-items: center; }

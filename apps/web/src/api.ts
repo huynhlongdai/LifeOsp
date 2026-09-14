@@ -21,6 +21,7 @@ import {
   type HealthStatus,
   type InboxView,
   type MeView,
+  type ReflectWeekView,
   type UpdateUserPreferencesInput,
   type UserPreferencesView,
   type IncubatorItemView,
@@ -99,6 +100,7 @@ export type ApiClient = {
   getMe(signal?: AbortSignal): Promise<MeView | null>;
   getInbox(signal?: AbortSignal): Promise<InboxView | null>;
   getCoach(signal?: AbortSignal): Promise<CoachView | null>;
+  getReflectWeek(tzOffsetMinutes: number, signal?: AbortSignal): Promise<ReflectWeekView>;
   getPreferences(signal?: AbortSignal): Promise<UserPreferencesView>;
   updatePreferences(input: UpdateUserPreferencesInput, signal?: AbortSignal): Promise<UserPreferencesView>;
 };
@@ -233,6 +235,17 @@ export function createApiClient(baseUrl = ""): ApiClient {
         if (error instanceof ApiRequestError && error.status === 404) return null;
         throw error;
       }
+    },
+
+    async getReflectWeek(tzOffsetMinutes, signal) {
+      const value = await request(
+        `/v1/reflect/week?tzOffsetMinutes=${encodeURIComponent(String(tzOffsetMinutes))}`,
+        signal ? { signal } : {}
+      );
+      if (typeof value !== "object" || value === null || !Array.isArray((value as ReflectWeekView).days)) {
+        throw new Error("Reflect week response does not match the LifeOS contract");
+      }
+      return value as ReflectWeekView;
     },
 
     async getCoach(signal) {

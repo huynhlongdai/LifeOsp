@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { ActionResultOutcome, DailyCloseView } from "@lifeos/domain";
 import { createApiClient } from "./api";
 import { browserLocalDate, browserTzOffsetMinutes, createResultApiClient } from "./result-api";
+import { ReflectWeek } from "./ReflectWeek";
 import { resultErrorMessage } from "./ResultPanel";
 import type { AsyncState } from "./ui-states";
 
@@ -27,6 +28,7 @@ export function ReflectPage({ apiUrl }: { apiUrl: string }) {
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [mutationError, setMutationError] = useState<string | null>(null);
+  const [tab, setTab] = useState<"day" | "week">("day");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -112,6 +114,33 @@ export function ReflectPage({ apiUrl }: { apiUrl: string }) {
       </div>
 
       <div className="px-4 pt-4 md:px-8 space-y-3">
+        <div className="flex gap-1 p-1 rounded-xl" style={{ background: "var(--bg-2)", width: "fit-content" }} role="tablist" aria-label="Khu vực nhìn lại">
+          {([
+            { id: "day" as const, label: "Hôm nay" },
+            { id: "week" as const, label: "Tuần" }
+          ]).map(({ id, label }) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={tab === id}
+              onClick={() => setTab(id)}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold"
+              style={{
+                background: tab === id ? "var(--card)" : "transparent",
+                color: tab === id ? "var(--text)" : "var(--text-3)",
+                boxShadow: tab === id ? "var(--shadow-card)" : "none"
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {tab === "week" ? <ReflectWeek apiUrl={apiUrl} tzOffsetMinutes={tzOffsetMinutes} /> : null}
+
+        {tab === "day" ? (
+        <>
         <div className="rounded-2xl p-4" style={CARD_STYLE}>
           <p className="text-[10px] font-extrabold tracking-widest mb-3" style={{ color: "var(--text-3)" }}>SỰ THẬT ĐÃ GHI</p>
           <div className="grid grid-cols-3 gap-2">
@@ -187,6 +216,8 @@ export function ReflectPage({ apiUrl }: { apiUrl: string }) {
             </button>
           </div>
         )}
+        </>
+        ) : null}
       </div>
     </div>
   );

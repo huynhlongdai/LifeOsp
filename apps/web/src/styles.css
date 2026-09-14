@@ -16,7 +16,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .app-shell { min-height: 100vh; display: grid; grid-template-columns: 220px 1fr; }
 .sidebar { border-right: 1px solid #202941; padding: 28px 18px; display: flex; flex-direction: column; gap: 28px; background: rgba(8, 13, 24, 0.88); }
 .brand { color: #f7f8fc; text-decoration: none; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.04em; }
-nav { display: grid; gap: 6px; }
+/* Legacy Slice A nav styling. Scoped to .sidebar so it cannot override the app shell
+   navigation, which owns the mobile tab bar layout. */
+.sidebar nav { display: grid; gap: 6px; }
 .nav-item { color: #8f9ab5; text-decoration: none; background: transparent; border: 0; border-radius: 10px; padding: 10px 12px; text-align: left; font-size: .78rem; font-weight: 700; letter-spacing: .07em; cursor: pointer; }
 .nav-item:hover, .nav-item.active, .nav-item:focus-visible { color: #fff; background: #171d31; }
 .secondary-links { margin-top: auto; display: grid; gap: 10px; color: #68748f; font-size: .82rem; padding: 0 12px; }
