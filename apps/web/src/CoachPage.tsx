@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import type { CoachView } from "@lifeos/domain";
+import type { CoachView, LifeScoreView } from "@lifeos/domain";
 import { ApiRequestError, createApiClient } from "./api";
 
 const KIND_ICON: Record<string, string> = { focus: "🧠", result: "📝", closing: "🌙", capacity: "📅" };
@@ -110,6 +110,7 @@ export function CoachPage({ apiUrl }: { apiUrl: string }) {
 
         {tab === "insights" ? (
           <div className="space-y-3">
+            <LifeScoreCard lifeScore={coach.lifeScore} />
             {coach.insights.map((insight) => (
               <article key={insight.id} className="rounded-2xl p-4" style={CARD}>
                 <div className="flex items-start gap-3">
@@ -133,7 +134,7 @@ export function CoachPage({ apiUrl }: { apiUrl: string }) {
 
             <div className="rounded-2xl p-4" style={{ background: "var(--primary-bg)", border: "1px solid var(--primary-border)" }}>
               <p className="text-xs leading-relaxed" style={{ color: "var(--primary)" }}>
-                Mỗi nhận xét đều kèm con số nó dựa vào. LifeOS không chấm điểm bạn, không đoán mức độ tự tin và không tự đổi lịch.
+                Mỗi con số ở đây đều mở ra được thành dữ liệu bạn đã ghi. LifeOS không đoán phần còn thiếu và không tự đổi lịch của bạn.
               </p>
             </div>
           </div>
@@ -197,5 +198,63 @@ function Fact({ label, value }: { label: string; value: string }) {
       <span className="text-xs" style={{ color: "var(--text-2)" }}>{label}</span>
       <span className="text-xs font-bold" style={{ color: "var(--text)" }}>{value}</span>
     </li>
+  );
+}
+
+/**
+ * Điểm cuộc sống: one 0–100 number over the last 7 days, always openable into the
+ * parts it came from. Parts without data stay "—" instead of being invented.
+ */
+function LifeScoreCard({ lifeScore }: { lifeScore: LifeScoreView }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <section className="rounded-2xl p-4" style={CARD}>
+      <div className="flex items-center gap-4">
+        <div
+          className="flex flex-col items-center justify-center rounded-2xl flex-shrink-0"
+          style={{ width: 64, height: 64, background: lifeScore.score === null ? "var(--bg-2)" : "var(--primary-bg)" }}
+        >
+          <span className="text-2xl font-bold leading-none" style={{ color: lifeScore.score === null ? "var(--text-3)" : "var(--primary)" }}>
+            {lifeScore.score === null ? "—" : lifeScore.score}
+          </span>
+          <span className="text-[9px] font-bold mt-1" style={{ color: "var(--text-3)" }}>/100</span>
+        </div>
+        <div className="min-w-0">
+          <p className="text-[10px] font-extrabold tracking-widest mb-1" style={{ color: "var(--text-3)" }}>ĐIỂM CUỘC SỐNG · 7 NGÀY</p>
+          <p className="text-xs leading-relaxed" style={{ color: "var(--text-2)" }}>
+            {lifeScore.missingReason ?? "Tổng hợp từ thực thi, deep focus, tiến độ Outcome và việc chốt ngày."}
+          </p>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+        className="mt-3 text-xs font-semibold"
+        style={{ color: "var(--primary)" }}
+      >
+        {open ? "Ẩn cách tính ↑" : "Điểm này từ đâu? →"}
+      </button>
+
+      {open ? (
+        <ul className="mt-3 space-y-2">
+          {lifeScore.components.map((component) => (
+            <li key={component.id} className="rounded-xl p-3" style={{ background: "var(--bg-2)" }}>
+              <div className="flex items-baseline justify-between gap-3">
+                <p className="text-xs font-bold" style={{ color: "var(--text)" }}>
+                  {component.label} <span style={{ color: "var(--text-3)" }}>· {component.weightPercent}%</span>
+                </p>
+                <p className="text-sm font-bold" style={{ color: component.value === null ? "var(--text-3)" : "var(--text)" }}>
+                  {component.value === null ? "—" : component.value}
+                </p>
+              </div>
+              <p className="text-[11px] mt-1" style={{ color: "var(--text-2)" }}>{component.detail}</p>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </section>
   );
 }

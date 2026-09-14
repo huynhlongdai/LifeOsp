@@ -10,6 +10,8 @@ export type CoachFacts = {
   actionsPostponedLast7Days: number;
   dailyClosesLast7Days: number;
   scheduledMinutesNext7Days: number;
+  outcomeActionsTotal: number;
+  outcomeActionsCompleted: number;
   bestFocusHour: number | null;
 };
 
@@ -28,6 +30,8 @@ export async function findCoachFacts(database: DatabaseClient, userId: string): 
     postponed: string;
     closes: string;
     scheduled_minutes: string;
+    outcome_actions_total: string;
+    outcome_actions_completed: string;
   }>(
     `select
        (select count(*) from focus_sessions where user_id = $1 and started_at >= now() - interval '7 days') as focus_sessions,
@@ -46,7 +50,13 @@ export async function findCoachFacts(database: DatabaseClient, userId: string): 
        (select count(*) from daily_closes
          where user_id = $1 and closed_at >= now() - interval '7 days') as closes,
        (select coalesce(sum(estimated_minutes), 0)::bigint from actions
-         where user_id = $1 and scheduled_for between now() and now() + interval '7 days') as scheduled_minutes`,
+         where user_id = $1 and scheduled_for between now() and now() + interval '7 days') as scheduled_minutes,
+       (select count(*) from actions a
+          join outcomes o on o.id = a.outcome_id
+         where a.user_id = $1 and o.status = 'active') as outcome_actions_total,
+       (select count(*) from actions a
+          join outcomes o on o.id = a.outcome_id
+         where a.user_id = $1 and o.status = 'active' and a.status = 'completed') as outcome_actions_completed`,
     [userId]
   );
 
@@ -71,6 +81,8 @@ export async function findCoachFacts(database: DatabaseClient, userId: string): 
     actionsPostponedLast7Days: Number(row?.postponed ?? 0),
     dailyClosesLast7Days: Number(row?.closes ?? 0),
     scheduledMinutesNext7Days: Number(row?.scheduled_minutes ?? 0),
+    outcomeActionsTotal: Number(row?.outcome_actions_total ?? 0),
+    outcomeActionsCompleted: Number(row?.outcome_actions_completed ?? 0),
     bestFocusHour: bestHour.rows[0] ? Number(bestHour.rows[0].hour) : null
   };
 }

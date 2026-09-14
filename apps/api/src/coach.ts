@@ -1,5 +1,5 @@
 import { findCoachFacts, findOrCreatePreferences, parseWorkDays, type DatabaseClient } from "@lifeos/db";
-import type { CoachInsight, CoachView } from "@lifeos/domain";
+import { computeLifeScore, type CoachInsight, type CoachView } from "@lifeos/domain";
 import type { FastifyInstance } from "fastify";
 import { resolveActorUserId } from "./identity.js";
 
@@ -38,6 +38,16 @@ export function registerCoachRoutes(app: FastifyInstance, database: DatabaseClie
         interruptedSessionsLast7Days: facts.interruptedSessionsLast7Days,
         scheduledMinutesNext7Days: facts.scheduledMinutesNext7Days
       },
+      lifeScore: computeLifeScore({
+        actionsCompletedLast7Days: facts.actionsCompletedLast7Days,
+        actionsPartialLast7Days: facts.actionsPartialLast7Days,
+        actionsPostponedLast7Days: facts.actionsPostponedLast7Days,
+        focusMinutesLast7Days: facts.focusMinutesLast7Days,
+        focusMinutesGoalPerDay: preferences.focusMinutes * 3,
+        outcomeActionsTotal: facts.outcomeActionsTotal,
+        outcomeActionsCompleted: facts.outcomeActionsCompleted,
+        dailyClosesLast7Days: facts.dailyClosesLast7Days
+      }),
       insights: buildInsights(facts),
       facts: {
         actionsCompletedLast7Days: facts.actionsCompletedLast7Days,
