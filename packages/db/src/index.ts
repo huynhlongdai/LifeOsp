@@ -237,6 +237,7 @@ export * from "./me.js";
 export * from "./next-action.js";
 export * from "./now.js";
 export * from "./preferences.js";
+export * from "./app-settings.js";
 export * from "./promotion.js";
 export * from "./reflect-week.js";
 export * from "./reflect-analytics.js";

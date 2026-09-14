@@ -28,7 +28,9 @@ import {
   type UserPreferencesView,
   type IncubatorItemView,
   type SeasonView,
-  type SessionView
+  type SessionView,
+  type AdminSettingsView,
+  type AdminSettingsUpdateInput
 } from "@lifeos/domain";
 
 export type InterpretationFailure = {
@@ -107,6 +109,8 @@ export type ApiClient = {
   getDirectionOutlook(signal?: AbortSignal): Promise<DirectionOutlookView>;
   getPreferences(signal?: AbortSignal): Promise<UserPreferencesView>;
   updatePreferences(input: UpdateUserPreferencesInput, signal?: AbortSignal): Promise<UserPreferencesView>;
+  getAdminSettings(signal?: AbortSignal): Promise<AdminSettingsView | null>;
+  updateAdminSettings(input: AdminSettingsUpdateInput, signal?: AbortSignal): Promise<AdminSettingsView>;
 };
 
 export function createApiClient(baseUrl = ""): ApiClient {
@@ -296,6 +300,23 @@ export function createApiClient(baseUrl = ""): ApiClient {
       });
       if (!isPreferencesView(value)) throw new Error("Preferences response does not match the LifeOS contract");
       return value;
+    },
+
+    async getAdminSettings(signal) {
+      try {
+        return (await request("/v1/admin/settings", signal ? { signal } : {})) as AdminSettingsView;
+      } catch (error) {
+        if (error instanceof ApiRequestError && error.status === 401) return null;
+        throw error;
+      }
+    },
+
+    async updateAdminSettings(input, signal) {
+      return (await request("/v1/admin/settings", {
+        method: "PUT",
+        body: JSON.stringify(input),
+        ...(signal ? { signal } : {})
+      })) as AdminSettingsView;
     },
 
     async getInbox(signal) {

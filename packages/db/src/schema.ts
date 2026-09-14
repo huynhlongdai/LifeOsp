@@ -453,6 +453,27 @@ export const userPreferences = pgTable(
   ]
 );
 
+export const appSettings = pgTable(
+  "app_settings",
+  {
+    userId: uuid("user_id")
+      .primaryKey()
+      .references(() => users.id, { onDelete: "cascade" }),
+    aiProvider: text("ai_provider"),
+    aiModel: text("ai_model"),
+    /** AES-256-GCM ciphertext. The plaintext key never leaves the server. */
+    aiKeyCiphertext: text("ai_key_ciphertext"),
+    /** Last 4 characters, the only part ever shown back in the admin panel. */
+    aiKeyHint: text("ai_key_hint"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    check("app_settings_provider_check", sql`${table.aiProvider} is null or ${table.aiProvider} in ('openai','anthropic')`)
+  ]
+);
+
+export type AppSettingsRow = typeof appSettings.$inferSelect;
+
 export type UserPreferencesRow = typeof userPreferences.$inferSelect;
 export type NewUserPreferencesRow = typeof userPreferences.$inferInsert;
 

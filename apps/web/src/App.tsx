@@ -9,6 +9,7 @@ import { CoachPage } from "./CoachPage";
 import { InboxPage } from "./InboxPage";
 import { IncubatorPage } from "./IncubatorPage";
 import { MePage } from "./MePage";
+import { AdminPage } from "./AdminPage";
 import { DirectionPage } from "./DirectionPage";
 import { NowPage } from "./NowPage";
 import { ReflectPage } from "./ReflectPage";
@@ -92,6 +93,7 @@ function RouteContent({ route, apiUrl }: { route: AppRoute; apiUrl: string }) {
   if (route.key === "inbox") return <InboxPage apiUrl={apiUrl} />;
   if (route.key === "incubator") return <IncubatorPage apiUrl={apiUrl} />;
   if (route.key === "coach") return <CoachPage apiUrl={apiUrl} />;
+  if (route.key === "admin") return <AdminPage apiUrl={apiUrl} />;
   return <MePage apiUrl={apiUrl} />;
 }
 
