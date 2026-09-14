@@ -56,3 +56,17 @@ h1, h2, h3, strong { color: var(--text); }
 .now-season-strip p, .now-empty-card p, .now-empty-card small { color: var(--text-2) !important; }
 .now-empty-card h2 { font-size: clamp(1.3rem, 4vw, 1.9rem); }
 .now-empty-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; align-items: center; }
+
+/* First-run onboarding on NOW: three steps plus the labelled demo dataset offer. */
+.now-onboarding-steps { list-style: none; margin: 18px 0 4px; padding: 0; display: grid; gap: 10px; }
+.now-onboarding-steps li {
+  display: grid; gap: 3px; padding: 12px 14px; border-radius: 16px;
+  background: var(--bg-2) !important; border: 1px solid var(--border) !important;
+}
+.now-onboarding-steps strong { color: var(--text) !important; font-size: .92rem; }
+.now-onboarding-steps span { color: var(--text-2) !important; font-size: .82rem; line-height: 1.5; }
+.now-onboarding-demo {
+  margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border);
+  display: grid; gap: 10px; justify-items: start;
+}
+.now-onboarding-demo p { color: var(--text-3) !important; font-size: .8rem; margin: 0; }

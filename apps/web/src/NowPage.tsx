@@ -80,7 +80,7 @@ export function NowPage({ apiUrl }: { apiUrl: string }) {
   }
 
   const view = state.data;
-  if (view.state === "no_direction") return <NoDirection view={view} />;
+  if (view.state === "no_direction") return <NoDirection view={view} apiUrl={apiUrl} />;
   if (view.state === "blocked") return <BlockedState view={view} />;
   if (view.state === "no_ready_action") {
     return (
@@ -450,15 +450,55 @@ function EditActionForm({
   );
 }
 
-function NoDirection({ view }: { view: Extract<NowView, { state: "no_direction" }> }) {
+function NoDirection({ view, apiUrl }: { view: Extract<NowView, { state: "no_direction" }>; apiUrl: string }) {
+  const api = useMemo(() => createApiClient(apiUrl), [apiUrl]);
+  const [busy, setBusy] = useState(false);
+  const [seedError, setSeedError] = useState<string | null>(null);
+
+  const fillDemo = async () => {
+    setBusy(true);
+    setSeedError(null);
+    try {
+      await api.seedDemoData();
+      window.location.reload();
+    } catch (reason) {
+      setSeedError(reason instanceof Error ? reason.message : "Không tạo được dữ liệu mẫu.");
+      setBusy(false);
+    }
+  };
+
   return (
     <section className="now-empty-card">
-      <p className="eyebrow">NO DIRECTION</p>
-      <h2>Chưa cần ép mình chọn một task.</h2>
+      <p className="eyebrow">BẮT ĐẦU TỪ ĐÂY</p>
+      <h2>Chào mừng tới LifeOS.</h2>
       <p>{view.message}</p>
+
+      <ol className="now-onboarding-steps">
+        <li>
+          <strong>1. Xác định hướng hiện tại</strong>
+          <span>Một câu bạn muốn cuộc sống 90 ngày tới đi về đâu. LifeOS chỉ đề xuất việc khi đã có hướng.</span>
+        </li>
+        <li>
+          <strong>2. Brain Dump mọi thứ trong đầu</strong>
+          <span>Viết, nói hoặc gửi tệp. Mọi thứ vào Inbox rồi mới quyết định giữ hay để trong Incubator.</span>
+        </li>
+        <li>
+          <strong>3. Vào Focus với một việc duy nhất</strong>
+          <span>NOW luôn chỉ đưa một việc, kết thúc phiên bạn ghi lại kết quả — đó là dữ liệu cho REFLECT và AI Coach.</span>
+        </li>
+      </ol>
+
       <div className="now-empty-actions">
         <a className="primary-button link-button" href="/direction">Xác định hướng hiện tại</a>
         <a className="text-button link-button" href="/clarity">Brain Dump trước</a>
+      </div>
+
+      <div className="now-onboarding-demo">
+        <p>Muốn xem trước khi nhập gì? Tạo một tuần dữ liệu mẫu (có nhãn demo) để thử mọi màn hình.</p>
+        <button className="secondary-button" type="button" onClick={() => void fillDemo()} disabled={busy}>
+          {busy ? "Đang tạo dữ liệu mẫu..." : "Dùng dữ liệu mẫu"}
+        </button>
+        {seedError ? <p className="now-error" role="alert">{seedError}</p> : null}
       </div>
     </section>
   );

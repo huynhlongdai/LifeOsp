@@ -228,6 +228,7 @@ export async function findLatestCaptureInterpretation(
 }
 
 export * from "./action.js";
+export * from "./demo-seed.js";
 export * from "./coach.js";
 export * from "./execute-board.js";
 export * from "./execution-context.js";

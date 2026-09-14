@@ -3,6 +3,7 @@ import { checkDatabase, createDatabaseClient } from "@lifeos/db";
 import type { HealthStatus, ReadinessStatus } from "@lifeos/domain";
 import { registerAdminSettingsRoutes } from "./admin-settings.js";
 import { registerCoachChatRoutes } from "./coach-chat.js";
+import { registerDemoSeedRoutes } from "./demo-seed.js";
 import { registerActionRoutes, type ActionOptions } from "./action.js";
 import { registerCaptureRoutes } from "./capture.js";
 import { registerCoachRoutes } from "./coach.js";
@@ -72,6 +73,7 @@ export function buildApp(options: BuildAppOptions = {}) {
   registerPreferencesRoutes(app, database);
   registerAdminSettingsRoutes(app, database);
   registerCoachChatRoutes(app, database);
+  registerDemoSeedRoutes(app, database);
   registerCoachRoutes(app, database);
   registerReflectWeekRoutes(app, database);
   registerReflectAnalyticsRoutes(app, database);

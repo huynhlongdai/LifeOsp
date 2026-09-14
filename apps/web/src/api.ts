@@ -111,6 +111,7 @@ export type ApiClient = {
   getDirectionOutlook(signal?: AbortSignal): Promise<DirectionOutlookView>;
   getPreferences(signal?: AbortSignal): Promise<UserPreferencesView>;
   updatePreferences(input: UpdateUserPreferencesInput, signal?: AbortSignal): Promise<UserPreferencesView>;
+  seedDemoData(): Promise<{ seeded: boolean }>;
   sendCoachMessage(messages: CoachChatMessage[], signal?: AbortSignal): Promise<CoachChatReply>;
   getAdminSettings(signal?: AbortSignal): Promise<AdminSettingsView | null>;
   updateAdminSettings(input: AdminSettingsUpdateInput, signal?: AbortSignal): Promise<AdminSettingsView>;
@@ -303,6 +304,10 @@ export function createApiClient(baseUrl = ""): ApiClient {
       });
       if (!isPreferencesView(value)) throw new Error("Preferences response does not match the LifeOS contract");
       return value;
+    },
+
+    async seedDemoData() {
+      return (await request("/v1/demo/seed", { method: "POST" })) as { seeded: boolean };
     },
 
     async sendCoachMessage(messages, signal) {
