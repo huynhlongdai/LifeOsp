@@ -1,5 +1,5 @@
 import { createTextCapture, findCaptureById, type CaptureRow, type DatabaseClient } from "@lifeos/db";
-import type { CaptureId, CaptureKind, CaptureProcessingStatus, CaptureView } from "@lifeos/domain";
+import { CAPTURE_INPUT_KINDS, type CaptureId, type CaptureInputKind, type CaptureKind, type CaptureProcessingStatus, type CaptureView } from "@lifeos/domain";
 import type { FastifyInstance } from "fastify";
 import { resolveActorUserId } from "./identity.js";
 
@@ -10,15 +10,21 @@ type CaptureErrorView = {
   message: string;
 };
 
-function parseRawText(body: unknown): string | null {
+function parseCaptureInput(body: unknown): { rawText: string; kind: CaptureInputKind } | null {
   if (!body || typeof body !== "object" || Array.isArray(body)) return null;
 
   const record = body as Record<string, unknown>;
-  if (Object.keys(record).some((key) => key !== "rawText")) return null;
+  if (Object.keys(record).some((key) => key !== "rawText" && key !== "kind")) return null;
   if (typeof record.rawText !== "string") return null;
   if (record.rawText.trim().length === 0) return null;
 
-  return record.rawText;
+  let kind: CaptureInputKind = "text";
+  if (record.kind !== undefined) {
+    if (typeof record.kind !== "string" || !(CAPTURE_INPUT_KINDS as readonly string[]).includes(record.kind)) return null;
+    kind = record.kind as CaptureInputKind;
+  }
+
+  return { rawText: record.rawText, kind };
 }
 
 function toCaptureView(capture: CaptureRow): CaptureView {
@@ -46,16 +52,16 @@ export function registerCaptureRoutes(app: FastifyInstance, database: DatabaseCl
       return { error: "unauthenticated", message: "An active LifeOS session is required" };
     }
 
-    const rawText = parseRawText(request.body);
-    if (rawText === null) {
+    const input = parseCaptureInput(request.body);
+    if (input === null) {
       reply.code(400);
       return {
         error: "invalid_capture",
-        message: "Body must contain only a non-blank rawText string"
+        message: "Body must contain a non-blank rawText string and optionally kind = text | quick_note | voice_transcript"
       };
     }
 
-    const capture = await createTextCapture(database, userId, rawText);
+    const capture = await createTextCapture(database, userId, input.rawText, input.kind);
     reply.code(201);
     return toCaptureView(capture);
   });

@@ -19,7 +19,8 @@ import {
   type HealthStatus,
   type IncubatorItemView,
   type SeasonView,
-  type SessionView
+  type SessionView,
+  type CaptureInputKind
 } from "@lifeos/domain";
 
 export type InterpretationFailure = {
@@ -60,7 +61,7 @@ export class ApiRequestError extends Error {
 export type ApiClient = {
   getHealth(signal?: AbortSignal): Promise<HealthStatus>;
   bootstrapSession(signal?: AbortSignal): Promise<SessionView>;
-  createCapture(rawText: string, signal?: AbortSignal): Promise<CaptureView>;
+  createCapture(rawText: string, kind?: CaptureInputKind, signal?: AbortSignal): Promise<CaptureView>;
   getCapture(captureId: string, signal?: AbortSignal): Promise<CaptureView>;
   generateInterpretation(captureId: string, signal?: AbortSignal): Promise<CaptureInterpretationView>;
   getLatestInterpretation(captureId: string, signal?: AbortSignal): Promise<CaptureInterpretationView | null>;
@@ -124,10 +125,10 @@ export function createApiClient(baseUrl = ""): ApiClient {
       return value;
     },
 
-    async createCapture(rawText: string, signal?: AbortSignal): Promise<CaptureView> {
+    async createCapture(rawText: string, kind?: CaptureInputKind, signal?: AbortSignal): Promise<CaptureView> {
       const value = await request("/v1/captures", {
         method: "POST",
-        body: JSON.stringify({ rawText }),
+        body: JSON.stringify(kind && kind !== "text" ? { rawText, kind } : { rawText }),
         ...(signal ? { signal } : {})
       });
       if (!isCaptureView(value)) throw new Error("Capture response does not match the LifeOS contract");
