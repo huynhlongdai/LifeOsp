@@ -4,6 +4,7 @@ import { createApiClient } from "./api";
 import { ClarityReset } from "./ClarityReset";
 import { DailyClosePage } from "./DailyClosePage";
 import { DirectionPage } from "./DirectionPage";
+import { GetUnstuckPage } from "./GetUnstuckPage";
 import { ClarityIcon, RouteIcon, ShieldIcon } from "./icons";
 import { InboxPage } from "./InboxPage";
 import { IncubatorPage } from "./IncubatorPage";
@@ -21,7 +22,8 @@ const NAV_LABEL: Record<AppRouteKey, string> = {
   me: "Me",
   clarity: "Làm rõ",
   inbox: "Inbox",
-  incubator: "Được giữ lại"
+  incubator: "Được giữ lại",
+  "get-unstuck": "Gỡ vướng"
 };
 
 const PAGE_HEADING: Record<Exclude<AppRouteKey, "now">, { kicker: string; title: string }> = {
@@ -31,7 +33,8 @@ const PAGE_HEADING: Record<Exclude<AppRouteKey, "now">, { kicker: string; title:
   me: { kicker: "Me", title: "Bạn" },
   clarity: { kicker: "Clarity Reset", title: "Làm rõ điều đang quan trọng" },
   inbox: { kicker: "Inbox", title: "Những gì bạn đã ghi lại" },
-  incubator: { kicker: "Không phải bây giờ", title: "Được giữ lại" }
+  incubator: { kicker: "Không phải bây giờ", title: "Được giữ lại" },
+  "get-unstuck": { kicker: "Gỡ vướng", title: "Việc gì đang kẹt?" }
 };
 
 export function App() {
@@ -105,6 +108,13 @@ export function App() {
             <ShieldIcon />
             Được giữ lại
           </a>
+          <a href="/get-unstuck" aria-current={route?.key === "get-unstuck" ? "page" : undefined} onClick={(event) => navigate(event, "/get-unstuck")}>
+            <svg className="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M12 3 4 6v6c0 4.5 3.5 8 8 9 4.5-1 8-4.5 8-9V6z" />
+              <path d="M12 9v3M12 15v.5" />
+            </svg>
+            Gỡ vướng
+          </a>
           <a href="/clarity" aria-current={route?.key === "clarity" ? "page" : undefined} onClick={(event) => navigate(event, "/clarity")}>
             <ClarityIcon />
             Làm rõ lại (Clarity Reset)
@@ -164,6 +174,7 @@ function RouteContent({ route, apiUrl }: { route: AppRoute; apiUrl: string }) {
   if (route.key === "reflect") return <DailyClosePage apiUrl={apiUrl} />;
   if (route.key === "inbox") return <InboxPage apiUrl={apiUrl} />;
   if (route.key === "incubator") return <IncubatorPage apiUrl={apiUrl} />;
+  if (route.key === "get-unstuck") return <GetUnstuckPage apiUrl={apiUrl} />;
 
   return (
     <EmptyState
