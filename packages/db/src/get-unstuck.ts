@@ -106,7 +106,7 @@ async function computeStuckEvidence(database: DatabaseClient, userId: string, ac
     postponedCount: resultCounts?.postponed ?? 0,
     blockedResultCount: resultCounts?.blocked ?? 0,
     wrongAssumptionCount: correctionCount?.count ?? 0,
-    ...(resultCounts?.lastMovedAt ? { lastMovedAt: resultCounts.lastMovedAt.toISOString() } : {})
+    ...(resultCounts?.lastMovedAt ? { lastMovedAt: new Date(resultCounts.lastMovedAt).toISOString() } : {})
   };
   evidence.reasons = stuckEvidenceReasons(evidence);
   return evidence;
