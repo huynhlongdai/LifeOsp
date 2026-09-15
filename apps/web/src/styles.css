@@ -336,3 +336,27 @@ h1 em, h2 em, .display em { font-style: italic; font-variation-settings: "SOFT" 
 .now-stack { display: grid; gap: 16px; }
 .secondary-links a[aria-current="page"] { background: var(--los-sheet); color: var(--los-accent-ink); box-shadow: var(--los-shadow-sheet); font-weight: 600; }
 .now-protect a { color: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+
+/* Quick capture — three ways in (write / speak / file) */
+.quick-capture-modes { display: flex; gap: 4px; padding: 4px; border-radius: 14px; background: var(--los-sheet-tint); border: 1px solid var(--los-line-soft); width: fit-content; }
+.quick-capture-mode { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border: 0; border-radius: 10px; background: transparent; color: var(--los-ink-3); font: inherit; font-size: .88rem; font-weight: 600; cursor: pointer; transition: background var(--los-d-fast) var(--los-ease-out), color var(--los-d-fast) var(--los-ease-out); }
+.quick-capture-mode:hover:not(:disabled) { color: var(--los-ink); }
+.quick-capture-mode.selected { background: var(--los-sheet); color: var(--los-accent-ink); box-shadow: var(--los-shadow-sheet); }
+.quick-capture-mode .nav-icon { width: 18px; height: 18px; }
+.quick-capture-speak, .quick-capture-drop { display: grid; justify-items: center; align-content: center; gap: 10px; min-height: 200px; padding: 22px; border-radius: var(--los-r-card); background: var(--los-sheet-tint); border: 1px solid var(--los-line-soft); text-align: center; }
+.quick-capture-speak strong, .quick-capture-drop strong { font-weight: 600; color: var(--los-ink); }
+.quick-capture-speak small, .quick-capture-drop small { max-width: 420px; font-size: .84rem; line-height: 1.45; }
+.quick-capture-speak.listening { background: var(--los-accent-soft); border-color: transparent; }
+.quick-capture-mic { width: 76px; height: 76px; border-radius: 50%; border: 0; background: var(--los-accent); color: #fff; cursor: pointer; display: grid; place-items: center; box-shadow: var(--los-shadow-lifted); transition: transform var(--los-d-fast) var(--los-ease-out), box-shadow var(--los-d-base) var(--los-ease-out); }
+.quick-capture-mic svg { width: 30px; height: 30px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.quick-capture-mic:hover:not(:disabled) { transform: translateY(-1px); }
+.quick-capture-mic[aria-pressed="true"] { background: var(--los-accent-ink); animation: quick-capture-pulse 1.6s var(--los-ease-out) infinite; }
+@keyframes quick-capture-pulse { 0%, 100% { box-shadow: var(--los-shadow-lifted), 0 0 0 0 var(--los-accent-glow); } 50% { box-shadow: var(--los-shadow-lifted), 0 0 0 16px rgba(15, 110, 106, 0); } }
+.quick-capture-interim { width: 100%; color: var(--los-ink-3); font-style: italic; }
+.quick-capture-speak .quick-capture-echo, .quick-capture-drop .quick-capture-echo { width: 100%; text-align: left; max-height: 140px; }
+.quick-capture-drop { border: 2px dashed var(--los-line); }
+.quick-capture-drop.dragging { border-color: var(--los-accent); background: var(--los-accent-soft); }
+.quick-capture-filename { font-size: .84rem; color: var(--los-accent-ink); font-weight: 600; }
+.quick-capture-notice { padding: 12px 14px; border-radius: var(--los-r-control); background: var(--los-caution-tint); color: var(--los-caution); font-size: .88rem; line-height: 1.45; }
+@media (prefers-reduced-motion: reduce) { .quick-capture-mic[aria-pressed="true"] { animation: none; } }
+@media (max-width: 760px) { .quick-capture-modes { width: 100%; } .quick-capture-mode { flex: 1; justify-content: center; } }

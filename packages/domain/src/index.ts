@@ -44,6 +44,10 @@ export type NeedState = (typeof NEED_STATES)[number];
 export const CAPTURE_KINDS = ["text", "voice_transcript", "quick_note", "distraction"] as const;
 export type CaptureKind = (typeof CAPTURE_KINDS)[number];
 
+/** Kinds a client may choose when creating a Capture directly. `distraction` only comes from Focus. */
+export const CAPTURE_INPUT_KINDS = ["text", "quick_note", "voice_transcript"] as const;
+export type CaptureInputKind = (typeof CAPTURE_INPUT_KINDS)[number];
+
 export const CAPTURE_PROCESSING_STATUSES = ["unprocessed", "interpreted", "corrected", "promoted", "archived"] as const;
 export type CaptureProcessingStatus = (typeof CAPTURE_PROCESSING_STATUSES)[number];
 
