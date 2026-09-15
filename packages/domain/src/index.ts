@@ -25,6 +25,7 @@ export * from "./focus.js";
 export * from "./get-unstuck.js";
 export * from "./inbox.js";
 export * from "./interpretation.js";
+export * from "./me.js";
 export * from "./next-action.js";
 export * from "./now.js";
 export * from "./promotion.js";
