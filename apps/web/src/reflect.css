@@ -195,6 +195,22 @@
 .direction-header-edit textarea { resize: vertical; }
 .direction-header-edit-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
 
+/* ---- Weekly Reset (spec §13) ---- */
+.weekly-reset-page { display: grid; gap: 22px; max-width: 720px; }
+.weekly-reset-start { padding: 22px 24px; display: grid; gap: 4px; }
+.weekly-reset-chapter { display: grid; gap: 10px; }
+.weekly-reset-chapter h3 { font-size: 1.02rem; font-weight: 600; color: var(--los-ink); }
+.weekly-reset-stats { display: flex; flex-wrap: wrap; gap: 20px; }
+.weekly-reset-stat { display: grid; gap: 2px; }
+.weekly-reset-stat b { font-size: 1.5rem; font-weight: 600; letter-spacing: -.02em; color: var(--los-ink); }
+.weekly-reset-stat span { font-size: .82rem; color: var(--los-ink-2); }
+.weekly-reset-result-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.weekly-reset-result-list li { font-size: .9rem; color: var(--los-ink-2); }
+.weekly-reset-movement-group { display: grid; gap: 6px; margin-bottom: 4px; }
+.weekly-reset-movement-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: .92rem; color: var(--los-ink); }
+.weekly-reset-complete { display: grid; gap: 8px; justify-items: start; }
+.close-weekly-reset-link { font-size: .86rem; }
+
 /* ---- ME overview (spec §14.1) ---- */
 .me-page { display: grid; gap: 20px; max-width: 720px; }
 .me-context-card { display: grid; gap: 8px; padding: 20px 22px; }

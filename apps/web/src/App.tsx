@@ -12,6 +12,7 @@ import { IncubatorPage } from "./IncubatorPage";
 import { MePage } from "./MePage";
 import { NowPage } from "./NowPage";
 import { QuickCapture } from "./QuickCapture";
+import { WeeklyResetPage } from "./WeeklyResetPage";
 import { APP_ROUTES, resolveRoute, type AppRoute, type AppRouteKey } from "./routes";
 import { EmptyState, ErrorState, LoadingState, type AsyncState } from "./ui-states";
 
@@ -25,7 +26,8 @@ const NAV_LABEL: Record<AppRouteKey, string> = {
   clarity: "Làm rõ",
   inbox: "Inbox",
   incubator: "Được giữ lại",
-  "get-unstuck": "Gỡ vướng"
+  "get-unstuck": "Gỡ vướng",
+  "weekly-reset": "Weekly Reset"
 };
 
 const PAGE_HEADING: Record<Exclude<AppRouteKey, "now">, { kicker: string; title: string }> = {
@@ -36,7 +38,8 @@ const PAGE_HEADING: Record<Exclude<AppRouteKey, "now">, { kicker: string; title:
   clarity: { kicker: "Clarity Reset", title: "Làm rõ điều đang quan trọng" },
   inbox: { kicker: "Inbox", title: "Những gì bạn đã ghi lại" },
   incubator: { kicker: "Không phải bây giờ", title: "Được giữ lại" },
-  "get-unstuck": { kicker: "Gỡ vướng", title: "Việc gì đang kẹt?" }
+  "get-unstuck": { kicker: "Gỡ vướng", title: "Việc gì đang kẹt?" },
+  "weekly-reset": { kicker: "Weekly Reset", title: "Nhìn lại tuần này" }
 };
 
 export function App() {
@@ -117,6 +120,14 @@ export function App() {
             </svg>
             Gỡ vướng
           </a>
+          <a href="/weekly-reset" aria-current={route?.key === "weekly-reset" ? "page" : undefined} onClick={(event) => navigate(event, "/weekly-reset")}>
+            <svg className="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M12 3v9l6 3" />
+              <path d="M21 12a9 9 0 1 1-3-6.7" />
+              <path d="M21 3v5h-5" />
+            </svg>
+            Weekly Reset
+          </a>
           <a href="/clarity" aria-current={route?.key === "clarity" ? "page" : undefined} onClick={(event) => navigate(event, "/clarity")}>
             <ClarityIcon />
             Làm rõ lại (Clarity Reset)
@@ -179,6 +190,7 @@ function RouteContent({ route, apiUrl }: { route: AppRoute; apiUrl: string }) {
   if (route.key === "inbox") return <InboxPage apiUrl={apiUrl} />;
   if (route.key === "incubator") return <IncubatorPage apiUrl={apiUrl} />;
   if (route.key === "get-unstuck") return <GetUnstuckPage apiUrl={apiUrl} />;
+  if (route.key === "weekly-reset") return <WeeklyResetPage apiUrl={apiUrl} />;
 
   const unhandledRoute = route as AppRoute;
   return (

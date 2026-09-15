@@ -15,6 +15,7 @@ import { registerNextActionRoutes } from "./next-action.js";
 import { registerNowRoutes } from "./now.js";
 import { registerPromotionRoutes } from "./promotion.js";
 import { registerResultRoutes } from "./result.js";
+import { registerWeeklyResetRoutes } from "./weekly-reset.js";
 
 export type BuildAppOptions = {
   databaseUrl?: string;
@@ -66,6 +67,7 @@ export function buildApp(options: BuildAppOptions = {}) {
   registerGetUnstuckRoutes(app, database);
   registerExecuteBoardRoutes(app, database);
   registerMeRoutes(app, database);
+  registerWeeklyResetRoutes(app, database);
 
   app.addHook("onClose", async () => {
     if (database) {
