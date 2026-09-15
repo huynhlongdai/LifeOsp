@@ -3,7 +3,11 @@
 Updated: 2026-09-15 (status addendum; B4 sections below are historical)
 Repository: `huynhlongdai/LifeOsp`
 
-> **Status addendum 2026-09-15.** B4 Focus V0 has merged into `main` (#48). Sections 4, 7–8 and 10 describe the B4 work as it stood on 2026-08-26 and are kept for history; the next execution increment is B5 (#41). Epic #8 (UX shell & design system) is in flight on branch `feat/ux-shell-design-system-v1`: it replaces the web presentation layer only (`apps/web/src/**`, `index.html`, manifest) following `docs/design/UI_SHELL_DESIGN_SYSTEM_V1.md`, and does not touch domain, db, api, routes, or any Focus/NOW semantics.
+> **Status addendum 2026-09-15.** B4 Focus V0 has merged into `main` (#48). Sections 4, 7–8 and 10 describe the B4 work as it stood on 2026-08-26 and are kept for history.
+>
+> Two branches are in flight, stacked:
+> 1. `feat/ux-shell-design-system-v1` — Epic #8, web presentation layer only (`apps/web/src/**`, `index.html`, manifest) per `docs/design/UI_SHELL_DESIGN_SYSTEM_V1.md`; no domain/db/api/routes changes. Includes `meetings/020-retention-warmth-and-feature-gap.md` (decided: W1–W6 approved).
+> 2. `feat/b5-result-daily-close` (on top of 1) — **B5 #41 Result + Daily Close V0**: domain `result.ts`; db tables `action_results`, `daily_closes` + migration `0009_b5_result_daily_close`; api `POST /v1/actions/:actionId/result`, `GET/POST /v1/daily-close`; web `ResultPanel` in NOW, `DailyClosePage` on `/reflect`, `docs/design/COPY_VOICE_V1.md`. Contract: an Action leaves `ready`/`active` only through a recorded result; an active FocusSession on that Action is ended in the same commit **only** when the client passes `focusOutcome` (otherwise 409 `active_focus_exists`); Daily Close is keyed by client-supplied local `date` + `offsetMinutes` (getTimezoneOffset semantics), summarizes recorded facts only, upserts once per user per date. `apps/api/src/result.integration.ts` is written but **has not been executed** (no Postgres in the authoring sandbox) — run `pnpm --filter @lifeos/api test:integration` with `DATABASE_URL` before merging. Next: B6 #42 E2E, then W5 welcome-back state in NOW, Get Unstuck, Weekly Reset (see meeting #020 §6).
 
 ## 1. Purpose
 
