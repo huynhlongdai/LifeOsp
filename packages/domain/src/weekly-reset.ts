@@ -5,15 +5,16 @@ import type { ActionId, OutcomeId } from "./ids.js";
 // Weekly Reset (spec §13, Reflect/Weekly Reset). Figma reconciliation C1:
 // ships as counted facts in narrative order — no %, no week-over-week
 // percentage comparison. V0 covers the chapters that are derivable from
-// data already recorded (13.1 start / 13.2 Reality / 13.3 Movement / 13.6
-// Next Week). Pattern Candidates (13.4) and Adjustment (13.5) need a
-// semantic pattern-detection engine with confidence scoring that doesn't
-// exist yet — named in unavailableSections instead of fabricated, same
-// rule already applied to ME overview's §14.2-14.4.
+// data already recorded (13.1 start / 13.2 Reality / 13.3 Movement / 13.4
+// Pattern Candidates, reusing insight.ts's deterministic detection / 13.6
+// Next Week). Adjustment (13.5, distinct proposed *operating changes* for
+// the week ahead, beyond a plain preference confirmation) still needs its
+// own design — named in unavailableSections instead of fabricated, same
+// "no fabricated confidence" rule as ME overview's §14.4.
 
 type ActionResult = (typeof ACTION_RESULTS)[number];
 
-export const WEEKLY_RESET_UNAVAILABLE_SECTIONS = ["patternCandidates", "adjustment"] as const;
+export const WEEKLY_RESET_UNAVAILABLE_SECTIONS = ["adjustment"] as const;
 export type WeeklyResetUnavailableSection = (typeof WEEKLY_RESET_UNAVAILABLE_SECTIONS)[number];
 
 export type WeeklyResetReality = {

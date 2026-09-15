@@ -1,11 +1,12 @@
-// ME overview (spec §14.1). V0 ships only "Current personal context" with
-// real data — Operating Preferences (§14.2), Pattern Candidates (§14.3) and
-// Personalization status (§14.4) all require a preference/pattern-candidate
-// model that does not exist yet. Naming them here (instead of hiding them)
-// keeps ME honest about what LifeOS does and doesn't know about the user
-// yet, matching the "no fabricated confidence" rule.
+// ME overview (spec §14.1). "Current personal context" (real Direction/
+// Season facts), Operating Preferences (§14.2) and Pattern Candidates
+// (§14.3) are all live — see operating-preference.ts and insight.ts.
+// Personalization status (§14.4, "what LifeOS currently uses vs tentative
+// vs disabled" as one explained summary) and Data sources/integrations
+// still need dedicated work; named here instead of hidden, matching the
+// "no fabricated confidence" rule.
 
-export const ME_UNAVAILABLE_SECTIONS = ["operatingPreferences", "patternCandidates", "personalizationStatus", "dataSources"] as const;
+export const ME_UNAVAILABLE_SECTIONS = ["personalizationStatus", "dataSources"] as const;
 export type MeUnavailableSection = (typeof ME_UNAVAILABLE_SECTIONS)[number];
 
 export type MePersonalContext = {

@@ -10,7 +10,9 @@ export type {
   DirectionId,
   FocusSessionId,
   IncubatorItemId,
+  InsightId,
   LifeEventId,
+  OperatingPreferenceId,
   OutcomeId,
   ProjectId,
   RecommendationEvidenceId,
@@ -24,10 +26,12 @@ export * from "./execution-context.js";
 export * from "./focus.js";
 export * from "./get-unstuck.js";
 export * from "./inbox.js";
+export * from "./insight.js";
 export * from "./interpretation.js";
 export * from "./me.js";
 export * from "./next-action.js";
 export * from "./now.js";
+export * from "./operating-preference.js";
 export * from "./promotion.js";
 export * from "./result.js";
 export * from "./weekly-reset.js";

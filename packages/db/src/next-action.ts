@@ -1,14 +1,17 @@
 import {
   NEXT_ACTION_RULESET_VERSION,
+  OPERATING_PREFERENCE_KEYS,
+  activePreferenceValue,
   rankNextActions,
   type ActionId,
+  type NextActionPreferenceContext,
   type NextActionRankingCandidate,
   type NextActionScoreFactor,
   type OutcomeId,
   type ProjectId,
   type SeasonId
 } from "@lifeos/domain";
-import { and, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, inArray } from "drizzle-orm";
 import type { DatabaseClient } from "./index.js";
 import * as schema from "./schema.js";
 
@@ -90,7 +93,35 @@ export async function generateNextActionRecommendation(
     const candidates = rows.map(({ action, outcome, project }) =>
       toRankingCandidate(season, outcome, action, project)
     );
-    const ranking = rankNextActions(candidates, evaluatedAt);
+
+    const preferenceRows = await transaction
+      .select({ key: schema.operatingPreferences.key, status: schema.operatingPreferences.status, value: schema.operatingPreferences.value })
+      .from(schema.operatingPreferences)
+      .where(and(eq(schema.operatingPreferences.userId, userId), inArray(schema.operatingPreferences.key, [...OPERATING_PREFERENCE_KEYS])));
+    const preferences = preferenceRows.map((row) => ({
+      key: row.key as (typeof OPERATING_PREFERENCE_KEYS)[number],
+      status: row.status as "active" | "disabled",
+      value: row.value
+    }));
+    const targetMaxMinutes = activePreferenceValue(preferences, "next_action.target_max_minutes");
+    const maxPrimaryActive = activePreferenceValue(preferences, "projects.max_primary_active");
+
+    let activeProjectCount: number | undefined;
+    if (maxPrimaryActive !== undefined) {
+      const [activeProjectCountRow] = await transaction
+        .select({ value: count() })
+        .from(schema.projects)
+        .innerJoin(schema.outcomes, and(eq(schema.projects.outcomeId, schema.outcomes.id), eq(schema.outcomes.seasonId, season.id)))
+        .where(and(eq(schema.projects.userId, userId), eq(schema.projects.status, "active")));
+      activeProjectCount = activeProjectCountRow?.value ?? 0;
+    }
+
+    const preferenceContext: NextActionPreferenceContext = {
+      ...(targetMaxMinutes === undefined ? {} : { targetMaxMinutes }),
+      ...(maxPrimaryActive === undefined ? {} : { maxPrimaryActive }),
+      ...(activeProjectCount === undefined ? {} : { activeProjectCount })
+    };
+    const ranking = rankNextActions(candidates, evaluatedAt, preferenceContext);
 
     if (!ranking.winner) {
       await withdrawShownRecommendations(transaction, userId, existingShown, "no_eligible_actions", evaluatedAt);

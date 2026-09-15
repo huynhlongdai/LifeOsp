@@ -19,3 +19,5 @@ export type RecommendationId = Brand<string, "RecommendationId">;
 export type RecommendationEvidenceId = Brand<string, "RecommendationEvidenceId">;
 export type ActionResultId = Brand<string, "ActionResultId">;
 export type DailyCloseId = Brand<string, "DailyCloseId">;
+export type InsightId = Brand<string, "InsightId">;
+export type OperatingPreferenceId = Brand<string, "OperatingPreferenceId">;

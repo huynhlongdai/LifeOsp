@@ -130,6 +130,32 @@ test("ranking evidence contains only declared product-level factors", () => {
   assert.equal(result.winner?.factors.some((factor) => "reasoning" in factor.value), false);
 });
 
+test("a confirmed duration preference adds an explainable bonus only when the candidate fits within it", () => {
+  const within = candidate("00000000-0000-4000-8000-000000000080", { estimatedMinutes: 20 });
+  const over = candidate("00000000-0000-4000-8000-000000000081", { estimatedMinutes: 90 });
+
+  const result = rankNextActions([within, over], evaluatedAt, { targetMaxMinutes: 45 });
+  const withinFactor = result.ranked.find((r) => r.candidate.actionId === within.actionId)?.factors.find((f) => f.key === "duration_preference");
+  const overFactor = result.ranked.find((r) => r.candidate.actionId === over.actionId)?.factors.find((f) => f.key === "duration_preference");
+  assert.ok(withinFactor && withinFactor.score > 0);
+  assert.ok(overFactor && overFactor.score === 0);
+});
+
+test("no duration_preference factor appears without a confirmed preference", () => {
+  const item = candidate("00000000-0000-4000-8000-000000000082", { estimatedMinutes: 20 });
+  const result = rankNextActions([item], evaluatedAt);
+  assert.equal(result.winner?.factors.some((factor) => factor.key === "duration_preference"), false);
+});
+
+test("a confirmed project-load preference penalizes Project-linked Actions only once the limit is exceeded", () => {
+  const item = candidate("00000000-0000-4000-8000-000000000083");
+  const overLimit = rankNextActions([item], evaluatedAt, { maxPrimaryActive: 2, activeProjectCount: 3 });
+  const withinLimit = rankNextActions([item], evaluatedAt, { maxPrimaryActive: 2, activeProjectCount: 2 });
+
+  assert.ok(overLimit.winner?.factors.some((factor) => factor.key === "project_load_preference" && factor.score < 0));
+  assert.equal(withinLimit.winner?.factors.some((factor) => factor.key === "project_load_preference"), false);
+});
+
 test("project-less ready Action remains eligible under active Season and Outcome", () => {
   const withProject = candidate("00000000-0000-4000-8000-000000000070");
   const { projectId: _projectId, projectStatus: _projectStatus, ...item } = withProject;

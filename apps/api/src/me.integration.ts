@@ -57,7 +57,7 @@ test("ME overview reports no Direction and every §14.1 section as unavailable f
     assert.equal(overview.personalContext.activeOutcomeCount, 0);
     assert.deepEqual(
       new Set(overview.unavailableSections),
-      new Set(["operatingPreferences", "patternCandidates", "personalizationStatus", "dataSources"])
+      new Set(["personalizationStatus", "dataSources"])
     );
   } finally {
     await app.close();
