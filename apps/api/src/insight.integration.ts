@@ -116,6 +116,8 @@ test("GET /v1/insights detects the duration/completion pattern, persists it, and
     assert.equal(candidates[0].patternKey, "duration_completion_rate");
     assert.equal(candidates[0].proposedPreference.key, "next_action.target_max_minutes");
     assert.equal(candidates[0].proposedPreference.value, 45);
+    assert.equal(typeof candidates[0].proposedPreference.effect, "string");
+    assert.ok(candidates[0].proposedPreference.effect.length > 0, "spec §13.5 requires an effect preview");
     const insightId = candidates[0].id as string;
 
     const strangerList = await app.inject({ method: "GET", url: "/v1/insights", headers: { cookie: stranger.header } });

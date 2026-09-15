@@ -218,6 +218,9 @@ function InsightCard({
     <div className="sheet tint me-insight-card">
       <b>{insight.title}</b>
       <p className="muted">{insight.description}</p>
+      {insight.proposedPreference ? (
+        <p className="me-insight-effect">Nếu xác nhận: {insight.proposedPreference.effect}</p>
+      ) : null}
       {editing ? (
         <div className="me-insight-edit">
           <input type="number" value={editedValue} onChange={(event) => setEditedValue(event.target.value)} disabled={busy} />
