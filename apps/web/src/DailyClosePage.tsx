@@ -227,6 +227,10 @@ export function DailyClosePage({ apiUrl }: { apiUrl: string }) {
           </div>
         </article>
       ) : null}
+
+      <p className="muted close-weekly-reset-link">
+        Muốn nhìn lại cả tuần? <a className="text-button link-button" href="/weekly-reset">Mở Weekly Reset</a>
+      </p>
     </section>
   );
 }
