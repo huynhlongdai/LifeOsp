@@ -21,6 +21,8 @@ Repository: `huynhlongdai/LifeOsp`
 >
 > Only one `0009_*` migration may reach `main`; the one in #52 is `0009_b5_result_daily_close`.
 
+> **Get Unstuck V0** (also on `feat/b5-result-daily-close-agent`): evidence-only, no new table. `GET /v1/get-unstuck` lists Actions in ready/active/blocked/postponed that qualify (`isStuckEvidence`: blocked status, or ≥2 lifetime postponed+blocked `action_results`, or ≥2 `wrong_assumption` recommendation resolutions — all computed from existing tables). `POST /v1/actions/:id/get-unstuck/diagnose {friction}` logs the choice and returns a deterministic intervention (no AI provider in V0, documented as a deliberate cut in `packages/domain/src/get-unstuck.ts`); `/get-unstuck/edit` applies clarify/resize as an in-place Action edit; `/get-unstuck/revive` is the **first and only** path that moves a `blocked`/`postponed` Action back to `ready` — until now nothing in the system could do that, which is worth knowing if anything downstream assumed those statuses were terminal. `reprioritize`/`pause_drop` reuse the existing B5 `/result` route. `apps/api/src/get-unstuck.integration.ts` is written but not run (same Postgres caveat as B5).
+
 ## 1. Purpose
 
 This is the canonical handoff for continuing LifeOS in a fresh chat or with additional agents. Read this file before making product or code decisions. Do not rely on prior chat history as a source of truth when this file, issues, canonical docs, or merged code disagree.

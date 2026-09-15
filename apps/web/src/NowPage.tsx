@@ -444,7 +444,10 @@ function BlockedState({ view, lastResult }: { view: Extract<NowView, { state: "b
         <h2>Không nên giả vờ rằng có một việc khả thi ngay lúc này.</h2>
         <p>{view.message}</p>
         <strong className="now-blocked-count num">{view.blockedActionCount} việc đang bị chặn</strong>
-        <p className="now-muted">NOW chỉ báo trạng thái thật. Gỡ chặn sẽ thuộc khu Execute.</p>
+        <p className="now-muted">NOW chỉ báo trạng thái thật.</p>
+        <div className="now-empty-actions">
+          <a className="primary-button link-button" href="/get-unstuck">Gỡ vướng</a>
+        </div>
       </section>
     </section>
   );
