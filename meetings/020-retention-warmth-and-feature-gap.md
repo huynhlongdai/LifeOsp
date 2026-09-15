@@ -1,7 +1,7 @@
 # Meeting #020 — Độ ấm & khả năng duy trì sử dụng; khoảng trống tính năng
 
 Ngày: 2026-09-15
-Trạng thái: PROPOSED — chờ product owner quyết định
+Trạng thái: DECIDED 2026-09-15 — product owner duyệt W1–W6 theo ưu tiên đề xuất; việc kế tiếp là B5 (Result + Daily Close); UI Figma sẽ được product owner xuất dưới dạng code và gửi vào repo
 Người đề xuất: Repo Task Runner (agent), theo yêu cầu của product owner
 Đọc cùng: `docs/PRODUCT_THESIS_V2.md` §11–§13, `meetings/003-behavioral-system.md`, `docs/MVP_SCOPE_V1.md`, `docs/design/FIGMA_AI_VISUAL_DIRECTION_ADDENDUM_V1.md`, `docs/design/UI_SHELL_DESIGN_SYSTEM_V1.md`
 
@@ -101,3 +101,10 @@ Product owner yêu cầu đọc UI từ Figma để bổ sung UI và code. Repo 
 1. Duyệt bộ sáu cơ chế §4 (hoặc chọn tập con) làm **quyết định sản phẩm**, để agent được phép đưa vào code — hiện các cơ chế này chưa có trong spec nên theo quy tắc repo không được tự thêm.
 2. Xác nhận thứ tự §6 (đặc biệt: B5 trước Admin).
 3. Cung cấp link Figma + cách truy cập (§7).
+
+## 9. Quyết định (2026-09-15)
+
+1. Duyệt toàn bộ W1–W6 theo ưu tiên ở §4. Các cơ chế này từ nay là quyết định sản phẩm và được phép đưa vào spec/code.
+2. Việc kế tiếp: **B5 — Result selector + Daily Close**, áp W1 (giọng đồng hành) và W2 (nghi thức ≤60s) ngay trong B5.
+3. Figma: product owner sẽ xuất code giao diện và gửi lên; agent đối chiếu với design system V1 khi tích hợp.
+4. Product owner lưu ý app "thiếu chức năng Brain Dump": Brain Dump hiện chỉ có trong Clarity Reset bước 2. Hiểu là thiếu **Ghi nhanh độc lập** (global quick capture, `PRODUCT_SURFACE_SPEC_V1` §1.3) — cần xác nhận và xếp lịch ngay sau B5.
