@@ -129,7 +129,7 @@ h1 em, h2 em, .display em { font-style: italic; font-variation-settings: "SOFT" 
 
 /* =========================== Shell =========================== */
 .app-shell { min-height: 100vh; display: grid; grid-template-columns: 236px 1fr; }
-.sidebar { position: sticky; top: 0; height: 100vh; padding: 28px 18px 22px; display: flex; flex-direction: column; gap: 30px; border-right: 1px solid var(--los-line-soft); background: linear-gradient(180deg, rgba(255, 255, 255, .55), rgba(255, 255, 255, 0)); }
+.sidebar { position: sticky; top: 0; z-index: 30; height: 100vh; padding: 28px 18px 22px; display: flex; flex-direction: column; gap: 30px; border-right: 1px solid var(--los-line-soft); background: linear-gradient(180deg, rgba(255, 255, 255, .55), rgba(255, 255, 255, 0)); }
 .brand { display: flex; align-items: center; gap: 10px; padding-left: 12px; color: var(--los-ink); text-decoration: none; font-family: var(--los-font-display); font-variation-settings: "SOFT" 80, "opsz" 48; font-weight: 500; font-size: 1.45rem; letter-spacing: -.02em; }
 .brand-mark { position: relative; width: 22px; height: 22px; border-radius: 7px; background: var(--los-accent); box-shadow: 0 6px 14px -6px var(--los-accent-glow); }
 .brand-mark::after { content: ""; position: absolute; inset: 6px; border-radius: 4px; background: #fff; opacity: .9; }
