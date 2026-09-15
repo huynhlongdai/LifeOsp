@@ -107,8 +107,8 @@ export function QuickCapture({ apiUrl }: { apiUrl: string }) {
             ) : (
               <>
                 <p className="eyebrow">Ghi nhanh</p>
-                <h2 id="quick-capture-title" className="display sm">Đang nghĩ gì? Cứ viết ra.</h2>
-                <p>Không cần phân loại, không cần đúng chỗ. LifeOS lưu nguyên văn trước.</p>
+                <h2 id="quick-capture-title" className="display sm">Ném hết ra ngoài.</h2>
+                <p>Đừng sắp xếp. Đừng lọc. Cứ viết thật hết — LifeOS lưu nguyên văn trước, sắp xếp sau.</p>
                 <textarea
                   ref={textareaRef}
                   className="quick-capture-input"
