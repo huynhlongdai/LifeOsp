@@ -386,6 +386,21 @@ test("B5 Daily Close summarizes recorded facts for a local day and stores option
       events.rows.map((row) => row.type),
       ["daily_close.recorded", "daily_close.updated"]
     );
+
+    // Restart: a fresh app instance reads the same close and the same facts (ported case).
+    const restarted = buildApp({ databaseUrl });
+    try {
+      const afterRestart = await restarted.inject({
+        method: "GET",
+        url: `/v1/daily-close?date=${TODAY_UTC}&offsetMinutes=0`,
+        headers: { cookie: owner.header }
+      });
+      assert.equal(afterRestart.statusCode, 200);
+      assert.equal(afterRestart.json().close.note, "Good enough.");
+      assert.equal(afterRestart.json().summary.results.partial, 1);
+    } finally {
+      await restarted.close();
+    }
   } finally {
     await app.close();
     await deleteUsers(database, createdUserIds);

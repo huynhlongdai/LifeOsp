@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import type { ActionResult, ActionResultView, FocusEndOutcome, FocusSessionView, RecordActionResultInput } from "@lifeos/domain";
+import { defaultFocusOutcomeForResult, type ActionResult, type ActionResultView, type FocusEndOutcome, type FocusSessionView, type RecordActionResultInput } from "@lifeos/domain";
 import { ApiRequestError } from "./api";
 import { createResultApiClient } from "./result-api";
 
@@ -46,7 +46,7 @@ export function ResultPanel({ apiUrl, actionId, actionTitle, activeFocus, onReco
   const pick = (result: ActionResult) => {
     setChoice(result);
     setError(null);
-    setFocusOutcome(result === "completed" ? "completed" : "interrupted");
+    setFocusOutcome(defaultFocusOutcomeForResult(result));
   };
 
   const submit = async () => {
