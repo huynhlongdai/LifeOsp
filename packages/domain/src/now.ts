@@ -35,18 +35,32 @@ export type NowRecommendationView = {
   evidence: NowEvidenceItem[];
 };
 
+/**
+ * W5 (Meeting #020) — present when the user is coming back after an absence.
+ * Facts only; the UI must not turn daysAway into a streak, a count, or a debt.
+ */
+export type NowReturnContext = {
+  lastActivityAt: string;
+  daysAway: number;
+};
+
+/** Absence threshold for NowReturnContext, in hours since the last user-sourced LifeEvent. */
+export const NOW_RETURN_THRESHOLD_HOURS = 48 as const;
+
 export type NowReadyView = {
   state: "ready";
   generatedAt: string;
   season: NowSeasonContext;
   action: NowActionView;
   recommendation: NowRecommendationView;
+  returning?: NowReturnContext;
 };
 
 export type NowNoDirectionView = {
   state: "no_direction";
   generatedAt: string;
   message: string;
+  returning?: NowReturnContext;
 };
 
 export type NowNoReadyActionView = {
@@ -56,6 +70,7 @@ export type NowNoReadyActionView = {
   readyActionCount: number;
   reason: "none_ready" | "recommendation_resolved" | "recommendation_missing";
   message: string;
+  returning?: NowReturnContext;
 };
 
 export type NowBlockedView = {
@@ -64,6 +79,7 @@ export type NowBlockedView = {
   season: NowSeasonContext;
   blockedActionCount: number;
   message: string;
+  returning?: NowReturnContext;
 };
 
 export type NowView = NowReadyView | NowNoDirectionView | NowNoReadyActionView | NowBlockedView;

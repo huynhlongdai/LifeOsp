@@ -2,9 +2,14 @@ import { useEffect, useState, type MouseEvent } from "react";
 import type { HealthStatus } from "@lifeos/domain";
 import { createApiClient } from "./api";
 import { ClarityReset } from "./ClarityReset";
+import { DailyClosePage } from "./DailyClosePage";
 import { DirectionPage } from "./DirectionPage";
-import { ClarityIcon, RouteIcon } from "./icons";
+import { GetUnstuckPage } from "./GetUnstuckPage";
+import { ClarityIcon, RouteIcon, ShieldIcon } from "./icons";
+import { InboxPage } from "./InboxPage";
+import { IncubatorPage } from "./IncubatorPage";
 import { NowPage } from "./NowPage";
+import { QuickCapture } from "./QuickCapture";
 import { APP_ROUTES, resolveRoute, type AppRoute, type AppRouteKey } from "./routes";
 import { EmptyState, ErrorState, LoadingState, type AsyncState } from "./ui-states";
 
@@ -15,15 +20,21 @@ const NAV_LABEL: Record<AppRouteKey, string> = {
   execute: "Execute",
   reflect: "Reflect",
   me: "Me",
-  clarity: "Làm rõ"
+  clarity: "Làm rõ",
+  inbox: "Inbox",
+  incubator: "Được giữ lại",
+  "get-unstuck": "Gỡ vướng"
 };
 
 const PAGE_HEADING: Record<Exclude<AppRouteKey, "now">, { kicker: string; title: string }> = {
   direction: { kicker: "Direction", title: "Hướng hiện tại" },
   execute: { kicker: "Execute", title: "Việc đang có" },
-  reflect: { kicker: "Reflect", title: "Nhìn lại" },
+  reflect: { kicker: "Reflect", title: "Khép lại hôm nay" },
   me: { kicker: "Me", title: "Bạn" },
-  clarity: { kicker: "Clarity Reset", title: "Làm rõ điều đang quan trọng" }
+  clarity: { kicker: "Clarity Reset", title: "Làm rõ điều đang quan trọng" },
+  inbox: { kicker: "Inbox", title: "Những gì bạn đã ghi lại" },
+  incubator: { kicker: "Không phải bây giờ", title: "Được giữ lại" },
+  "get-unstuck": { kicker: "Gỡ vướng", title: "Việc gì đang kẹt?" }
 };
 
 export function App() {
@@ -86,7 +97,25 @@ export function App() {
           ))}
         </nav>
         <div className="secondary-links" aria-label="Công cụ phụ">
-          <a href="/clarity" onClick={(event) => navigate(event, "/clarity")}>
+          <QuickCapture apiUrl={apiUrl} />
+          <a href="/inbox" aria-current={route?.key === "inbox" ? "page" : undefined} onClick={(event) => navigate(event, "/inbox")}>
+            <svg className="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M4 13h4l2 3h4l2-3h4M5 6h14l1 7v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-5z" />
+            </svg>
+            Inbox
+          </a>
+          <a href="/incubator" aria-current={route?.key === "incubator" ? "page" : undefined} onClick={(event) => navigate(event, "/incubator")}>
+            <ShieldIcon />
+            Được giữ lại
+          </a>
+          <a href="/get-unstuck" aria-current={route?.key === "get-unstuck" ? "page" : undefined} onClick={(event) => navigate(event, "/get-unstuck")}>
+            <svg className="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M12 3 4 6v6c0 4.5 3.5 8 8 9 4.5-1 8-4.5 8-9V6z" />
+              <path d="M12 9v3M12 15v.5" />
+            </svg>
+            Gỡ vướng
+          </a>
+          <a href="/clarity" aria-current={route?.key === "clarity" ? "page" : undefined} onClick={(event) => navigate(event, "/clarity")}>
             <ClarityIcon />
             Làm rõ lại (Clarity Reset)
           </a>
@@ -142,6 +171,10 @@ function RouteContent({ route, apiUrl }: { route: AppRoute; apiUrl: string }) {
   if (route.key === "clarity") return <ClarityReset apiUrl={apiUrl} />;
   if (route.key === "direction") return <DirectionPage apiUrl={apiUrl} />;
   if (route.key === "now") return <NowPage apiUrl={apiUrl} />;
+  if (route.key === "reflect") return <DailyClosePage apiUrl={apiUrl} />;
+  if (route.key === "inbox") return <InboxPage apiUrl={apiUrl} />;
+  if (route.key === "incubator") return <IncubatorPage apiUrl={apiUrl} />;
+  if (route.key === "get-unstuck") return <GetUnstuckPage apiUrl={apiUrl} />;
 
   return (
     <EmptyState

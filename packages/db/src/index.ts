@@ -1,3 +1,4 @@
+import type { CaptureInputKind } from "@lifeos/domain";
 import { and, desc, eq, gt } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
@@ -68,14 +69,15 @@ export async function resolveAnonymousSession(
 export async function createTextCapture(
   database: DatabaseClient,
   userId: string,
-  rawText: string
+  rawText: string,
+  kind: CaptureInputKind = "text"
 ): Promise<schema.CaptureRow> {
   return database.db.transaction(async (transaction) => {
     const [capture] = await transaction
       .insert(schema.captures)
       .values({
         userId,
-        kind: "text",
+        kind,
         rawText,
         processingStatus: "unprocessed"
       })
@@ -92,7 +94,7 @@ export async function createTextCapture(
       entityType: "capture",
       entityId: capture.id,
       payload: {
-        kind: "text",
+        kind,
         processingStatus: "unprocessed"
       }
     });
@@ -230,7 +232,10 @@ export async function findLatestCaptureInterpretation(
 export * from "./action.js";
 export * from "./execution-context.js";
 export * from "./focus.js";
+export * from "./get-unstuck.js";
+export * from "./inbox.js";
 export * from "./next-action.js";
 export * from "./now.js";
 export * from "./promotion.js";
+export * from "./result.js";
 export * from "./schema.js";

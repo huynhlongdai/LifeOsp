@@ -64,6 +64,13 @@
       "when": 1787734000000,
       "tag": "0008_b4_focus_sessions",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1789456329300,
+      "tag": "0009_b5_result_daily_close",
+      "breakpoints": true
     }
   ]
 }

@@ -2,9 +2,11 @@ import type { CaptureId, LifeEventId, UserId } from "./ids.js";
 
 export type {
   ActionId,
+  ActionResultId,
   Brand,
   CaptureId,
   CaptureInterpretationId,
+  DailyCloseId,
   DirectionId,
   FocusSessionId,
   IncubatorItemId,
@@ -19,10 +21,13 @@ export type {
 export * from "./action.js";
 export * from "./execution-context.js";
 export * from "./focus.js";
+export * from "./get-unstuck.js";
+export * from "./inbox.js";
 export * from "./interpretation.js";
 export * from "./next-action.js";
 export * from "./now.js";
 export * from "./promotion.js";
+export * from "./result.js";
 
 export const NEED_STATES = [
   "unclear_direction",
@@ -39,6 +44,10 @@ export type NeedState = (typeof NEED_STATES)[number];
 
 export const CAPTURE_KINDS = ["text", "voice_transcript", "quick_note", "distraction"] as const;
 export type CaptureKind = (typeof CAPTURE_KINDS)[number];
+
+/** Kinds a client may choose when creating a Capture directly. `distraction` only comes from Focus. */
+export const CAPTURE_INPUT_KINDS = ["text", "quick_note", "voice_transcript"] as const;
+export type CaptureInputKind = (typeof CAPTURE_INPUT_KINDS)[number];
 
 export const CAPTURE_PROCESSING_STATUSES = ["unprocessed", "interpreted", "corrected", "promoted", "archived"] as const;
 export type CaptureProcessingStatus = (typeof CAPTURE_PROCESSING_STATUSES)[number];

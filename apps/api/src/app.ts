@@ -6,10 +6,13 @@ import { registerCaptureRoutes } from "./capture.js";
 import { registerExecutionContextRoutes } from "./execution-context.js";
 import { registerFocusRoutes } from "./focus.js";
 import { registerIdentityRoutes, type IdentityOptions } from "./identity.js";
+import { registerGetUnstuckRoutes } from "./get-unstuck.js";
+import { registerInboxRoutes } from "./inbox.js";
 import { registerInterpretationRoutes, type InterpretationOptions } from "./interpretation.js";
 import { registerNextActionRoutes } from "./next-action.js";
 import { registerNowRoutes } from "./now.js";
 import { registerPromotionRoutes } from "./promotion.js";
+import { registerResultRoutes } from "./result.js";
 
 export type BuildAppOptions = {
   databaseUrl?: string;
@@ -56,6 +59,9 @@ export function buildApp(options: BuildAppOptions = {}) {
   registerNextActionRoutes(app, database);
   registerNowRoutes(app, database);
   registerFocusRoutes(app, database);
+  registerResultRoutes(app, database);
+  registerInboxRoutes(app, database);
+  registerGetUnstuckRoutes(app, database);
 
   app.addHook("onClose", async () => {
     if (database) {
