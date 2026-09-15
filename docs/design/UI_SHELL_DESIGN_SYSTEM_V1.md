@@ -1,6 +1,6 @@
 # LifeOS — UI Shell & Design System V1
 
-Trạng thái: PROPOSED — chờ duyệt prototype trước khi implement
+Trạng thái: IMPLEMENTED trên branch (prototype đã được product owner duyệt 2026-09-15; chờ review PR)
 Cập nhật: 2026-09-15
 Epic: #8 UX shell & design system
 Branch: `feat/ux-shell-design-system-v1`

@@ -1,7 +1,9 @@
 # LifeOS Project Handoff
 
-Updated: 2026-08-26
+Updated: 2026-09-15 (status addendum; B4 sections below are historical)
 Repository: `huynhlongdai/LifeOsp`
+
+> **Status addendum 2026-09-15.** B4 Focus V0 has merged into `main` (#48). Sections 4, 7–8 and 10 describe the B4 work as it stood on 2026-08-26 and are kept for history; the next execution increment is B5 (#41). Epic #8 (UX shell & design system) is in flight on branch `feat/ux-shell-design-system-v1`: it replaces the web presentation layer only (`apps/web/src/**`, `index.html`, manifest) following `docs/design/UI_SHELL_DESIGN_SYSTEM_V1.md`, and does not touch domain, db, api, routes, or any Focus/NOW semantics.
 
 ## 1. Purpose
 

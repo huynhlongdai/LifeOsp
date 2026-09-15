@@ -176,7 +176,7 @@ export function ClarityPromotion({
   if (candidates.length === 0) {
     return (
       <section className="clarity-flow">
-        <p className="eyebrow">CLARITY RESET · TRADE-OFF</p>
+        <p className="eyebrow">Làm rõ · cân nhắc</p>
         <h2>Chưa có ứng viên nào để chọn làm hướng hiện tại.</h2>
         <p>
           LifeOS không biến concern, question hay uncertainty thành commitment. Quay lại phần làm rõ và thêm một ý tưởng,
@@ -190,7 +190,7 @@ export function ClarityPromotion({
   if (stage === "confirmed" && confirmed) {
     return (
       <section className="clarity-flow clarity-done">
-        <p className="eyebrow">CURRENT SEASON · CONFIRMED</p>
+        <p className="eyebrow success">Mùa hiện tại · đã xác nhận</p>
         <h2>{confirmed.direction.title}</h2>
         {confirmed.direction.description ? <p>{confirmed.direction.description}</p> : null}
         <div className="promotion-summary-grid">
@@ -217,7 +217,7 @@ export function ClarityPromotion({
   if (stage === "resolved") {
     return (
       <section className="clarity-flow clarity-done">
-        <p className="eyebrow">CLARITY RESET · RESOLVED</p>
+        <p className="eyebrow">Làm rõ · đã chốt</p>
         <h2>Không cần ép một Direction thành active.</h2>
         {message ? <InlineNotice message={message} /> : null}
         <div className="flow-actions">
@@ -232,7 +232,7 @@ export function ClarityPromotion({
     return (
       <section className="clarity-flow" aria-labelledby="promotion-review-title">
         <div className="flow-intro">
-          <p className="eyebrow">CLARITY RESET · CONFIRM</p>
+          <p className="eyebrow">Làm rõ · xác nhận</p>
           <h2 id="promotion-review-title">Kiểm tra Direction và Current Season trước khi active.</h2>
           <p>Đây là draft. Bạn có thể sửa, đưa cả hướng vào Not Now hoặc từ chối hoàn toàn.</p>
         </div>
@@ -241,7 +241,7 @@ export function ClarityPromotion({
         {error ? <InlineError message={error} /> : null}
 
         <div className="why-card">
-          <p className="eyebrow">WHY THIS DRAFT</p>
+          <p className="eyebrow">Vì sao bản nháp này</p>
           <strong>Bạn vừa chọn “{active?.text}” là Active.</strong>
           <p>
             {maintain.length} mục được giữ ở Maintain · {notNow.length} mục được bảo vệ ở Not Now. Đây là bằng chứng trực
@@ -291,7 +291,7 @@ export function ClarityPromotion({
   return (
     <section className="clarity-flow" aria-labelledby="tradeoff-title">
       <div className="flow-intro">
-        <p className="eyebrow">CLARITY RESET · TRADE-OFF</p>
+        <p className="eyebrow">Làm rõ · cân nhắc</p>
         <h2 id="tradeoff-title">Không phải mọi thứ đều được Active cùng lúc.</h2>
         <p>
           Phân loại từng ứng viên. LifeOS không chọn sẵn. Để tiếp tục, bạn cần đúng một Active; những mục còn lại phải được
@@ -350,7 +350,7 @@ export function ClarityPromotion({
 
       {active ? (
         <div className="promotion-form-block">
-          <p className="eyebrow">DRAFT FROM YOUR ACTIVE CHOICE</p>
+          <p className="eyebrow active">Bản nháp từ lựa chọn Đang theo</p>
           <p>LifeOS chỉ dùng lựa chọn Active của bạn để khởi tạo text có thể sửa. Chưa có gì được activate ở bước này.</p>
           <DirectionSeasonFields
             directionTitle={directionTitle}
@@ -420,7 +420,7 @@ function DirectionSeasonFields({
   return (
     <div className="direction-season-form">
       <div className="form-section">
-        <p className="eyebrow">DIRECTION</p>
+        <p className="eyebrow active">Hướng</p>
         <label className="field-label">
           Tên hướng hiện tại
           <input value={directionTitle} disabled={disabled} onChange={(event) => onDirectionTitle(event.target.value)} />
@@ -431,7 +431,7 @@ function DirectionSeasonFields({
         </label>
       </div>
       <div className="form-section">
-        <p className="eyebrow">CURRENT SEASON</p>
+        <p className="eyebrow accent">Mùa hiện tại</p>
         <label className="field-label">
           Tên giai đoạn
           <input value={seasonTitle} disabled={disabled} onChange={(event) => onSeasonTitle(event.target.value)} />

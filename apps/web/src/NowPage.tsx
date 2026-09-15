@@ -3,7 +3,8 @@ import type { NowView, ResolveNowRecommendationInput } from "@lifeos/domain";
 import { createApiClient } from "./api";
 import { createNowApiClient } from "./now-api";
 import { FocusPanel } from "./FocusPanel";
-import { ErrorState, type AsyncState } from "./ui-states";
+import { ShieldIcon } from "./icons";
+import { ErrorState, PaperStack, type AsyncState } from "./ui-states";
 
 export function NowPage({ apiUrl }: { apiUrl: string }) {
   const [state, setState] = useState<AsyncState<NowView>>({ kind: "loading" });
@@ -46,7 +47,7 @@ export function NowPage({ apiUrl }: { apiUrl: string }) {
       setEditing(false);
       setShowWhy(false);
     } catch (error) {
-      setMutationError(error instanceof Error ? error.message : "Không thể cập nhật recommendation");
+      setMutationError(error instanceof Error ? error.message : "Không thể cập nhật gợi ý");
     } finally {
       setBusy(false);
     }
@@ -90,26 +91,25 @@ export function NowPage({ apiUrl }: { apiUrl: string }) {
     <section className="now-page" aria-live="polite">
       <SeasonStrip view={view} />
 
-      <article className="now-primary-card">
-        <div className="now-primary-heading">
-          <div>
-            <p className="eyebrow">RIGHT NOW</p>
-            <h2>{view.action.title}</h2>
-          </div>
+      <article className="sheet stack now-hero">
+        <div className="now-lead">
+          <span className="label">Một việc để bắt đầu</span>
           <RecommendationStatus status={view.recommendation.status} />
         </div>
+        <h2 className="now-title">{view.action.title}</h2>
 
-        {view.action.doneCondition ? (
-          <div className="now-done-condition">
-            <span>Khi nào được xem là xong?</span>
-            <strong>{view.action.doneCondition}</strong>
+        <div className="now-facts">
+          <div>
+            <div className="k">Xong khi</div>
+            <div className="v">{view.action.doneCondition ?? "Bạn tự quyết định khi nào việc này xong."}</div>
           </div>
-        ) : null}
-
-        <div className="now-meta-row" aria-label="Thông tin Action">
-          {view.action.estimatedMinutes ? <span>≈ {view.action.estimatedMinutes} phút</span> : null}
-          {view.action.scheduledFor ? <span>Lịch: {formatDateTime(view.action.scheduledFor)}</span> : null}
-          <span>{confidenceLabel(view.recommendation.confidenceClass)}</span>
+          {view.action.estimatedMinutes ? (
+            <div className="time">
+              <div className="k">Ước lượng</div>
+              <div className="v num">{view.action.estimatedMinutes} phút</div>
+            </div>
+          ) : null}
+          {view.action.scheduledFor ? <div className="sched">Có lịch: {formatDateTime(view.action.scheduledFor)}</div> : null}
         </div>
 
         <p className="now-rationale">{view.recommendation.rationale}</p>
@@ -124,7 +124,7 @@ export function NowPage({ apiUrl }: { apiUrl: string }) {
             onSave={(input) => void resolve(view.recommendation.id, input)}
           />
         ) : (
-          <div className="now-action-stack">
+          <div className="now-cta">
             {view.recommendation.status === "shown" ? (
               <button
                 className="primary-button now-primary-cta"
@@ -137,37 +137,45 @@ export function NowPage({ apiUrl }: { apiUrl: string }) {
             ) : (
               <div className="now-confirmed-note" role="status">
                 {view.recommendation.status === "accepted"
-                  ? "Đã chấp nhận. Action vẫn ở trạng thái ready cho tới khi bước Execute/Focus bắt đầu."
-                  : "Bạn đã chỉnh Action này. Evidence bên dưới vẫn giải thích recommendation ban đầu."}
+                  ? "Đã chấp nhận. Việc này sẵn sàng — bắt đầu Focus bên dưới khi bạn muốn."
+                  : "Bạn đã chỉnh việc này. Lý do bên dưới vẫn giải thích gợi ý ban đầu."}
               </div>
             )}
-
-            <div className="now-secondary-actions">
-              <button className="secondary-button" type="button" disabled={busy} onClick={() => setEditing(true)}>
-                Chỉnh sửa
-              </button>
-              <button className="text-button" type="button" disabled={busy} onClick={() => setShowWhy((value) => !value)}>
-                {showWhy ? "Ẩn lý do" : "Vì sao việc này?"}
-              </button>
-              <button
-                className="text-button"
-                type="button"
-                disabled={busy}
-                onClick={() => void resolve(view.recommendation.id, { resolution: "not_now" })}
-              >
-                Để sau
-              </button>
-              <button
-                className="text-button"
-                type="button"
-                disabled={busy}
-                onClick={() => void resolve(view.recommendation.id, { resolution: "wrong_assumption" })}
-              >
-                Giả định sai
-              </button>
-            </div>
+            <button className="secondary-button" type="button" disabled={busy} onClick={() => setEditing(true)}>
+              Chỉnh sửa
+            </button>
+            <span className="gap" />
+            <button
+              className="text-button"
+              type="button"
+              disabled={busy}
+              onClick={() => void resolve(view.recommendation.id, { resolution: "not_now" })}
+            >
+              Để sau
+            </button>
+            <button
+              className="text-button"
+              type="button"
+              disabled={busy}
+              onClick={() => void resolve(view.recommendation.id, { resolution: "wrong_assumption" })}
+            >
+              Giả định sai
+            </button>
           </div>
         )}
+
+        <div className="now-why">
+          <button
+            className="text-button"
+            type="button"
+            disabled={busy}
+            aria-expanded={showWhy}
+            onClick={() => setShowWhy((value) => !value)}
+          >
+            {showWhy ? "Ẩn lý do" : "Vì sao việc này?"}
+          </button>
+          {!showWhy ? <span>· {confidenceSentence(view.recommendation.confidenceClass)}</span> : null}
+        </div>
 
         {showWhy ? <EvidencePanel view={view} /> : null}
       </article>
@@ -178,39 +186,39 @@ export function NowPage({ apiUrl }: { apiUrl: string }) {
         recommendationStatus={view.recommendation.status}
       />
 
-      <aside className="now-guardrail">
-        <strong>NOW chỉ yêu cầu một quyết định.</strong>
-        <span>Không có backlog phụ và không có client-side ranking. Việc khác vẫn ở ngoài vùng chú ý hiện tại.</span>
+      <aside className="now-protect">
+        <ShieldIcon />
+        <span>
+          <strong>Việc khác đang được giữ lại.</strong> NOW chỉ đưa ra một việc; bạn không cần nghĩ về phần còn lại lúc này.
+        </span>
       </aside>
     </section>
   );
 }
 
-function SeasonStrip({ view }: { view: Extract<NowView, { state: "ready" }> }) {
+function SeasonStrip({ view }: { view: Extract<NowView, { state: "ready" | "no_ready_action" | "blocked" }> }) {
   return (
-    <div className="now-season-strip">
-      <div>
-        <p className="eyebrow">CURRENT SEASON</p>
-        <strong>{view.season.title}</strong>
-      </div>
+    <div className="now-season">
+      <span className="pill accent">
+        <i className="dot" aria-hidden="true" />
+        Mùa hiện tại · {view.season.title}
+      </span>
       <p>{view.season.primaryFocusText ?? view.season.purpose}</p>
     </div>
   );
 }
 
 function RecommendationStatus({ status }: { status: "shown" | "accepted" | "edited" }) {
-  const label = status === "shown" ? "Đề xuất" : status === "accepted" ? "Đã chấp nhận" : "Đã chỉnh";
-  return <span className={`now-recommendation-status ${status}`}>{label}</span>;
+  if (status === "shown") return null;
+  const label = status === "accepted" ? "Đã chấp nhận" : "Đã chỉnh";
+  return <span className={`pill ${status === "accepted" ? "success" : "maintain"}`}>{label}</span>;
 }
 
 function EvidencePanel({ view }: { view: Extract<NowView, { state: "ready" }> }) {
   return (
-    <section className="now-evidence" aria-label="Recommendation evidence">
+    <section className="now-evidence" aria-label="Lý do gợi ý">
       <div className="now-evidence-heading">
-        <div>
-          <p className="eyebrow">WHY THIS?</p>
-          <h3>Evidence đã được lưu khi recommendation được tạo</h3>
-        </div>
+        <h3>{confidenceSentence(view.recommendation.confidenceClass)}</h3>
         <span>{view.recommendation.evidence.length} tín hiệu</span>
       </div>
       <div className="now-evidence-list">
@@ -220,12 +228,12 @@ function EvidencePanel({ view }: { view: Extract<NowView, { state: "ready" }> })
               <strong>{item.label}</strong>
               <small>{evidenceStrengthLabel(item.strength)}</small>
             </div>
-            <span className="now-score">{item.score >= 0 ? "+" : ""}{item.score}</span>
+            <span className="now-score num">{item.score >= 0 ? "+" : ""}{item.score}</span>
           </div>
         ))}
       </div>
       <small className="now-evidence-footnote">
-        Đây là score/evidence cấp sản phẩm, không phải chain-of-thought ẩn của AI.
+        Những tín hiệu này được lưu lại đúng lúc gợi ý được tạo, để bạn kiểm tra được.
       </small>
     </section>
   );
@@ -267,15 +275,15 @@ function EditActionForm({
   return (
     <div className="now-edit-form">
       <label>
-        <span>Action</span>
+        <span>Việc</span>
         <input value={title} maxLength={500} onChange={(event) => setTitle(event.target.value)} />
       </label>
       <label>
-        <span>Điều kiện hoàn thành</span>
+        <span>Xong khi</span>
         <textarea value={doneCondition} maxLength={1000} rows={3} onChange={(event) => setDoneCondition(event.target.value)} />
       </label>
       <label className="now-minutes-field">
-        <span>Ước lượng phút</span>
+        <span>Ước lượng (phút)</span>
         <input
           type="number"
           min={1}
@@ -298,13 +306,14 @@ function EditActionForm({
 
 function NoDirection({ view }: { view: Extract<NowView, { state: "no_direction" }> }) {
   return (
-    <section className="now-empty-card">
-      <p className="eyebrow">NO DIRECTION</p>
-      <h2>Chưa cần ép mình chọn một task.</h2>
+    <section className="sheet now-empty-card">
+      <PaperStack />
+      <p className="eyebrow notnow">Chưa có hướng</p>
+      <h2>Chưa cần ép mình chọn một việc.</h2>
       <p>{view.message}</p>
       <div className="now-empty-actions">
         <a className="primary-button link-button" href="/direction">Xác định hướng hiện tại</a>
-        <a className="text-button link-button" href="/clarity">Brain Dump trước</a>
+        <a className="text-button link-button" href="/clarity">Làm rõ trong 2 phút</a>
       </div>
     </section>
   );
@@ -324,24 +333,22 @@ function NoReadyAction({
   const resolved = view.reason === "recommendation_resolved";
   return (
     <section className="now-page">
-      <div className="now-season-strip">
-        <div><p className="eyebrow">CURRENT SEASON</p><strong>{view.season.title}</strong></div>
-        <p>{view.season.primaryFocusText ?? view.season.purpose}</p>
-      </div>
-      <section className="now-empty-card">
-        <p className="eyebrow">{resolved ? "USER CONTROL" : "NO READY ACTION"}</p>
-        <h2>{resolved ? "LifeOS đã tôn trọng quyết định vừa rồi." : "Chưa có một việc đủ rõ để đặt vào RIGHT NOW."}</h2>
+      <SeasonStrip view={view} />
+      <section className="sheet now-empty-card">
+        <PaperStack />
+        <p className={resolved ? "eyebrow success" : "eyebrow maintain"}>{resolved ? "Theo quyết định của bạn" : "Chưa có việc sẵn sàng"}</p>
+        <h2>{resolved ? "Đã tôn trọng lựa chọn vừa rồi." : "Chưa có một việc đủ rõ để đặt vào lúc này."}</h2>
         <p>{view.message}</p>
         {mutationError ? <p className="now-inline-error" role="alert">{mutationError}</p> : null}
         <div className="now-empty-actions">
           {resolved || view.reason === "recommendation_missing" ? (
             <button className="secondary-button" type="button" disabled={busy} onClick={onRefresh}>
-              {busy ? "Đang tính lại…" : "Yêu cầu đề xuất lại"}
+              {busy ? "Đang tính lại…" : "Gợi ý lại cho tôi"}
             </button>
           ) : null}
-          <a className="text-button link-button" href="/execute">Xem vùng Execute</a>
+          <a className="text-button link-button" href="/execute">Xem việc đang có</a>
         </div>
-        {resolved ? <small>LifeOS không tự đưa recommendation đã bác trở lại. Nút trên là một yêu cầu mới có chủ ý.</small> : null}
+        {resolved ? <small>Gợi ý bạn đã bác sẽ không tự quay lại. Nút trên là một yêu cầu mới, do bạn chủ động.</small> : null}
       </section>
     </section>
   );
@@ -350,16 +357,14 @@ function NoReadyAction({
 function BlockedState({ view }: { view: Extract<NowView, { state: "blocked" }> }) {
   return (
     <section className="now-page">
-      <div className="now-season-strip">
-        <div><p className="eyebrow">CURRENT SEASON</p><strong>{view.season.title}</strong></div>
-        <p>{view.season.primaryFocusText ?? view.season.purpose}</p>
-      </div>
-      <section className="now-empty-card blocked">
-        <p className="eyebrow">BLOCKED</p>
-        <h2>Không nên giả vờ rằng bạn có một “next action” khả thi.</h2>
+      <SeasonStrip view={view} />
+      <section className="sheet now-empty-card blocked">
+        <PaperStack />
+        <p className="eyebrow">Có vẻ đang bị chặn</p>
+        <h2>Không nên giả vờ rằng có một việc khả thi ngay lúc này.</h2>
         <p>{view.message}</p>
-        <strong>{view.blockedActionCount} Action đang bị chặn</strong>
-        <p className="now-muted">NOW chỉ báo trạng thái thật. Việc gỡ blocker sẽ thuộc flow Execute tiếp theo.</p>
+        <strong className="now-blocked-count num">{view.blockedActionCount} việc đang bị chặn</strong>
+        <p className="now-muted">NOW chỉ báo trạng thái thật. Gỡ chặn sẽ thuộc khu Execute.</p>
       </section>
     </section>
   );
@@ -374,16 +379,16 @@ function NowLoading() {
         <span />
         <span />
       </div>
-      <p className="now-loading-label">Đang đọc Current Season và recommendation đã lưu…</p>
+      <p className="now-loading-label">Đang đọc mùa hiện tại và gợi ý đã lưu…</p>
     </section>
   );
 }
 
-function confidenceLabel(value: string) {
-  if (value === "direct") return "Evidence trực tiếp";
-  if (value === "strong_pattern") return "Pattern mạnh";
-  if (value === "possible_pattern") return "Pattern có thể";
-  return "Gợi ý";
+function confidenceSentence(value: string) {
+  if (value === "direct") return "Dựa trên điều bạn đã xác nhận trực tiếp";
+  if (value === "strong_pattern") return "Dựa trên một mẫu lặp lại rõ";
+  if (value === "possible_pattern") return "Dựa trên một mẫu có thể đúng";
+  return "Một gợi ý để bắt đầu";
 }
 
 function evidenceStrengthLabel(value: string) {
