@@ -3,7 +3,9 @@
 Updated: 2026-09-15 (status addendum; B4 sections below are historical)
 Repository: `huynhlongdai/LifeOsp`
 
-> **Status addendum 2026-09-15 (latest).** `main` now includes Epic #8 (design system V1, PR #51, squash-merged as `81bd9e0`) **and** B5 + W5 + quick capture + Inbox/Incubator + Get Unstuck V0 (PR #53, squash-merged as `ec6fec0`; supersedes the earlier stacked PR #52 — see "Rebase note" below). Current `main` head: `ec6fec05b9f14274a131a5ce3dc48948d4a76189`.
+> **Status addendum 2026-09-15 (latest).** `main` now includes Epic #8 (design system V1, PR #51) → B5 + W5 + quick capture + Inbox/Incubator + Get Unstuck V0 (PR #53, supersedes stacked PR #52 — see "Rebase note" below) → Execute landing V0 (PR #54, spec §7.1) → ME overview V0 (PR #55, spec §14.1, personal context only) → Direction edit (PR #56, spec §6.1, title/description). Current `main` head: `2970dab09aa417a4040639006bd4a3d1bf9e64de`. Every PR from #53 onward was verified against a real local Postgres before merging (see below), and each was built as its own branch off the then-current `main` tip + squash-merged individually — no more stacking.
+>
+> Remaining from the priority order (module inventory → this session): **Weekly Reset (Slice C)** — not started, bigger scope than the above, needs its own planning pass before implementation.
 >
 > **Verified for the first time against a real local Postgres** (installed in-sandbox: `postgresql16-server` via dnf, `initdb`/`pg_ctl` on `/tmp:5432`) before merging: `pnpm --filter @lifeos/db db:migrate` clean, `pnpm -r typecheck` 5/5, `pnpm -r test` 70/70 (domain 25, ai 9, web 25, api 11), `pnpm --filter @lifeos/api test:integration` **32/32 pass**. This caught one real bug: `computeStuckEvidence` (get-unstuck) called `.toISOString()` directly on a raw-SQL `max(...)` aggregate result; the `pg` driver returns that as a string, not a `Date`, despite the `sql<Date | null>` type annotation — fixed with `new Date(...)` first (`packages/db/src/get-unstuck.ts`).
 >
