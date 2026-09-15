@@ -3,23 +3,25 @@
 Updated: 2026-09-15 (status addendum; B4 sections below are historical)
 Repository: `huynhlongdai/LifeOsp`
 
-> **Status addendum 2026-09-15.** B4 Focus V0 has merged into `main` (#48). Sections 4, 7–8 and 10 describe the B4 work as it stood on 2026-08-26 and are kept for history.
+> **Status addendum 2026-09-15 (latest).** `main` now includes Epic #8 (design system V1, PR #51, squash-merged as `81bd9e0`) **and** B5 + W5 + quick capture + Inbox/Incubator + Get Unstuck V0 (PR #53, squash-merged as `ec6fec0`; supersedes the earlier stacked PR #52 — see "Rebase note" below). Current `main` head: `ec6fec05b9f14274a131a5ce3dc48948d4a76189`.
 >
-> Two branches are in flight, stacked:
-> 1. `feat/ux-shell-design-system-v1` — Epic #8, web presentation layer only (`apps/web/src/**`, `index.html`, manifest) per `docs/design/UI_SHELL_DESIGN_SYSTEM_V1.md`; no domain/db/api/routes changes. Includes `meetings/020-retention-warmth-and-feature-gap.md` (decided: W1–W6 approved).
-> 2. `feat/b5-result-daily-close-agent` (on top of 1; PR #52) — **B5 #41 Result + Daily Close V0**: domain `result.ts`; db tables `action_results`, `daily_closes` + migration `0009_b5_result_daily_close`; api `POST /v1/actions/:actionId/result`, `GET/POST /v1/daily-close`; web `ResultPanel` in NOW, `DailyClosePage` on `/reflect`, `docs/design/COPY_VOICE_V1.md`. Contract: an Action leaves `ready`/`active` only through a recorded result; an active FocusSession on that Action is ended in the same commit **only** when the client passes `focusOutcome` (otherwise 409 `active_focus_exists`); Daily Close is keyed by client-supplied local `date` + `offsetMinutes` (getTimezoneOffset semantics), summarizes recorded facts only, upserts once per user per date. `apps/api/src/result.integration.ts` is written but **has not been executed** (no Postgres in the authoring sandbox) — run `pnpm --filter @lifeos/api test:integration` with `DATABASE_URL` before merging. Also on this branch: W5 welcome-back (`NowView.returning`), global quick capture (`QuickCapture`), `meetings/021` first-run feedback, `docs/design/FIGMA_MAKE_RECONCILIATION_V1.md` (decided) and its first port — read-only `GET /v1/captures`, `GET /v1/incubator` with `/inbox` and `/incubator` secondary routes. Next: B6 #42 E2E, Get Unstuck, Weekly Reset, then F1/F3/F5 from meeting #021 (see #020 §6).
+> **Verified for the first time against a real local Postgres** (installed in-sandbox: `postgresql16-server` via dnf, `initdb`/`pg_ctl` on `/tmp:5432`) before merging: `pnpm --filter @lifeos/db db:migrate` clean, `pnpm -r typecheck` 5/5, `pnpm -r test` 70/70 (domain 25, ai 9, web 25, api 11), `pnpm --filter @lifeos/api test:integration` **32/32 pass**. This caught one real bug: `computeStuckEvidence` (get-unstuck) called `.toISOString()` directly on a raw-SQL `max(...)` aggregate result; the `pg` driver returns that as a string, not a `Date`, despite the `sql<Date | null>` type annotation — fixed with `new Date(...)` first (`packages/db/src/get-unstuck.ts`).
+>
+> **Rebase note**: squash-merging #51 rewrote `main`'s history, so #52's stacked branch could not fast-forward or `update_pull_request_branch` cleanly (GitHub reported "merge conflict between base and head" even though tree content was identical). Fixed with a local `git rebase --onto <new main> <old #51 tip> feat/b5-result-daily-close-agent` (clean, no real conflicts), replayed onto a fresh branch `feat/b5-result-daily-close-agent-main`, opened as PR #53, and merged; PR #52 closed as superseded.
+>
+> Next priorities (per module inventory, product owner confirmed "triển khai từng module cho hoàn tất"): Execute landing page (spec §7.1) → ME minimal page (spec §14.1) → Direction edit → Weekly Reset (Slice C).
 
-> **Branch map 2026-09-15 (decided by product owner).** `git clone --depth` hides these; run `git fetch --all` first.
+> **Branch map 2026-09-15.**
 >
 > | Branch | Status | Decision |
 > |---|---|---|
-> | `feat/ux-shell-design-system-v1` → PR #51 | Epic #8 UI shell (agent) | review & merge first |
-> | `feat/b5-result-daily-close-agent` → PR #52 (stacked on #51) | **B5 source of truth** + W5 + quick capture + Inbox/Incubator (agent) | merge after #51; run `result.integration.ts` with Postgres first |
-> | `feat/b5-result-daily-close` (bilonglo9x-code, 14/09) | parallel B5, same migration number `0009` | **do not merge**; its unit tests were ported into #52 (`apps/web/src/result-api.test.ts`, `packages/domain/src/result.test.ts`, restart case in `result.integration.ts`) |
+> | `feat/ux-shell-design-system-v1` → PR #51 | Epic #8 UI shell | **merged to main** (`81bd9e0`) |
+> | `feat/b5-result-daily-close-agent-main` → PR #53 | B5 + W5 + quick capture + Inbox/Incubator + Get Unstuck V0, rebased onto post-#51 main | **merged to main** (`ec6fec0`); supersedes PR #52 (closed) |
+> | `feat/b5-result-daily-close` (bilonglo9x-code, 14/09) | parallel B5, same migration number `0009` | **do not merge**; its unit tests were ported into #52/#53 (`apps/web/src/result-api.test.ts`, `packages/domain/src/result.test.ts`, restart case in `result.integration.ts`) |
 > | `feat/ui-redesign-v2` (13/09) | dark mobile redesign + third B5 | **do not merge** (conflicts with Addendum V1 and with the chosen B5) |
 > | `feat/ui-design-system-v1` (Viktor, 14/09, 100 files) | AI Coach chat, "Điểm cuộc sống", Admin panel, onboarding, demo dataset, custom AI provider | **do not merge as a whole** (re-confirmed 15/09 after re-inspection — see note below); cherry-pick candidates only |
 >
-> Only one `0009_*` migration may reach `main`; the one in #52 is `0009_b5_result_daily_close`.
+> Only one `0009_*` migration may reach `main`; the merged one is `0009_b5_result_daily_close` from PR #53.
 
 > **Re-inspection of `feat/ui-design-system-v1`, 15/09** — product owner asked me to re-check whether this branch could be merged to `main` as-is because "UI khá đầy đủ." Read the actual diff (not just commit subjects) against `origin/main`: 27 commits, ~100 files. Findings that keep the verdict at **do not merge whole**:
 > 1. **`apps/web/src/design/index.css` is the raw Figma Make export CSS, vendored verbatim** — the file's own header comment says "vendored verbatim from the approved Figma Make export... Do not restyle by hand." That bypasses the KEEP/ADAPT/REJECT matrix in `FIGMA_MAKE_RECONCILIATION_V1.md` entirely instead of applying it. It ships a `[data-theme="futuristic"]` variant with `background: ... #0a0a0a` and neon-lime radial gradients (`rgba(170,235,60,...)`) — exactly the dark/neon "AI dashboard" look Addendum V1 bans, not the deferred-to-P1 "dịu, không neon" dark theme the product owner actually approved.
