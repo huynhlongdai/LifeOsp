@@ -52,6 +52,7 @@ export function createNowApiClient(baseUrl = ""): NowApiClient {
 
 export function isNowView(value: unknown): value is NowView {
   if (!isRecord(value) || typeof value.state !== "string" || typeof value.generatedAt !== "string") return false;
+  if (value.returning !== undefined && !isReturnContext(value.returning)) return false;
 
   if (value.state === "no_direction") {
     return typeof value.message === "string";
@@ -75,6 +76,10 @@ export function isNowView(value: unknown): value is NowView {
 
   if (value.state !== "ready" || !isAction(value.action) || !isRecommendation(value.recommendation)) return false;
   return true;
+}
+
+function isReturnContext(value: unknown): boolean {
+  return isRecord(value) && typeof value.lastActivityAt === "string" && Number.isInteger(value.daysAway) && (value.daysAway as number) >= 0;
 }
 
 function isSeason(value: unknown): boolean {

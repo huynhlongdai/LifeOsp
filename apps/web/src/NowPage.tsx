@@ -84,17 +84,35 @@ export function NowPage({ apiUrl }: { apiUrl: string }) {
   }
 
   const view = state.data;
-  if (view.state === "no_direction") return <NoDirection view={view} />;
-  if (view.state === "blocked") return <BlockedState view={view} lastResult={lastResult} />;
+  const returnBanner = view.returning ? <ReturnBanner /> : null;
+  if (view.state === "no_direction") {
+    return (
+      <div className="now-stack">
+        {returnBanner}
+        <NoDirection view={view} />
+      </div>
+    );
+  }
+  if (view.state === "blocked") {
+    return (
+      <div className="now-stack">
+        {returnBanner}
+        <BlockedState view={view} lastResult={lastResult} />
+      </div>
+    );
+  }
   if (view.state === "no_ready_action") {
     return (
-      <NoReadyAction
-        view={view}
-        busy={busy}
-        mutationError={mutationError}
-        lastResult={lastResult}
-        onRefresh={() => void refresh()}
-      />
+      <div className="now-stack">
+        {returnBanner}
+        <NoReadyAction
+          view={view}
+          busy={busy}
+          mutationError={mutationError}
+          lastResult={lastResult}
+          onRefresh={() => void refresh()}
+        />
+      </div>
     );
   }
 
@@ -104,6 +122,7 @@ export function NowPage({ apiUrl }: { apiUrl: string }) {
 
   return (
     <section className="now-page" aria-live="polite">
+      {returnBanner}
       <SeasonStrip view={view} />
       {lastResult ? <ResultNote result={lastResult} /> : null}
 
@@ -343,6 +362,22 @@ function NoDirection({ view }: { view: Extract<NowView, { state: "no_direction" 
         <a className="text-button link-button" href="/clarity">Làm rõ trong 2 phút</a>
       </div>
     </section>
+  );
+}
+
+/**
+ * W5 — welcome back after an absence (Meeting #003 Pattern F). No day count,
+ * no red, no recovery debt: the direction is still here and one action is below.
+ */
+function ReturnBanner() {
+  return (
+    <div className="now-return" role="status">
+      <div>
+        <strong>Chào mừng trở lại.</strong>
+        <span>Hướng của bạn vẫn ở đây. Không có gì phải đuổi theo — chỉ một việc bên dưới, nếu bạn muốn.</span>
+      </div>
+      <a className="text-button link-button" href="/clarity">Có gì đổi không?</a>
+    </div>
   );
 }
 

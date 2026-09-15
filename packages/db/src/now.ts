@@ -1,9 +1,11 @@
 import {
   NEXT_ACTION_FACTOR_KEYS,
+  NOW_RETURN_THRESHOLD_HOURS,
   type ActionId,
   type EvidenceStrength,
   type NextActionFactorKey,
   type NowEvidenceItem,
+  type NowReturnContext,
   type NowSeasonContext,
   type NowView,
   type RecommendationConfidenceClass,
@@ -11,7 +13,7 @@ import {
   type ResolveNowRecommendationInput,
   type SeasonId
 } from "@lifeos/domain";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, max } from "drizzle-orm";
 import type { DatabaseClient } from "./index.js";
 import * as schema from "./schema.js";
 
@@ -35,12 +37,14 @@ export async function readNowView(
     .from(schema.seasons)
     .where(and(eq(schema.seasons.userId, userId), eq(schema.seasons.status, "active")))
     .limit(1);
+  const returning = await readReturnContext(database, userId, generatedAt);
 
   if (!season) {
     return {
       state: "no_direction",
       generatedAt: generatedAt.toISOString(),
-      message: "Hãy chọn một hướng hiện tại trước khi LifeOS đề xuất việc nên làm tiếp theo."
+      message: "Hãy chọn một hướng hiện tại trước khi LifeOS đề xuất việc nên làm tiếp theo.",
+      ...(returning ? { returning } : {})
     };
   }
 
@@ -63,7 +67,7 @@ export async function readNowView(
     (READY_RECOMMENDATION_STATUSES as readonly string[]).includes(latestRecommendation.status)
   ) {
     const readyView = await tryBuildReadyView(database, userId, season, latestRecommendation, generatedAt);
-    if (readyView) return readyView;
+    if (readyView) return returning ? { ...readyView, returning } : readyView;
   }
 
   const executionRows = await database.db
@@ -104,7 +108,8 @@ export async function readNowView(
       generatedAt: generatedAt.toISOString(),
       season: seasonView,
       blockedActionCount,
-      message: "Các Action hiện tại đang bị chặn. Gỡ một blocker trước khi chọn việc tiếp theo."
+      message: "Các Action hiện tại đang bị chặn. Gỡ một blocker trước khi chọn việc tiếp theo.",
+      ...(returning ? { returning } : {})
     };
   }
 
@@ -125,8 +130,30 @@ export async function readNowView(
       ? "Recommendation trước đã được bạn xử lý. LifeOS sẽ không tự đưa nó trở lại."
       : readyActionCount > 0
         ? "Có Action sẵn sàng nhưng chưa có recommendation hiện hành."
-        : "Chưa có Action sẵn sàng trong Current Season này."
+        : "Chưa có Action sẵn sàng trong Current Season này.",
+    ...(returning ? { returning } : {})
   };
+}
+
+/**
+ * W5 — coming back after ≥ NOW_RETURN_THRESHOLD_HOURS without any user-sourced
+ * LifeEvent. Reading NOW itself writes no event, so this stays true until the
+ * user actually does something. Never surfaced as a streak or a debt.
+ */
+async function readReturnContext(
+  database: DatabaseClient,
+  userId: string,
+  generatedAt: Date
+): Promise<NowReturnContext | null> {
+  const [row] = await database.db
+    .select({ last: max(schema.lifeEvents.occurredAt) })
+    .from(schema.lifeEvents)
+    .where(and(eq(schema.lifeEvents.userId, userId), eq(schema.lifeEvents.source, "user")));
+  const last = row?.last ?? null;
+  if (!last) return null;
+  const hoursAway = (generatedAt.getTime() - last.getTime()) / 3_600_000;
+  if (hoursAway < NOW_RETURN_THRESHOLD_HOURS) return null;
+  return { lastActivityAt: last.toISOString(), daysAway: Math.floor(hoursAway / 24) };
 }
 
 export async function resolveNowRecommendation(
