@@ -6,6 +6,7 @@ import { DailyClosePage } from "./DailyClosePage";
 import { DirectionPage } from "./DirectionPage";
 import { ClarityIcon, RouteIcon } from "./icons";
 import { NowPage } from "./NowPage";
+import { QuickCapture } from "./QuickCapture";
 import { APP_ROUTES, resolveRoute, type AppRoute, type AppRouteKey } from "./routes";
 import { EmptyState, ErrorState, LoadingState, type AsyncState } from "./ui-states";
 
@@ -87,6 +88,7 @@ export function App() {
           ))}
         </nav>
         <div className="secondary-links" aria-label="Công cụ phụ">
+          <QuickCapture apiUrl={apiUrl} />
           <a href="/clarity" onClick={(event) => navigate(event, "/clarity")}>
             <ClarityIcon />
             Làm rõ lại (Clarity Reset)
