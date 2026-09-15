@@ -2,6 +2,7 @@ import { useEffect, useState, type MouseEvent } from "react";
 import type { HealthStatus } from "@lifeos/domain";
 import { createApiClient } from "./api";
 import { ClarityReset } from "./ClarityReset";
+import { DailyClosePage } from "./DailyClosePage";
 import { DirectionPage } from "./DirectionPage";
 import { ClarityIcon, RouteIcon } from "./icons";
 import { NowPage } from "./NowPage";
@@ -21,7 +22,7 @@ const NAV_LABEL: Record<AppRouteKey, string> = {
 const PAGE_HEADING: Record<Exclude<AppRouteKey, "now">, { kicker: string; title: string }> = {
   direction: { kicker: "Direction", title: "Hướng hiện tại" },
   execute: { kicker: "Execute", title: "Việc đang có" },
-  reflect: { kicker: "Reflect", title: "Nhìn lại" },
+  reflect: { kicker: "Reflect", title: "Khép lại hôm nay" },
   me: { kicker: "Me", title: "Bạn" },
   clarity: { kicker: "Clarity Reset", title: "Làm rõ điều đang quan trọng" }
 };
@@ -142,6 +143,7 @@ function RouteContent({ route, apiUrl }: { route: AppRoute; apiUrl: string }) {
   if (route.key === "clarity") return <ClarityReset apiUrl={apiUrl} />;
   if (route.key === "direction") return <DirectionPage apiUrl={apiUrl} />;
   if (route.key === "now") return <NowPage apiUrl={apiUrl} />;
+  if (route.key === "reflect") return <DailyClosePage apiUrl={apiUrl} />;
 
   return (
     <EmptyState

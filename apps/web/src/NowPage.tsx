@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
-import type { NowView, ResolveNowRecommendationInput } from "@lifeos/domain";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { ActionResultView, FocusStateView, NowView, ResolveNowRecommendationInput } from "@lifeos/domain";
 import { createApiClient } from "./api";
 import { createNowApiClient } from "./now-api";
 import { FocusPanel } from "./FocusPanel";
 import { ShieldIcon } from "./icons";
+import { ResultPanel, resultLabel } from "./ResultPanel";
 import { ErrorState, PaperStack, type AsyncState } from "./ui-states";
 
 export function NowPage({ apiUrl }: { apiUrl: string }) {
@@ -12,6 +13,9 @@ export function NowPage({ apiUrl }: { apiUrl: string }) {
   const [showWhy, setShowWhy] = useState(false);
   const [editing, setEditing] = useState(false);
   const [mutationError, setMutationError] = useState<string | null>(null);
+  const [focusView, setFocusView] = useState<FocusStateView | null>(null);
+  const [lastResult, setLastResult] = useState<ActionResultView | null>(null);
+  const onFocusStateChange = useCallback((view: FocusStateView) => setFocusView(view), []);
 
   const nowApi = useMemo(() => createNowApiClient(apiUrl), [apiUrl]);
   const sessionApi = useMemo(() => createApiClient(apiUrl), [apiUrl]);
@@ -68,6 +72,12 @@ export function NowPage({ apiUrl }: { apiUrl: string }) {
     }
   };
 
+  const onResultRecorded = (result: ActionResultView) => {
+    setLastResult(result);
+    setFocusView(null);
+    void refresh();
+  };
+
   if (state.kind === "loading") return <NowLoading />;
   if (state.kind === "error") {
     return <ErrorState title="NOW chưa sẵn sàng">{state.message}</ErrorState>;
@@ -75,21 +85,27 @@ export function NowPage({ apiUrl }: { apiUrl: string }) {
 
   const view = state.data;
   if (view.state === "no_direction") return <NoDirection view={view} />;
-  if (view.state === "blocked") return <BlockedState view={view} />;
+  if (view.state === "blocked") return <BlockedState view={view} lastResult={lastResult} />;
   if (view.state === "no_ready_action") {
     return (
       <NoReadyAction
         view={view}
         busy={busy}
         mutationError={mutationError}
+        lastResult={lastResult}
         onRefresh={() => void refresh()}
       />
     );
   }
 
+  const activeFocus =
+    focusView?.state === "active" && focusView.focus.actionId === view.action.id ? focusView.focus : null;
+  const resultEligible = view.recommendation.status === "accepted" || view.recommendation.status === "edited";
+
   return (
     <section className="now-page" aria-live="polite">
       <SeasonStrip view={view} />
+      {lastResult ? <ResultNote result={lastResult} /> : null}
 
       <article className="sheet stack now-hero">
         <div className="now-lead">
@@ -184,7 +200,18 @@ export function NowPage({ apiUrl }: { apiUrl: string }) {
         apiUrl={apiUrl}
         recommendationId={view.recommendation.id}
         recommendationStatus={view.recommendation.status}
+        onStateChange={onFocusStateChange}
       />
+
+      {resultEligible ? (
+        <ResultPanel
+          apiUrl={apiUrl}
+          actionId={view.action.id}
+          actionTitle={view.action.title}
+          activeFocus={activeFocus}
+          onRecorded={onResultRecorded}
+        />
+      ) : null}
 
       <aside className="now-protect">
         <ShieldIcon />
@@ -319,21 +346,37 @@ function NoDirection({ view }: { view: Extract<NowView, { state: "no_direction" 
   );
 }
 
+/** One warm, factual line after a result is recorded. Links to the Daily Close ritual. */
+function ResultNote({ result }: { result: ActionResultView }) {
+  return (
+    <div className={`now-result-note ${result.result}`} role="status">
+      <span>
+        <strong>Đã ghi: {resultLabel(result.result)}.</strong> {result.action.title}
+        {result.actualFocusMinutes > 0 ? ` · ${result.actualFocusMinutes} phút Focus` : ""}
+      </span>
+      <a href="/reflect">Khép ngày khi bạn muốn</a>
+    </div>
+  );
+}
+
 function NoReadyAction({
   view,
   busy,
   mutationError,
+  lastResult,
   onRefresh
 }: {
   view: Extract<NowView, { state: "no_ready_action" }>;
   busy: boolean;
   mutationError: string | null;
+  lastResult: ActionResultView | null;
   onRefresh: () => void;
 }) {
   const resolved = view.reason === "recommendation_resolved";
   return (
     <section className="now-page">
       <SeasonStrip view={view} />
+      {lastResult ? <ResultNote result={lastResult} /> : null}
       <section className="sheet now-empty-card">
         <PaperStack />
         <p className={resolved ? "eyebrow success" : "eyebrow maintain"}>{resolved ? "Theo quyết định của bạn" : "Chưa có việc sẵn sàng"}</p>
@@ -354,10 +397,11 @@ function NoReadyAction({
   );
 }
 
-function BlockedState({ view }: { view: Extract<NowView, { state: "blocked" }> }) {
+function BlockedState({ view, lastResult }: { view: Extract<NowView, { state: "blocked" }>; lastResult: ActionResultView | null }) {
   return (
     <section className="now-page">
       <SeasonStrip view={view} />
+      {lastResult ? <ResultNote result={lastResult} /> : null}
       <section className="sheet now-empty-card blocked">
         <PaperStack />
         <p className="eyebrow">Có vẻ đang bị chặn</p>

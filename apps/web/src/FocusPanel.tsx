@@ -7,6 +7,8 @@ type FocusPanelProps = {
   apiUrl: string;
   recommendationId: string;
   recommendationStatus: "shown" | "accepted" | "edited";
+  /** Lets NOW know which FocusSession (if any) is running, so the Result step can end it explicitly. */
+  onStateChange?: ((view: FocusStateView) => void) | undefined;
 };
 
 type FocusPanelState =
@@ -16,9 +18,13 @@ type FocusPanelState =
 
 // B4 Focus V0 entry point. Only reads/writes FocusSession state via the
 // dedicated Focus API; never touches Action completion or result semantics.
-export function FocusPanel({ apiUrl, recommendationId, recommendationStatus }: FocusPanelProps) {
+export function FocusPanel({ apiUrl, recommendationId, recommendationStatus, onStateChange }: FocusPanelProps) {
   const focusApi = useMemo(() => createFocusApiClient(apiUrl), [apiUrl]);
   const [state, setState] = useState<FocusPanelState>({ kind: "loading" });
+
+  useEffect(() => {
+    if (state.kind === "loaded") onStateChange?.(state.data);
+  }, [state, onStateChange]);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [distractionText, setDistractionText] = useState("");
