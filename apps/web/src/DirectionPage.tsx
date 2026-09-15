@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { CurrentDirectionView } from "@lifeos/domain";
 import { ApiRequestError, createApiClient } from "./api";
+import { PaperStack } from "./ui-states";
 
 export function DirectionPage({ apiUrl }: { apiUrl: string }) {
   const api = useMemo(() => createApiClient(apiUrl), [apiUrl]);
@@ -33,9 +34,9 @@ export function DirectionPage({ apiUrl }: { apiUrl: string }) {
   if (state.kind === "loading") {
     return (
       <section className="state-message" role="status">
-        <p className="eyebrow">DIRECTION</p>
-        <h2>Đang đọc Current Season...</h2>
-        <p>LifeOS đang tải trạng thái đã xác nhận, không dựng dữ liệu tạm trên client.</p>
+        <p className="eyebrow">Đang đọc</p>
+        <h2>Đang đọc mùa hiện tại…</h2>
+        <p>LifeOS chỉ hiển thị hướng bạn đã xác nhận, không dựng dữ liệu tạm.</p>
       </section>
     );
   }
@@ -43,8 +44,8 @@ export function DirectionPage({ apiUrl }: { apiUrl: string }) {
   if (state.kind === "error") {
     return (
       <section className="state-message error-message" role="alert">
-        <p className="eyebrow">DIRECTION</p>
-        <h2>Chưa tải được Direction.</h2>
+        <p className="eyebrow">Chưa sẵn sàng</p>
+        <h2>Chưa tải được hướng hiện tại.</h2>
         <p>{state.message}</p>
       </section>
     );
@@ -52,13 +53,14 @@ export function DirectionPage({ apiUrl }: { apiUrl: string }) {
 
   if (state.kind === "empty") {
     return (
-      <section className="hero-card direction-empty">
-        <p className="eyebrow">NO CURRENT SEASON</p>
-        <h2>Bạn chưa xác nhận một hướng hiện tại.</h2>
+      <section className="empty-state direction-empty">
+        <PaperStack />
+        <p className="eyebrow notnow">Chưa có mùa hiện tại</p>
+        <h2>Bạn chưa xác nhận một hướng để bảo vệ.</h2>
         <p>
-          LifeOS không tự chọn Direction từ Brain Dump. Clarity Reset giúp bạn làm rõ, trade-off rồi tự xác nhận hướng muốn bảo vệ.
+          LifeOS không tự chọn hướng từ Brain Dump. Làm rõ giúp bạn nhìn ra điều đang quan trọng, cân nhắc, rồi tự xác nhận.
         </p>
-        <a className="primary-button link-button" href="/clarity">Bắt đầu Clarity Reset</a>
+        <a className="primary-button link-button" href="/clarity">Bắt đầu làm rõ</a>
       </section>
     );
   }
@@ -67,45 +69,45 @@ export function DirectionPage({ apiUrl }: { apiUrl: string }) {
   return (
     <section className="direction-current" aria-labelledby="current-direction-title">
       <div className="hero-card direction-hero">
-        <p className="eyebrow">CURRENT DIRECTION</p>
+        <p className="eyebrow active">Đang theo</p>
         <h2 id="current-direction-title">{direction.title}</h2>
         {direction.description ? <p>{direction.description}</p> : null}
         <div className="direction-meta">
-          <span>Confirmed</span>
+          <span>Đã xác nhận</span>
           {direction.confirmedAt ? <span>{formatDateTime(direction.confirmedAt)}</span> : null}
         </div>
       </div>
 
       <article className="current-season-card">
         <div>
-          <p className="eyebrow">CURRENT SEASON</p>
+          <p className="eyebrow accent">Mùa hiện tại</p>
           <h3>{season.title}</h3>
           <p>{season.purpose}</p>
         </div>
         <div className="season-facts">
           {season.primaryFocusText ? (
             <div>
-              <span>PRIMARY FOCUS</span>
+              <span>Ưu tiên chính</span>
               <strong>{season.primaryFocusText}</strong>
             </div>
           ) : null}
           {season.startsOn ? (
             <div>
-              <span>START</span>
-              <strong>{formatDate(season.startsOn)}</strong>
+              <span>Bắt đầu</span>
+              <strong className="num">{formatDate(season.startsOn)}</strong>
             </div>
           ) : null}
           {season.targetEndsOn ? (
             <div>
-              <span>TARGET END</span>
-              <strong>{formatDate(season.targetEndsOn)}</strong>
+              <span>Mục tiêu kết</span>
+              <strong className="num">{formatDate(season.targetEndsOn)}</strong>
             </div>
           ) : null}
         </div>
       </article>
 
       <div className="direction-principle-note">
-        <strong>Một Current Season đang active.</strong>
+        <strong>Một mùa đang chạy.</strong>
         <span>LifeOS sẽ không âm thầm thay nó bằng một hướng mới.</span>
       </div>
     </section>
@@ -119,5 +121,6 @@ function formatDate(value: string): string {
 
 function formatDateTime(value: string): string {
   const date = new Date(value);
-  return Number.isNaN(date.valueOf()) ? value : date.toLocaleString("vi-VN");
+  if (Number.isNaN(date.valueOf())) return value;
+  return new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium" }).format(date);
 }
