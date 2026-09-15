@@ -4,6 +4,7 @@ import {
   findCurrentDirection,
   findLatestCaptureInterpretation,
   resolveClarityPromotion,
+  updateActiveDirection,
   type DatabaseClient,
   type DirectionRow,
   type IncubatorItemRow,
@@ -11,6 +12,8 @@ import {
   type SeasonRow
 } from "@lifeos/db";
 import {
+  EDIT_DIRECTION_MAX_DESCRIPTION,
+  EDIT_DIRECTION_MAX_TITLE,
   INCUBATOR_KINDS,
   type CaptureInterpretationContentV1,
   type ClarityPromotionDraftInput,
@@ -18,6 +21,7 @@ import {
   type CurrentDirectionView,
   type DirectionId,
   type DirectionView,
+  type EditDirectionInput,
   type IncubatorItemId,
   type IncubatorItemView,
   type RecommendationId,
@@ -38,6 +42,7 @@ type PromotionErrorView = {
     | "unauthenticated"
     | "invalid_id"
     | "invalid_promotion"
+    | "invalid_edit"
     | "not_found"
     | "interpretation_version_conflict"
     | "state_conflict"
@@ -269,6 +274,67 @@ export function registerPromotionRoutes(app: FastifyInstance, database: Database
       return { direction: toDirectionView(current.direction), season: toSeasonView(current.season) };
     }
   );
+
+  // Spec §6.1 "edit Direction". Title/description only — pause/close and
+  // creating a new Direction stay separate, intentional flows (P1).
+  app.patch(
+    "/v1/direction/current",
+    async (request, reply): Promise<CurrentDirectionView | PromotionErrorView> => {
+      reply.header("cache-control", "no-store");
+      if (!database) {
+        reply.code(503);
+        return { error: "unavailable", message: "Direction storage is unavailable" };
+      }
+      const userId = await resolveActorUserId(request, database);
+      if (!userId) {
+        reply.code(401);
+        return { error: "unauthenticated", message: "An active LifeOS session is required" };
+      }
+
+      const input = parseEditDirectionInput(request.body);
+      if (!input) {
+        reply.code(400);
+        return { error: "invalid_edit", message: "title (if provided) must be 1-200 characters; description (if provided) at most 2000" };
+      }
+
+      const current = await findCurrentDirection(database, userId);
+      if (!current) {
+        reply.code(404);
+        return { error: "not_found", message: "No active Direction/Season exists" };
+      }
+
+      const outcome = await updateActiveDirection(database, userId, current.direction.id, input, new Date());
+      if (outcome.status === "not_found") {
+        reply.code(404);
+        return { error: "not_found", message: "No active Direction/Season exists" };
+      }
+
+      return { direction: toDirectionView(outcome.direction), season: toSeasonView(current.season) };
+    }
+  );
+}
+
+function parseEditDirectionInput(value: unknown): EditDirectionInput | null {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  const keys = Object.keys(record);
+  if (!keys.every((key) => key === "title" || key === "description")) return null;
+  if (keys.length === 0) return null;
+
+  const input: EditDirectionInput = {};
+  if ("title" in record) {
+    if (typeof record.title !== "string") return null;
+    const title = record.title.trim();
+    if (title.length === 0 || title.length > EDIT_DIRECTION_MAX_TITLE) return null;
+    input.title = title;
+  }
+  if ("description" in record) {
+    if (record.description !== null && typeof record.description !== "string") return null;
+    const description = typeof record.description === "string" ? record.description.trim() : "";
+    if (description.length > EDIT_DIRECTION_MAX_DESCRIPTION) return null;
+    input.description = description;
+  }
+  return input;
 }
 
 type FinalPromotionInput = Pick<ClarityPromotionDraftInput, "direction" | "season">;

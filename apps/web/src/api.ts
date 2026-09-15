@@ -16,6 +16,7 @@ import {
   type ClarityPromotionDraftView,
   type CurrentDirectionView,
   type DirectionView,
+  type EditDirectionInput,
   type HealthStatus,
   type IncubatorItemView,
   type SeasonView,
@@ -90,6 +91,7 @@ export type ApiClient = {
   rejectClarityPromotion(recommendationId: string, signal?: AbortSignal): Promise<PromotionResolutionView>;
   deferClarityPromotion(recommendationId: string, signal?: AbortSignal): Promise<PromotionResolutionView>;
   getCurrentDirection(signal?: AbortSignal): Promise<CurrentDirectionView | null>;
+  editDirection(input: EditDirectionInput, signal?: AbortSignal): Promise<CurrentDirectionView>;
 };
 
 export function createApiClient(baseUrl = ""): ApiClient {
@@ -222,6 +224,18 @@ export function createApiClient(baseUrl = ""): ApiClient {
         if (error instanceof ApiRequestError && error.status === 404) return null;
         throw error;
       }
+    },
+
+    async editDirection(input, signal) {
+      const value = await request("/v1/direction/current", {
+        method: "PATCH",
+        body: JSON.stringify(input),
+        ...(signal ? { signal } : {})
+      });
+      if (!isCurrentDirectionView(value)) {
+        throw new Error("Current Direction response does not match the LifeOS contract");
+      }
+      return value;
     }
   };
 }

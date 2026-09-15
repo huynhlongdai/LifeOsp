@@ -497,6 +497,56 @@ export async function findCurrentDirection(
   return { direction, season };
 }
 
+export type UpdateDirectionInput = {
+  title?: string;
+  description?: string;
+};
+
+export type UpdateDirectionOutcome = { status: "updated"; direction: schema.DirectionRow } | { status: "not_found" };
+
+/** Spec §6.1 "edit Direction". Only the caller's own active Direction can
+ * be edited; the row is locked for the duration of the update. */
+export async function updateActiveDirection(
+  database: DatabaseClient,
+  userId: string,
+  directionId: string,
+  input: UpdateDirectionInput,
+  editedAt: Date
+): Promise<UpdateDirectionOutcome> {
+  return database.db.transaction(async (transaction) => {
+    const [direction] = await transaction
+      .select()
+      .from(schema.directions)
+      .where(and(eq(schema.directions.id, directionId), eq(schema.directions.userId, userId), eq(schema.directions.status, "active")))
+      .limit(1)
+      .for("update");
+    if (!direction) return { status: "not_found" };
+
+    const [updated] = await transaction
+      .update(schema.directions)
+      .set({
+        updatedAt: editedAt,
+        ...(input.title === undefined ? {} : { title: input.title }),
+        ...(input.description === undefined ? {} : { description: input.description })
+      })
+      .where(and(eq(schema.directions.id, directionId), eq(schema.directions.userId, userId)))
+      .returning();
+    if (!updated) throw new Error("Failed to update Direction");
+
+    await transaction.insert(schema.lifeEvents).values({
+      userId,
+      type: "direction.edited",
+      source: "user",
+      entityType: "direction",
+      entityId: directionId,
+      payload: { previousTitle: direction.title, previousDescription: direction.description },
+      occurredAt: editedAt
+    });
+
+    return { status: "updated", direction: updated };
+  });
+}
+
 function parsePromotionPayload(value: unknown): PromotionPayload | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const record = value as Record<string, unknown>;

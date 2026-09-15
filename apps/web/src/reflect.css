@@ -185,6 +185,16 @@
   .execute-filters select { flex: 1 1 auto; }
 }
 
+/* ---- Direction edit (spec §6.1) ---- */
+.direction-header-view { display: grid; gap: 8px; align-items: start; }
+.direction-header-view > .text-button { justify-self: start; }
+.direction-header-edit { display: grid; gap: 12px; max-width: 480px; }
+.direction-header-edit label { display: grid; gap: 6px; }
+.direction-header-edit label > span { font-size: .8rem; font-weight: 600; color: var(--los-ink-2); }
+.direction-header-edit input, .direction-header-edit textarea { width: 100%; color: var(--los-ink); background: var(--los-sheet-tint); border: 1px solid var(--los-line); border-radius: var(--los-r-control); padding: 11px 13px; line-height: 1.45; font: inherit; }
+.direction-header-edit textarea { resize: vertical; }
+.direction-header-edit-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+
 /* ---- ME overview (spec §14.1) ---- */
 .me-page { display: grid; gap: 20px; max-width: 720px; }
 .me-context-card { display: grid; gap: 8px; padding: 20px 22px; }

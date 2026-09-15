@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import type { CurrentDirectionView } from "@lifeos/domain";
-import { ApiRequestError, createApiClient } from "./api";
+import { EDIT_DIRECTION_MAX_DESCRIPTION, EDIT_DIRECTION_MAX_TITLE, type CurrentDirectionView, type DirectionView } from "@lifeos/domain";
+import { ApiRequestError, createApiClient, type ApiClient } from "./api";
 import { PaperStack } from "./ui-states";
 
 export function DirectionPage({ apiUrl }: { apiUrl: string }) {
@@ -66,12 +66,13 @@ export function DirectionPage({ apiUrl }: { apiUrl: string }) {
   }
 
   const { direction, season } = state.current;
+  const setCurrent = (current: CurrentDirectionView) => setState({ kind: "ready", current });
+
   return (
     <section className="direction-current" aria-labelledby="current-direction-title">
       <div className="hero-card direction-hero">
         <p className="eyebrow active">Đang theo</p>
-        <h2 id="current-direction-title">{direction.title}</h2>
-        {direction.description ? <p>{direction.description}</p> : null}
+        <DirectionHeader api={api} direction={direction} onSaved={(updatedDirection) => setCurrent({ direction: updatedDirection, season })} />
         <div className="direction-meta">
           <span>Đã xác nhận</span>
           {direction.confirmedAt ? <span>{formatDateTime(direction.confirmedAt)}</span> : null}
@@ -112,6 +113,99 @@ export function DirectionPage({ apiUrl }: { apiUrl: string }) {
       </div>
     </section>
   );
+}
+
+function DirectionHeader({
+  api,
+  direction,
+  onSaved
+}: {
+  api: ApiClient;
+  direction: DirectionView;
+  onSaved: (direction: DirectionView) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [title, setTitle] = useState(direction.title);
+  const [description, setDescription] = useState(direction.description ?? "");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (!editing) {
+    return (
+      <div className="direction-header-view">
+        <h2 id="current-direction-title">{direction.title}</h2>
+        {direction.description ? <p>{direction.description}</p> : null}
+        <button
+          type="button"
+          className="text-button link-button"
+          onClick={() => {
+            setTitle(direction.title);
+            setDescription(direction.description ?? "");
+            setError(null);
+            setEditing(true);
+          }}
+        >
+          Sửa Direction
+        </button>
+      </div>
+    );
+  }
+
+  const save = async () => {
+    const trimmedTitle = title.trim();
+    if (trimmedTitle.length === 0) {
+      setError("Tên hướng không được để trống.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const updated = await api.editDirection({ title: trimmedTitle, description: description.trim() });
+      onSaved(updated.direction);
+      setEditing(false);
+    } catch (reason) {
+      setError(editDirectionErrorMessage(reason));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="direction-header-edit">
+      <label>
+        <span>Tên hướng</span>
+        <input value={title} maxLength={EDIT_DIRECTION_MAX_TITLE} onChange={(event) => setTitle(event.target.value)} disabled={busy} />
+      </label>
+      <label>
+        <span>Vì sao hướng này quan trọng</span>
+        <textarea
+          value={description}
+          rows={3}
+          maxLength={EDIT_DIRECTION_MAX_DESCRIPTION}
+          onChange={(event) => setDescription(event.target.value)}
+          disabled={busy}
+        />
+      </label>
+      {error ? <p className="now-inline-error" role="alert">{error}</p> : null}
+      <div className="direction-header-edit-actions">
+        <button type="button" className="primary-button" onClick={() => void save()} disabled={busy || title.trim().length === 0}>
+          {busy ? "Đang lưu…" : "Lưu"}
+        </button>
+        <button type="button" className="text-button link-button" onClick={() => setEditing(false)} disabled={busy}>
+          Huỷ
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function editDirectionErrorMessage(error: unknown): string {
+  if (error instanceof ApiRequestError) {
+    if (error.status === 401) return "Phiên đăng nhập đã hết hạn. Vui lòng tải lại trang.";
+    if (error.status === 404) return "Không tìm thấy hướng đang hoạt động nữa.";
+    if (error.status === 400) return "Tên hướng cần 1-200 ký tự; mô tả tối đa 2000 ký tự.";
+  }
+  return "Chưa lưu được thay đổi. Thử lại.";
 }
 
 function formatDate(value: string): string {

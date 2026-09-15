@@ -127,3 +127,14 @@ export type CurrentDirectionView = {
   direction: DirectionView;
   season: SeasonView;
 };
+
+export const EDIT_DIRECTION_MAX_TITLE = 200 as const;
+export const EDIT_DIRECTION_MAX_DESCRIPTION = 2_000 as const;
+
+/** Spec §6.1 "edit Direction". Title/description only — status transitions
+ * (pause/close) stay P1, and editing never targets a Direction other than
+ * the caller's own currently-active one. */
+export type EditDirectionInput = {
+  title?: string;
+  description?: string;
+};
