@@ -1,19 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
-import type { WeeklyResetUnavailableSection, WeeklyResetView } from "@lifeos/domain";
+import type { InsightView, WeeklyResetUnavailableSection, WeeklyResetView } from "@lifeos/domain";
 import { createApiClient } from "./api";
+import { createInsightApiClient } from "./insight-api";
 import { createWeeklyResetApiClient, localWeekContext } from "./weekly-reset-api";
 import { ErrorState, type AsyncState } from "./ui-states";
 
 // Weekly Reset (spec §13). V0 is a guided-narrative single page (not a
 // multi-step wizard) covering the chapters with real data: Reality,
-// Movement, Next Week context. Pattern Candidates/Adjustment are named
-// honestly as not yet available — see weekly-reset.ts.
+// Movement, Pattern Candidates (reusing insight.ts's deterministic
+// detection, capped at 3 per spec §13.4), Next Week context. Adjustment
+// (§13.5) is named honestly as not yet available — see weekly-reset.ts.
+
+const WEEKLY_RESET_PATTERN_CANDIDATE_LIMIT = 3;
 
 const UNAVAILABLE_COPY: Record<WeeklyResetUnavailableSection, { title: string; body: string }> = {
-  patternCandidates: {
-    title: "Điều LifeOS nhận thấy trong tuần",
-    body: "Cần một cơ chế nhận diện khuôn mẫu có bằng chứng rõ ràng — chưa có ở bản này. Sẽ không đoán khi chưa đủ căn cứ."
-  },
   adjustment: {
     title: "Đề xuất điều chỉnh cho tuần tới",
     body: "Sẽ xuất hiện cùng lúc với Pattern Candidates, dựa trên bằng chứng thật thay vì gợi ý chung chung."
@@ -31,10 +31,23 @@ const RESULT_LABEL: Record<string, string> = {
 export function WeeklyResetPage({ apiUrl }: { apiUrl: string }) {
   const weeklyResetApi = useMemo(() => createWeeklyResetApiClient(apiUrl), [apiUrl]);
   const sessionApi = useMemo(() => createApiClient(apiUrl), [apiUrl]);
+  const insightApi = useMemo(() => createInsightApiClient(apiUrl), [apiUrl]);
   const [state, setState] = useState<AsyncState<WeeklyResetView>>({ kind: "loading" });
+  const [insights, setInsights] = useState<InsightView[]>([]);
   const [completing, setCompleting] = useState(false);
   const [completeError, setCompleteError] = useState<string | null>(null);
   const context = useMemo(() => localWeekContext(), []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    insightApi
+      .listInsights(controller.signal)
+      .then((view) => setInsights(view.candidates.slice(0, WEEKLY_RESET_PATTERN_CANDIDATE_LIMIT)))
+      .catch(() => {
+        /* Pattern Candidates are a bonus chapter here; a load failure should not block the rest of Weekly Reset */
+      });
+    return () => controller.abort();
+  }, [insightApi]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -128,6 +141,15 @@ export function WeeklyResetPage({ apiUrl }: { apiUrl: string }) {
         ) : null}
       </div>
 
+      {insights.length > 0 ? (
+        <div className="weekly-reset-chapter">
+          <h3>Điều LifeOS nhận thấy</h3>
+          {insights.map((insight) => (
+            <WeeklyResetInsightCard key={insight.id} insight={insight} api={insightApi} onResolved={() => setInsights((prev) => prev.filter((i) => i.id !== insight.id))} />
+          ))}
+        </div>
+      ) : null}
+
       {view.unavailableSections.map((section) => (
         <div key={section} className="me-unavailable-card">
           <b>{UNAVAILABLE_COPY[section].title}</b>
@@ -161,6 +183,50 @@ export function WeeklyResetPage({ apiUrl }: { apiUrl: string }) {
         {completeError ? <p className="now-inline-error" role="alert">{completeError}</p> : null}
       </div>
     </section>
+  );
+}
+
+function WeeklyResetInsightCard({
+  insight,
+  api,
+  onResolved
+}: {
+  insight: InsightView;
+  api: ReturnType<typeof createInsightApiClient>;
+  onResolved: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const resolve = async (resolution: "confirm" | "reject") => {
+    setBusy(true);
+    setError(null);
+    try {
+      await api.resolve(insight.id, resolution, undefined);
+      onResolved();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Chưa ghi nhận được. Thử lại.");
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="sheet tint me-insight-card">
+      <b>{insight.title}</b>
+      <p className="muted">{insight.description}</p>
+      <div className="me-insight-actions">
+        <button type="button" className="primary-button" disabled={busy} onClick={() => void resolve("confirm")}>
+          Xác nhận
+        </button>
+        <button type="button" className="text-button" disabled={busy} onClick={() => void resolve("reject")}>
+          Không đúng / Bỏ qua
+        </button>
+        <a className="text-button link-button" href="/me">
+          Sửa cho đúng ở trang Bạn
+        </a>
+      </div>
+      {error ? <p className="now-inline-error" role="alert">{error}</p> : null}
+    </div>
   );
 }
 

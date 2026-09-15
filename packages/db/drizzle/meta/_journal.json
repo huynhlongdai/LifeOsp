@@ -71,6 +71,13 @@
       "when": 1789456329300,
       "tag": "0009_b5_result_daily_close",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1789477116275,
+      "tag": "0010_personal_intelligence_v0",
+      "breakpoints": true
     }
   ]
 }

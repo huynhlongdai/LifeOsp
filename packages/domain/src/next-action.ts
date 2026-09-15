@@ -10,7 +10,9 @@ export const NEXT_ACTION_FACTOR_KEYS = [
   "user_priority",
   "urgency",
   "bounded_effort",
-  "freshness"
+  "freshness",
+  "duration_preference",
+  "project_load_preference"
 ] as const;
 export type NextActionFactorKey = (typeof NEXT_ACTION_FACTOR_KEYS)[number];
 
@@ -77,16 +79,26 @@ export type NextActionRecommendationView = {
 const HOUR_MS = 60 * 60 * 1_000;
 const DAY_MS = 24 * HOUR_MS;
 
+/** Active OperatingPreference values relevant to ranking (packages/domain/src/operating-preference.ts).
+ * Absent/undefined means "no confirmed preference" — never a default guess. */
+export type NextActionPreferenceContext = {
+  targetMaxMinutes?: number;
+  maxPrimaryActive?: number;
+  /** Count of the user's currently active Projects in the Current Season, independent of this ranking pass. */
+  activeProjectCount?: number;
+};
+
 export function rankNextActions(
   candidates: readonly NextActionRankingCandidate[],
-  evaluatedAt: Date
+  evaluatedAt: Date,
+  preferences: NextActionPreferenceContext = {}
 ): NextActionRankingResult {
   const evaluatedMs = evaluatedAt.getTime();
   if (!Number.isFinite(evaluatedMs)) throw new Error("evaluatedAt must be a valid Date");
 
   const ranked = candidates
     .filter(isEligibleNextAction)
-    .map((candidate) => scoreCandidate(candidate, evaluatedMs))
+    .map((candidate) => scoreCandidate(candidate, evaluatedMs, preferences))
     .sort(compareRankedNextActions);
 
   return {
@@ -106,7 +118,11 @@ export function isEligibleNextAction(candidate: NextActionRankingCandidate): boo
   return true;
 }
 
-function scoreCandidate(candidate: NextActionRankingCandidate, evaluatedMs: number): RankedNextAction {
+function scoreCandidate(
+  candidate: NextActionRankingCandidate,
+  evaluatedMs: number,
+  preferences: NextActionPreferenceContext
+): RankedNextAction {
   const factors: NextActionScoreFactor[] = [
     {
       key: "active_context",
@@ -164,6 +180,32 @@ function scoreCandidate(candidate: NextActionRankingCandidate, evaluatedMs: numb
         value: { createdAt: candidate.createdAt, ageHours: Math.floor(ageMs / HOUR_MS) }
       });
     }
+  }
+
+  if (preferences.targetMaxMinutes !== undefined && candidate.estimatedMinutes !== undefined) {
+    const withinTarget = candidate.estimatedMinutes <= preferences.targetMaxMinutes;
+    factors.push({
+      key: "duration_preference",
+      score: withinTarget ? 6 : 0,
+      label: withinTarget
+        ? `Within your confirmed ${preferences.targetMaxMinutes}-minute target`
+        : `Longer than your confirmed ${preferences.targetMaxMinutes}-minute target`,
+      value: { targetMaxMinutes: preferences.targetMaxMinutes, estimatedMinutes: candidate.estimatedMinutes }
+    });
+  }
+
+  if (
+    preferences.maxPrimaryActive !== undefined &&
+    preferences.activeProjectCount !== undefined &&
+    candidate.projectId !== undefined &&
+    preferences.activeProjectCount > preferences.maxPrimaryActive
+  ) {
+    factors.push({
+      key: "project_load_preference",
+      score: -5,
+      label: `You are running more active Projects (${preferences.activeProjectCount}) than your confirmed limit (${preferences.maxPrimaryActive})`,
+      value: { maxPrimaryActive: preferences.maxPrimaryActive, activeProjectCount: preferences.activeProjectCount }
+    });
   }
 
   return {

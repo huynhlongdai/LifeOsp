@@ -221,3 +221,10 @@
 .me-unavailable-card { display: grid; gap: 4px; padding: 16px 18px; border-radius: 16px; border: 1px dashed var(--los-line); color: var(--los-ink-2); }
 .me-unavailable-card b { color: var(--los-ink); font-weight: 600; font-size: .94rem; }
 .me-unavailable-card p { font-size: .88rem; }
+
+.me-insights, .me-preferences { display: grid; gap: 10px; }
+.me-insight-card, .me-preference-row { display: grid; gap: 8px; padding: 16px 18px; }
+.me-preference-row.disabled { opacity: .6; }
+.me-insight-actions, .me-preference-actions, .me-insight-edit { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.me-insight-edit input { width: 90px; padding: 8px 10px; border-radius: var(--los-r-control); border: 1px solid var(--los-line); background: var(--los-sheet-tint); color: var(--los-ink); font: inherit; }
+.me-preference-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }

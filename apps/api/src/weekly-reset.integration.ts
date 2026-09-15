@@ -154,7 +154,7 @@ test("Weekly Reset summarizes the week's Reality/Movement from recorded facts an
     assert.deepEqual(view.movement.advanced.map((a: { id: string }) => a.id), [completed]);
     assert.deepEqual(view.movement.intentionallyDropped.map((a: { id: string }) => a.id), [dropped]);
     assert.deepEqual(view.movement.blocked.map((a: { id: string }) => a.id), [blocked]);
-    assert.deepEqual(new Set(view.unavailableSections), new Set(["patternCandidates", "adjustment"]));
+    assert.deepEqual(new Set(view.unavailableSections), new Set(["adjustment"]));
     assert.equal(view.nextWeek.hasDirection, true);
     assert.equal(view.nextWeek.directionTitle, "Weekly reset test direction");
 

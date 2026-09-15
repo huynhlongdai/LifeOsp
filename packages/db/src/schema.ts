@@ -417,6 +417,63 @@ export const dailyCloses = pgTable(
   ]
 );
 
+// Personal Intelligence Engine (docs/PERSONAL_INTELLIGENCE_ENGINE_V1.md,
+// DOMAIN_MODEL_V1.md §16-17). V0 generates candidates with deterministic
+// threshold rules only — no AI/ML — and persists them so a rejection is
+// remembered and never resurfaced for the same patternKey.
+export const insights = pgTable(
+  "insights",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** Stable identity for one detection rule's output, e.g. 'duration_completion_rate'. Dedupe key with userId. */
+    patternKey: text("pattern_key").notNull(),
+    title: text("title").notNull(),
+    description: text("description").notNull(),
+    confidenceClass: text("confidence_class").notNull(),
+    status: text("status").default("candidate").notNull(),
+    evidenceSummary: jsonb("evidence_summary").$type<unknown>().notNull(),
+    /** Proposed OperatingPreference key/value if confirmed, e.g. { key: 'next_action.target_max_minutes', value: 30 }. */
+    proposedPreference: jsonb("proposed_preference").$type<unknown>(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true })
+  },
+  (table) => [
+    uniqueIndex("insights_user_pattern_key_uidx").on(table.userId, table.patternKey),
+    index("insights_user_status_idx").on(table.userId, table.status),
+    check(
+      "insights_confidence_class_check",
+      sql`${table.confidenceClass} in ('strong_pattern', 'possible_pattern', 'suggestion')`
+    ),
+    check("insights_status_check", sql`${table.status} in ('candidate', 'shown', 'confirmed', 'corrected', 'rejected')`)
+  ]
+);
+
+export const operatingPreferences = pgTable(
+  "operating_preferences",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    key: text("key").notNull(),
+    value: jsonb("value").$type<unknown>().notNull(),
+    source: text("source").notNull(),
+    status: text("status").default("active").notNull(),
+    sourceInsightId: uuid("source_insight_id").references(() => insights.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    uniqueIndex("operating_preferences_user_key_uidx").on(table.userId, table.key),
+    index("operating_preferences_user_status_idx").on(table.userId, table.status),
+    check("operating_preferences_source_check", sql`${table.source} in ('explicit_user', 'confirmed_insight', 'system_default')`),
+    check("operating_preferences_status_check", sql`${table.status} in ('active', 'disabled')`)
+  ]
+);
+
 export type UserRow = typeof users.$inferSelect;
 export type NewUserRow = typeof users.$inferInsert;
 export type SessionRow = typeof sessions.$inferSelect;
@@ -449,3 +506,7 @@ export type ActionResultRow = typeof actionResults.$inferSelect;
 export type NewActionResultRow = typeof actionResults.$inferInsert;
 export type DailyCloseRow = typeof dailyCloses.$inferSelect;
 export type NewDailyCloseRow = typeof dailyCloses.$inferInsert;
+export type InsightRow = typeof insights.$inferSelect;
+export type NewInsightRow = typeof insights.$inferInsert;
+export type OperatingPreferenceRow = typeof operatingPreferences.$inferSelect;
+export type NewOperatingPreferenceRow = typeof operatingPreferences.$inferInsert;

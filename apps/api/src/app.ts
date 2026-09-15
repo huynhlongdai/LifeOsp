@@ -9,10 +9,12 @@ import { registerFocusRoutes } from "./focus.js";
 import { registerIdentityRoutes, type IdentityOptions } from "./identity.js";
 import { registerGetUnstuckRoutes } from "./get-unstuck.js";
 import { registerInboxRoutes } from "./inbox.js";
+import { registerInsightRoutes } from "./insight.js";
 import { registerInterpretationRoutes, type InterpretationOptions } from "./interpretation.js";
 import { registerMeRoutes } from "./me.js";
 import { registerNextActionRoutes } from "./next-action.js";
 import { registerNowRoutes } from "./now.js";
+import { registerOperatingPreferenceRoutes } from "./operating-preference.js";
 import { registerPromotionRoutes } from "./promotion.js";
 import { registerResultRoutes } from "./result.js";
 import { registerWeeklyResetRoutes } from "./weekly-reset.js";
@@ -68,6 +70,8 @@ export function buildApp(options: BuildAppOptions = {}) {
   registerExecuteBoardRoutes(app, database);
   registerMeRoutes(app, database);
   registerWeeklyResetRoutes(app, database);
+  registerInsightRoutes(app, database);
+  registerOperatingPreferenceRoutes(app, database);
 
   app.addHook("onClose", async () => {
     if (database) {
