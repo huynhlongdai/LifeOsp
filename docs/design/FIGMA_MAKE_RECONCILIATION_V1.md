@@ -1,6 +1,6 @@
 # Đối chiếu bản Figma Make (2026-09-14) với hướng đã duyệt
 
-Trạng thái: PROPOSED — chờ product owner quyết định ma trận §3
+Trạng thái: DECIDED 2026-09-15 — product owner duyệt ma trận §3; port Inbox + Incubator trước; theme tối dịu (không neon) xếp P1 (W6)
 Cập nhật: 2026-09-15
 Nguồn: `docs/design/reference/figma-make-2026-09-14/` (mã nguồn React + Tailwind v4 do product owner export từ Figma Make; đã bỏ 10 MB ảnh tham chiếu — xem §5)
 Đọc cùng: `FIGMA_AI_VISUAL_DIRECTION_ADDENDUM_V1.md`, `VISUAL_REFERENCE_RESEARCH_V1.md` §14, `UI_SHELL_DESIGN_SYSTEM_V1.md`, `meetings/019-visual-direction-market-research.md`, `meetings/020-retention-warmth-and-feature-gap.md`
