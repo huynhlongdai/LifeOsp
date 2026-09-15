@@ -162,3 +162,25 @@
   .get-unstuck-actions { display: grid; grid-template-columns: 1fr; width: 100%; }
   .get-unstuck-actions .primary-button, .get-unstuck-actions .text-button { width: 100%; justify-content: center; }
 }
+
+/* ---- Execute landing (spec §7.1) ---- */
+.execute-page { display: grid; gap: 24px; max-width: 820px; }
+.execute-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+.execute-filters select { padding: 9px 12px; border-radius: var(--los-r-control); border: 1px solid var(--los-line); background: var(--los-sheet); color: var(--los-ink); font: inherit; font-size: .88rem; }
+.execute-section { display: grid; gap: 10px; }
+.execute-section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.execute-section-head h2 { font-size: 1rem; font-weight: 600; color: var(--los-ink); }
+.execute-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.execute-card { display: grid; gap: 6px; padding: 16px 18px; border-radius: 18px; box-shadow: none; }
+.execute-card.active { background: var(--los-active-tint); }
+.execute-card.notnow { background: var(--los-notnow-tint); }
+.execute-card.reflect { background: var(--los-reflect-tint); }
+.execute-card.maintain { background: var(--los-maintain-tint); }
+.execute-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.execute-card-title { font-weight: 500; color: var(--los-ink); line-height: 1.4; font-size: 1.02rem; }
+.execute-card-context { font-size: .82rem; }
+.execute-card-blocked { color: var(--los-notnow-ink); font-size: .9rem; }
+
+@media (max-width: 760px) {
+  .execute-filters select { flex: 1 1 auto; }
+}

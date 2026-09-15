@@ -3,6 +3,7 @@ import { checkDatabase, createDatabaseClient } from "@lifeos/db";
 import type { HealthStatus, ReadinessStatus } from "@lifeos/domain";
 import { registerActionRoutes, type ActionOptions } from "./action.js";
 import { registerCaptureRoutes } from "./capture.js";
+import { registerExecuteBoardRoutes } from "./execute-board.js";
 import { registerExecutionContextRoutes } from "./execution-context.js";
 import { registerFocusRoutes } from "./focus.js";
 import { registerIdentityRoutes, type IdentityOptions } from "./identity.js";
@@ -62,6 +63,7 @@ export function buildApp(options: BuildAppOptions = {}) {
   registerResultRoutes(app, database);
   registerInboxRoutes(app, database);
   registerGetUnstuckRoutes(app, database);
+  registerExecuteBoardRoutes(app, database);
 
   app.addHook("onClose", async () => {
     if (database) {
