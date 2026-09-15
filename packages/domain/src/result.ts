@@ -26,6 +26,19 @@ export function actionStatusForResult(result: ActionResult): ActionStatus {
   return result;
 }
 
+export function isActionResult(value: unknown): value is ActionResult {
+  return typeof value === "string" && (ACTION_RESULTS as readonly string[]).includes(value);
+}
+
+/**
+ * Suggested FocusSession outcome when the user records a result while Focus is
+ * still running. A default the UI may pre-select — never applied implicitly, and
+ * a Focus outcome never implies the Action result (or the reverse).
+ */
+export function defaultFocusOutcomeForResult(result: ActionResult): FocusEndOutcome {
+  return result === "completed" ? "completed" : result === "partial" ? "interrupted" : "abandoned";
+}
+
 export type RecordActionResultInput = {
   result: ActionResult;
   /** Free note: what moved / why postponed / why dropped. Optional everywhere. */

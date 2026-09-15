@@ -57,3 +57,16 @@ test("daily close summary starts from factual zeros and friction codes stay opti
   assert.ok(DAILY_CLOSE_FRICTION_CODES.includes("none"));
   assert.ok(DAILY_CLOSE_FRICTION_CODES.includes("other"));
 });
+
+// Ported from feat/b5-result-daily-close (2026-09-14), adapted to this contract.
+test("focus outcome defaults never imply Action completion by themselves", async () => {
+  const { defaultFocusOutcomeForResult, isActionResult } = await import("./result.js");
+  assert.equal(defaultFocusOutcomeForResult("completed"), "completed");
+  assert.equal(defaultFocusOutcomeForResult("partial"), "interrupted");
+  assert.equal(defaultFocusOutcomeForResult("postponed"), "abandoned");
+  assert.equal(defaultFocusOutcomeForResult("blocked"), "abandoned");
+  assert.equal(defaultFocusOutcomeForResult("dropped"), "abandoned");
+  assert.equal(isActionResult("completed"), true);
+  assert.equal(isActionResult("done"), false);
+  assert.equal(isActionResult(undefined), false);
+});
