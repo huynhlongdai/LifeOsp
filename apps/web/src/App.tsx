@@ -9,6 +9,7 @@ import { GetUnstuckPage } from "./GetUnstuckPage";
 import { ClarityIcon, RouteIcon, ShieldIcon } from "./icons";
 import { InboxPage } from "./InboxPage";
 import { IncubatorPage } from "./IncubatorPage";
+import { MePage } from "./MePage";
 import { NowPage } from "./NowPage";
 import { QuickCapture } from "./QuickCapture";
 import { APP_ROUTES, resolveRoute, type AppRoute, type AppRouteKey } from "./routes";
@@ -173,14 +174,16 @@ function RouteContent({ route, apiUrl }: { route: AppRoute; apiUrl: string }) {
   if (route.key === "direction") return <DirectionPage apiUrl={apiUrl} />;
   if (route.key === "now") return <NowPage apiUrl={apiUrl} />;
   if (route.key === "execute") return <ExecutePage apiUrl={apiUrl} />;
+  if (route.key === "me") return <MePage apiUrl={apiUrl} />;
   if (route.key === "reflect") return <DailyClosePage apiUrl={apiUrl} />;
   if (route.key === "inbox") return <InboxPage apiUrl={apiUrl} />;
   if (route.key === "incubator") return <IncubatorPage apiUrl={apiUrl} />;
   if (route.key === "get-unstuck") return <GetUnstuckPage apiUrl={apiUrl} />;
 
+  const unhandledRoute = route as AppRoute;
   return (
     <EmptyState
-      label={NAV_LABEL[route.key]}
+      label={NAV_LABEL[unhandledRoute.key]}
       title="Khu này mở khi vòng lặp tương ứng bắt đầu."
       actions={
         <a className="secondary-button link-button" href="/">
