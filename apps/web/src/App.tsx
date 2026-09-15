@@ -4,6 +4,7 @@ import { createApiClient } from "./api";
 import { ClarityReset } from "./ClarityReset";
 import { DailyClosePage } from "./DailyClosePage";
 import { DirectionPage } from "./DirectionPage";
+import { ExecutePage } from "./ExecutePage";
 import { GetUnstuckPage } from "./GetUnstuckPage";
 import { ClarityIcon, RouteIcon, ShieldIcon } from "./icons";
 import { InboxPage } from "./InboxPage";
@@ -171,6 +172,7 @@ function RouteContent({ route, apiUrl }: { route: AppRoute; apiUrl: string }) {
   if (route.key === "clarity") return <ClarityReset apiUrl={apiUrl} />;
   if (route.key === "direction") return <DirectionPage apiUrl={apiUrl} />;
   if (route.key === "now") return <NowPage apiUrl={apiUrl} />;
+  if (route.key === "execute") return <ExecutePage apiUrl={apiUrl} />;
   if (route.key === "reflect") return <DailyClosePage apiUrl={apiUrl} />;
   if (route.key === "inbox") return <InboxPage apiUrl={apiUrl} />;
   if (route.key === "incubator") return <IncubatorPage apiUrl={apiUrl} />;
