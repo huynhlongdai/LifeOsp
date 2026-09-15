@@ -10,6 +10,14 @@ import type { OperatingPreferenceKey } from "./operating-preference.js";
 // FIGMA_AI_DESIGN_BRIEF_V1.md §19; "Incorrect" and "Do not use" are
 // deliberately folded into one `rejected` status (product owner decision,
 // 2026-09-15) rather than tracked separately.
+//
+// Adjustment (spec §13.5) is deliberately NOT a separate entity: Meeting
+// #010 §12 Step 4's own example ("Default generated Next Actions to
+// ≤45 min") is exactly an OperatingPreference, confirming Adjustment is
+// the same confirm-an-Insight action framed with an expected-effect
+// preview rather than a second confirmation step (product owner decision,
+// 2026-09-15 — Option A over splitting Insight-accuracy from
+// preference-adoption into two separate confirmations).
 
 export const INSIGHT_CONFIDENCE_CLASSES = ["strong_pattern", "possible_pattern", "suggestion"] as const;
 export type InsightConfidenceClass = (typeof INSIGHT_CONFIDENCE_CLASSES)[number];
@@ -26,6 +34,9 @@ export type InsightResolution = (typeof INSIGHT_RESOLUTIONS)[number];
 export type ProposedPreference = {
   key: OperatingPreferenceKey;
   value: number;
+  /** Plain-language expected effect (spec §13.5 "effect preview"), written
+   * from a static per-pattern template — never AI-generated wording. */
+  effect: string;
 };
 
 export type InsightView = {

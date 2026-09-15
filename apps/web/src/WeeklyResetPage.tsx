@@ -214,6 +214,9 @@ function WeeklyResetInsightCard({
     <div className="sheet tint me-insight-card">
       <b>{insight.title}</b>
       <p className="muted">{insight.description}</p>
+      {insight.proposedPreference ? (
+        <p className="me-insight-effect">Nếu xác nhận: {insight.proposedPreference.effect}</p>
+      ) : null}
       <div className="me-insight-actions">
         <button type="button" className="primary-button" disabled={busy} onClick={() => void resolve("confirm")}>
           Xác nhận

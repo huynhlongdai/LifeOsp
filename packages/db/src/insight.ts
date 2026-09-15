@@ -99,7 +99,11 @@ async function detectAndPersistDurationPattern(database: DatabaseClient, userId:
     confidenceClass: "possible_pattern",
     status: "candidate",
     evidenceSummary: { shortAttempted, shortCompleted, longAttempted, longCompleted },
-    proposedPreference: { key: "next_action.target_max_minutes", value: detection.proposedMaxMinutes },
+    proposedPreference: {
+      key: "next_action.target_max_minutes",
+      value: detection.proposedMaxMinutes,
+      effect: `Các gợi ý Next Action sẽ ưu tiên việc ≤${detection.proposedMaxMinutes} phút — dựa trên đúng tỷ lệ hoàn thành bạn đã có, không phải một mặc định chung.`
+    },
     createdAt: now
   });
 }
@@ -141,7 +145,11 @@ async function detectAndPersistProjectLoadPattern(database: DatabaseClient, user
     confidenceClass: "possible_pattern",
     status: "candidate",
     evidenceSummary: { activeProjectCount: activeProjectIds.length, stalledProjectCount },
-    proposedPreference: { key: "projects.max_primary_active", value: detection.proposedMaxActive },
+    proposedPreference: {
+      key: "projects.max_primary_active",
+      value: detection.proposedMaxActive,
+      effect: `LifeOS sẽ nhắc bạn khi có hơn ${detection.proposedMaxActive} Project chính hoạt động cùng lúc, thay vì để bạn tự nhận ra sau khi đã dàn trải.`
+    },
     createdAt: now
   });
 }
