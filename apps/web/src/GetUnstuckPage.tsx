@@ -211,7 +211,7 @@ function InterventionStep({
             : "Đã lưu lại rõ hơn khi nào việc này được xem là xong."
         );
       } catch (reason) {
-        setError(reason instanceof Error ? reason.message : "Chưa lưu được. Thử lại.");
+        setError(interventionErrorMessage(reason));
       } finally {
         setBusy(false);
       }
@@ -257,7 +257,7 @@ function InterventionStep({
             : "Đã đưa việc này trở lại. Bạn có thể đặt lại ưu tiên hoặc bỏ nó ở Execute."
         );
       } catch (reason) {
-        setError(reason instanceof Error ? reason.message : "Chưa hồi phục được. Thử lại.");
+        setError(interventionErrorMessage(reason));
       } finally {
         setBusy(false);
       }
@@ -297,7 +297,7 @@ function InterventionStep({
               : "Đã để việc này sau, không có nợ quá hạn."
         );
       } catch (reason) {
-        setError(reason instanceof Error ? reason.message : "Chưa ghi được. Thử lại.");
+        setError(interventionErrorMessage(reason));
       } finally {
         setBusy(false);
       }
@@ -336,8 +336,17 @@ function InterventionStep({
 function diagnoseErrorMessage(error: unknown): string {
   if (error instanceof ApiRequestError) {
     if (error.status === 401) return "Phiên đăng nhập đã hết hạn. Vui lòng tải lại trang.";
+    if (error.status === 404) return "Không tìm thấy việc này nữa.";
     if (error.status === 409) return "Việc này không còn dấu hiệu bị kẹt nữa.";
-    return error.message;
   }
-  return error instanceof Error ? error.message : "Không thể ghi nhận lựa chọn";
+  return "Chưa ghi nhận được lựa chọn của bạn. Thử lại.";
+}
+
+function interventionErrorMessage(error: unknown): string {
+  if (error instanceof ApiRequestError) {
+    if (error.status === 401) return "Phiên đăng nhập đã hết hạn. Vui lòng tải lại trang.";
+    if (error.status === 404) return "Không tìm thấy việc này nữa.";
+    if (error.status === 409) return "Việc này đã đổi trạng thái ở nơi khác. Thử tải lại.";
+  }
+  return "Chưa lưu được. Nội dung vẫn còn ở đây — thử lại.";
 }
