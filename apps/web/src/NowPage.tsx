@@ -235,7 +235,8 @@ export function NowPage({ apiUrl }: { apiUrl: string }) {
       <aside className="now-protect">
         <ShieldIcon />
         <span>
-          <strong>Việc khác đang được giữ lại.</strong> NOW chỉ đưa ra một việc; bạn không cần nghĩ về phần còn lại lúc này.
+          <strong>Việc khác đang được giữ lại.</strong> NOW chỉ đưa ra một việc; bạn không cần nghĩ về phần còn lại lúc này.{" "}
+          <a href="/incubator">Xem những gì đang được giữ lại</a>
         </span>
       </aside>
     </section>

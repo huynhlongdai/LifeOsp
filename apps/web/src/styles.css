@@ -334,3 +334,5 @@ h1 em, h2 em, .display em { font-style: italic; font-variation-settings: "SOFT" 
 .now-return span { display: block; font-size: .9rem; opacity: .9; }
 .now-return .text-button { color: var(--los-accent-ink); background: rgba(255, 255, 255, .55); }
 .now-stack { display: grid; gap: 16px; }
+.secondary-links a[aria-current="page"] { background: var(--los-sheet); color: var(--los-accent-ink); box-shadow: var(--los-shadow-sheet); font-weight: 600; }
+.now-protect a { color: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
