@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LifeOS — UI Shell &amp; Design System V1 · bản duyệt nhìn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..700,0..100;1,9..144,300..700,0..100&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* =====================================================================
+   0. LifeOS TOKENS  (nguồn cho apps/web/src/styles/tokens.css ở Pha 2)
+   ===================================================================== */
+:root {
+  /* canvas & sheets — giấy ấm, ánh sáng từ trên trái */
+  --los-canvas: #FBFAF7;
+  --los-canvas-deep: #F3F1EB;
+  --los-sheet: #FFFFFF;
+  --los-sheet-tint: #F7F5F0;
+
+  /* ink */
+  --los-ink: #1B1F2A;
+  --los-ink-2: #4B5163;
+  --los-ink-3: #7B8194;
+  --los-line: #E6E3DB;
+  --los-line-soft: #EFECE5;
+
+  /* một màu tương tác */
+  --los-accent: #0F6E6A;
+  --los-accent-ink: #0B5350;
+  --los-accent-soft: #DDF0EC;
+  --los-accent-glow: rgba(15, 110, 106, .18);
+
+  /* pastel ngữ nghĩa — không bao giờ là tín hiệu duy nhất */
+  --los-active-tint: #FFE9D9;  --los-active-ink: #8B4B17;
+  --los-maintain-tint: #EEEDE7; --los-maintain-ink: #5D6070;
+  --los-notnow-tint: #E4ECF5;  --los-notnow-ink: #3E5A7E;
+  --los-reflect-tint: #ECE8F3; --los-reflect-ink: #5C4E80;
+  --los-success: #2E7D5B; --los-success-tint: #DFF1E8;
+  --los-caution: #A9731A; --los-caution-tint: #F8EBD3;
+  --los-danger: #B4463C;  --los-danger-tint: #F8E1DE;
+
+  /* chữ */
+  --los-font-display: "Fraunces", Georgia, serif;
+  --los-font-body: "Be Vietnam Pro", Inter, system-ui, sans-serif;
+
+  /* bán kính */
+  --los-r-control: 12px;
+  --los-r-card: 20px;
+  --los-r-sheet: 28px;
+  --los-r-pill: 999px;
+
+  /* depth — 3 tầng vật lý */
+  --los-shadow-sheet:
+    inset 0 1px 0 rgba(255,255,255,.75),
+    0 1px 2px rgba(27,31,42,.04),
+    0 12px 32px -16px rgba(27,31,42,.18);
+  --los-shadow-sheet-hover:
+    inset 0 1px 0 rgba(255,255,255,.8),
+    0 2px 4px rgba(27,31,42,.05),
+    0 22px 44px -18px rgba(27,31,42,.22);
+  --los-shadow-lifted:
+    0 1px 0 rgba(255,255,255,.6) inset,
+    0 2px 6px rgba(27,31,42,.06),
+    0 24px 60px -24px rgba(27,31,42,.28);
+  --los-shadow-press: 0 1px 1px rgba(27,31,42,.06), 0 4px 10px -8px rgba(27,31,42,.2);
+
+  /* motion */
+  --los-ease-out: cubic-bezier(.2,.8,.2,1);
+  --los-ease-spring: cubic-bezier(.34,1.3,.5,1);
+  --los-d-fast: 160ms;
+  --los-d-base: 280ms;
+  --los-d-slow: 420ms;
+}
+
+/* =====================================================================
+   1. Board chrome (chỉ dùng cho trang duyệt này, không đưa vào app)
+   ===================================================================== */
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: #ECEAE4; color: var(--los-ink); font-family: var(--los-font-body); -webkit-font-smoothing: antialiased; }
+.board { max-width: 1440px; margin: 0 auto; padding: 48px clamp(20px, 4vw, 64px) 120px; }
+.board-head { display: grid; gap: 14px; margin-bottom: 56px; }
+.board-head .kicker { font-size: .78rem; font-weight: 600; letter-spacing: .02em; color: var(--los-ink-3); }
+.board-head h1 { margin: 0; font-family: var(--los-font-display); font-variation-settings: "SOFT" 60, "opsz" 96; font-weight: 500; font-size: clamp(2.2rem, 4vw, 3.4rem); line-height: 1.02; letter-spacing: -.02em; }
+.board-head p { margin: 0; max-width: 760px; color: var(--los-ink-2); line-height: 1.6; }
+.board-toc { display: flex; flex-wrap: wrap; gap: 8px; }
+.board-toc a { text-decoration: none; color: var(--los-ink-2); background: #fff; border: 1px solid var(--los-line); padding: 8px 14px; border-radius: var(--los-r-pill); font-size: .84rem; font-weight: 500; }
+.board-toc a:hover { color: var(--los-accent-ink); border-color: var(--los-accent); }
+.board-section { margin-top: 72px; }
+.board-section > h2 { margin: 0 0 6px; font-family: var(--los-font-display); font-variation-settings: "SOFT" 40; font-weight: 500; font-size: 1.7rem; letter-spacing: -.015em; }
+.board-section > .lede { margin: 0 0 26px; max-width: 760px; color: var(--los-ink-2); line-height: 1.6; }
+.frame-wrap { position: relative; width: 100%; }
+.frame { position: relative; transform-origin: top left; overflow: hidden; border-radius: 22px; box-shadow: 0 40px 90px -40px rgba(27,31,42,.45), 0 0 0 1px rgba(27,31,42,.06); background: var(--los-canvas); }
+.frame.desktop { width: 1280px; height: 820px; }
+.frame.phone { width: 390px; height: 844px; border-radius: 44px; box-shadow: 0 0 0 10px #1B1F2A, 0 0 0 12px #3a3f4c, 0 40px 90px -30px rgba(27,31,42,.5); }
+.phone-row { display: flex; flex-wrap: wrap; gap: 40px 36px; align-items: flex-start; padding: 24px 12px 32px; }
+.phone-col { flex: 0 0 auto; display: grid; gap: 14px; }
+.phone-col .cap { font-size: .8rem; color: var(--los-ink-3); font-weight: 500; }
+.note-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.note { background: #fff; border: 1px solid var(--los-line); border-radius: 16px; padding: 18px 20px; }
+.note h4 { margin: 0 0 8px; font-size: .95rem; }
+.note p, .note li { margin: 0; color: var(--los-ink-2); font-size: .9rem; line-height: 1.55; }
+.note ul { margin: 6px 0 0; padding-left: 18px; }
+
+/* tokens board */
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.sw { border-radius: 14px; padding: 14px; min-height: 96px; display: grid; align-content: end; gap: 2px; border: 1px solid rgba(27,31,42,.06); }
+.sw b { font-size: .8rem; }
+.sw span { font-size: .72rem; opacity: .7; font-variant-numeric: tabular-nums; }
+.type-spec { display: grid; gap: 18px; background: var(--los-canvas); border: 1px solid var(--los-line); border-radius: 20px; padding: 32px; }
+.type-spec .row { display: grid; grid-template-columns: 180px 1fr; gap: 20px; align-items: baseline; border-top: 1px solid var(--los-line-soft); padding-top: 16px; }
+.type-spec .row:first-child { border-top: 0; padding-top: 0; }
+.type-spec .row small { color: var(--los-ink-3); font-size: .74rem; }
+.depth-demo { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; background: var(--los-canvas); border-radius: 20px; padding: 40px; border: 1px solid var(--los-line); }
+.depth-demo > div { min-height: 150px; border-radius: var(--los-r-card); padding: 20px; display: grid; align-content: end; gap: 4px; }
+.depth-demo b { font-size: .9rem; }
+.depth-demo span { font-size: .78rem; color: var(--los-ink-3); }
+.tier-0 { background: var(--los-canvas-deep); border: 1px dashed var(--los-line); }
+.tier-1 { background: var(--los-sheet); box-shadow: var(--los-shadow-sheet); }
+.tier-2 { background: var(--los-sheet); box-shadow: var(--los-shadow-lifted); transform: translateY(-6px); }
+.motion-demo { display: flex; gap: 16px; flex-wrap: wrap; }
+
+/* =====================================================================
+   2. LifeOS primitives (namespaced .los-*) — sẽ trở thành styles.css
+   ===================================================================== */
+.los { font-family: var(--los-font-body); color: var(--los-ink); background: var(--los-canvas); background-image: radial-gradient(1200px 600px at 10% -10%, rgba(255,255,255,.9), transparent 60%); font-size: 15px; line-height: 1.55; }
+.los h1, .los h2, .los h3 { margin: 0; font-weight: 500; letter-spacing: -.015em; }
+.los .display { font-family: var(--los-font-display); font-variation-settings: "SOFT" 60, "opsz" 72; font-weight: 500; font-size: 2.6rem; line-height: 1.04; letter-spacing: -.02em; }
+.los .display.lg { font-size: 3.2rem; font-variation-settings: "SOFT" 70, "opsz" 96; }
+.los .display.sm { font-size: 1.8rem; font-variation-settings: "SOFT" 50, "opsz" 48; }
+.los .display em { font-style: italic; font-variation-settings: "SOFT" 90, "opsz" 72; color: var(--los-accent-ink); }
+.los p { margin: 0; color: var(--los-ink-2); }
+.los .muted { color: var(--los-ink-3); }
+.los .num { font-variant-numeric: tabular-nums; }
+
+.los-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: var(--los-r-pill); font-size: .78rem; font-weight: 600; background: var(--los-sheet-tint); color: var(--los-ink-2); border: 1px solid var(--los-line-soft); }
+.los-pill.active { background: var(--los-active-tint); color: var(--los-active-ink); border-color: transparent; }
+.los-pill.maintain { background: var(--los-maintain-tint); color: var(--los-maintain-ink); border-color: transparent; }
+.los-pill.notnow { background: var(--los-notnow-tint); color: var(--los-notnow-ink); border-color: transparent; }
+.los-pill.reflect { background: var(--los-reflect-tint); color: var(--los-reflect-ink); border-color: transparent; }
+.los-pill.accent { background: var(--los-accent-soft); color: var(--los-accent-ink); border-color: transparent; }
+.los-pill.success { background: var(--los-success-tint); color: var(--los-success); border-color: transparent; }
+.los-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: .8; }
+
+.los-sheet { background: var(--los-sheet); border-radius: var(--los-r-card); box-shadow: var(--los-shadow-sheet); border: 1px solid rgba(27,31,42,.04); transition: box-shadow var(--los-d-base) var(--los-ease-out), transform var(--los-d-base) var(--los-ease-out); }
+.los-sheet.tint { background: var(--los-sheet-tint); }
+.los-sheet.lifted { box-shadow: var(--los-shadow-lifted); }
+
+.los-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 12px 20px; border-radius: var(--los-r-control); border: 0; font: inherit; font-weight: 600; cursor: pointer; transition: transform var(--los-d-fast) var(--los-ease-out), box-shadow var(--los-d-fast) var(--los-ease-out), background var(--los-d-fast) var(--los-ease-out); }
+.los-btn:active { transform: translateY(1px) scale(.995); }
+.los-btn.primary { background: var(--los-accent); color: #fff; box-shadow: 0 1px 0 rgba(255,255,255,.2) inset, 0 10px 24px -12px var(--los-accent-glow), 0 2px 4px rgba(11,83,80,.12); }
+.los-btn.primary:hover { background: var(--los-accent-ink); box-shadow: 0 1px 0 rgba(255,255,255,.2) inset, 0 16px 32px -14px var(--los-accent-glow), 0 3px 6px rgba(11,83,80,.14); transform: translateY(-1px); }
+.los-btn.secondary { background: var(--los-sheet); color: var(--los-ink); border: 1px solid var(--los-line); box-shadow: 0 1px 2px rgba(27,31,42,.04); }
+.los-btn.secondary:hover { border-color: #d6d2c8; background: var(--los-sheet-tint); }
+.los-btn.text { background: transparent; color: var(--los-ink-2); padding-inline: 8px; }
+.los-btn.text:hover { color: var(--los-accent-ink); background: var(--los-accent-soft); }
+.los-btn.lg { min-height: 56px; padding-inline: 26px; font-size: 1.02rem; border-radius: 16px; }
+.los-btn:focus-visible, .los-nav a:focus-visible { outline: 3px solid var(--los-accent); outline-offset: 2px; }
+
+.los-input { width: 100%; font: inherit; color: var(--los-ink); background: var(--los-sheet); border: 1px solid var(--los-line); border-radius: var(--los-r-control); padding: 13px 15px; box-shadow: inset 0 1px 2px rgba(27,31,42,.04); }
+.los-input::placeholder { color: var(--los-ink-3); }
+
+.los-divider { height: 1px; background: var(--los-line-soft); border: 0; margin: 0; }
+.los-label { font-size: .78rem; font-weight: 600; color: var(--los-ink-3); }
+
+.los-icon { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
+
+/* ---- Paper-stack motif: 1 tờ nâng lên, các tờ khác lộ mép ---- */
+.los-stack { position: relative; }
+.los-stack::before, .los-stack::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: -7px; height: 14px; border-radius: 0 0 18px 18px; background: var(--los-sheet-tint); border: 1px solid rgba(27,31,42,.05); border-top: 0; z-index: -1; }
+.los-stack::after { left: 28px; right: 28px; bottom: -13px; background: var(--los-canvas-deep); }
+
+/* ---- Micro-illustration: chồng giấy nổi (empty/recovery) ---- */
+.los-illo { position: relative; width: 120px; height: 96px; }
+.los-illo i { position: absolute; left: 12px; right: 12px; height: 56px; border-radius: 14px; background: var(--los-sheet); box-shadow: var(--los-shadow-sheet); border: 1px solid rgba(27,31,42,.05); animation: los-float 6s var(--los-ease-out) infinite; }
+.los-illo i:nth-child(1) { bottom: 0; background: var(--los-notnow-tint); transform: rotate(-4deg); animation-delay: -1s; }
+.los-illo i:nth-child(2) { bottom: 14px; background: var(--los-maintain-tint); transform: rotate(2deg); animation-delay: -3s; }
+.los-illo i:nth-child(3) { bottom: 30px; left: 20px; right: 20px; background: var(--los-sheet); animation-delay: -5s; }
+.los-illo i:nth-child(3)::after { content: ""; position: absolute; left: 14px; top: 16px; width: 46%; height: 6px; border-radius: 3px; background: var(--los-active-tint); box-shadow: 0 14px 0 var(--los-line-soft); }
+@keyframes los-float { 0%,100% { translate: 0 0; } 50% { translate: 0 -4px; } }
+
+/* =====================================================================
+   3. Shell
+   ===================================================================== */
+.los-shell { display: grid; grid-template-columns: 236px 1fr; min-height: 100%; height: 100%; }
+.los-rail { padding: 28px 18px 22px; display: flex; flex-direction: column; gap: 30px; border-right: 1px solid var(--los-line-soft); background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0)); }
+.los-brand { font-family: var(--los-font-display); font-variation-settings: "SOFT" 80, "opsz" 48; font-weight: 500; font-size: 1.45rem; letter-spacing: -.02em; color: var(--los-ink); text-decoration: none; padding-left: 12px; display: flex; align-items: center; gap: 10px; }
+.los-brand .mark { width: 22px; height: 22px; border-radius: 7px; background: var(--los-accent); box-shadow: 0 6px 14px -6px var(--los-accent-glow); position: relative; }
+.los-brand .mark::after { content: ""; position: absolute; inset: 6px; border-radius: 4px; background: #fff; opacity: .9; }
+.los-nav { display: grid; gap: 4px; }
+.los-nav a { display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 12px; text-decoration: none; color: var(--los-ink-2); font-weight: 500; font-size: .95rem; transition: background var(--los-d-fast) var(--los-ease-out), color var(--los-d-fast) var(--los-ease-out), transform var(--los-d-fast) var(--los-ease-out); }
+.los-nav a:hover { background: rgba(27,31,42,.045); color: var(--los-ink); }
+.los-nav a[aria-current="page"] { background: var(--los-sheet); color: var(--los-accent-ink); box-shadow: var(--los-shadow-sheet); font-weight: 600; }
+.los-nav a[aria-current="page"] .los-icon { color: var(--los-accent); }
+.los-nav a small { margin-left: auto; font-size: .72rem; color: var(--los-ink-3); font-weight: 500; }
+.los-rail .secondary { display: grid; gap: 4px; margin-top: auto; }
+.los-rail .secondary a { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; font-size: .86rem; color: var(--los-ink-2); text-decoration: none; }
+.los-rail .secondary a:hover { background: rgba(27,31,42,.045); color: var(--los-ink); }
+.los-rail .status { display: flex; align-items: center; gap: 8px; padding: 8px 12px; font-size: .74rem; color: var(--los-ink-3); }
+.los-rail .status i { width: 7px; height: 7px; border-radius: 50%; background: var(--los-success); box-shadow: 0 0 0 4px var(--los-success-tint); }
+
+.los-main { padding: 44px clamp(28px, 5vw, 72px) 80px; max-width: 980px; width: 100%; }
+.los-context { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin-bottom: 34px; }
+.los-context .stamp { display: grid; gap: 8px; }
+.los-context .stamp .date { font-size: .84rem; color: var(--los-ink-3); font-weight: 500; }
+
+/* mobile shell */
+.los-mobile { position: relative; height: 100%; display: flex; flex-direction: column; }
+.los-mobile .los-main { padding: 54px 20px 110px; }
+.los-mobile .now-protect { margin-top: 18px; padding: 12px 16px; font-size: .84rem; }
+.los-mobile .los-context { margin-bottom: 24px; }
+.los-mobile .display.lg { font-size: 2.35rem; }
+.los-mobile .display { font-size: 1.9rem; }
+.los-tabbar { position: absolute; left: 14px; right: 14px; bottom: 16px; display: grid; grid-template-columns: repeat(5, 1fr); padding: 6px; border-radius: 24px; background: rgba(255,255,255,.86); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: var(--los-shadow-lifted); border: 1px solid rgba(27,31,42,.05); }
+.los-tabbar a { position: relative; display: grid; place-items: center; gap: 3px; padding: 9px 4px 8px; border-radius: 18px; text-decoration: none; color: var(--los-ink-3); font-size: .64rem; font-weight: 600; letter-spacing: .01em; }
+.los-tabbar a[aria-current="page"] { color: var(--los-accent-ink); background: var(--los-accent-soft); }
+.los-tabbar a[aria-current="page"] .los-icon { color: var(--los-accent); }
+.los-tabbar .los-icon { width: 22px; height: 22px; }
+.los-topbar { position: absolute; top: 0; left: 0; right: 0; height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; font-size: .78rem; color: var(--los-ink-3); font-weight: 600; }
+
+/* =====================================================================
+   4. NOW
+   ===================================================================== */
+.now-hero { padding: 34px 36px 30px; border-radius: var(--los-r-sheet); transform-style: preserve-3d; will-change: transform; }
+.now-hero .lead { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.now-hero .title { margin: 0 0 20px; max-width: 640px; }
+.now-hero .facts { display: grid; grid-template-columns: 1fr auto; gap: 8px 24px; align-items: start; padding: 16px 18px; border-radius: 16px; background: var(--los-sheet-tint); border: 1px solid var(--los-line-soft); }
+.now-hero .facts .k { font-size: .76rem; color: var(--los-ink-3); font-weight: 600; margin-bottom: 3px; }
+.now-hero .facts .v { color: var(--los-ink); }
+.now-hero .facts .time { text-align: right; }
+.now-hero .facts .time .v { font-size: 1.35rem; font-weight: 600; letter-spacing: -.02em; }
+.now-hero .cta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 8px; margin-top: 24px; }
+.now-hero .cta .gap { flex: 1; }
+.now-hero .why { display: flex; align-items: center; gap: 8px; margin-top: 18px; color: var(--los-ink-3); font-size: .86rem; }
+.now-hero .why a { color: var(--los-ink-2); text-decoration: underline; text-decoration-color: var(--los-line); text-underline-offset: 3px; }
+.now-later { margin-top: 42px; display: grid; gap: 10px; }
+.now-later .row { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-radius: 16px; background: var(--los-sheet-tint); border: 1px solid var(--los-line-soft); color: var(--los-ink-2); }
+.now-later .row .num { color: var(--los-ink-3); font-size: .84rem; }
+.now-protect { margin-top: 26px; display: flex; gap: 12px; align-items: center; padding: 14px 18px; border-radius: 16px; background: var(--los-notnow-tint); color: var(--los-notnow-ink); font-size: .9rem; }
+.now-protect .los-icon { color: var(--los-notnow-ink); }
+.now-protect strong { font-weight: 600; }
+.los-mobile .now-hero { padding: 24px 22px 22px; border-radius: 24px; }
+.los-mobile .now-hero .facts { grid-template-columns: 1fr; }
+.los-mobile .now-hero .facts .time { text-align: left; border-top: 1px solid var(--los-line-soft); padding-top: 10px; }
+.los-mobile .now-hero .cta { display: grid; grid-template-columns: 1fr 1fr; }
+.los-mobile .now-hero .cta .los-btn.primary { grid-column: 1 / -1; }
+.los-mobile .now-hero .cta .gap { display: none; }
+
+/* =====================================================================
+   5. FOCUS (immersive)
+   ===================================================================== */
+.focus-screen { height: 100%; display: grid; grid-template-rows: auto 1fr auto; padding: 32px 48px 34px; background: var(--los-canvas-deep); background-image: radial-gradient(900px 500px at 50% 0%, rgba(255,255,255,.8), transparent 70%); }
+.focus-screen .top { display: flex; justify-content: space-between; align-items: center; color: var(--los-ink-3); font-size: .84rem; }
+.focus-screen .center { display: grid; place-items: center; text-align: center; gap: 18px; align-content: center; }
+.focus-ring { position: relative; width: 264px; height: 264px; display: grid; place-items: center; }
+.focus-ring svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+.focus-ring .track { stroke: #fff; stroke-width: 10; fill: none; filter: drop-shadow(0 2px 2px rgba(27,31,42,.06)); }
+.focus-ring .bar { stroke: var(--los-accent); stroke-width: 10; fill: none; stroke-linecap: round; stroke-dasharray: 880; stroke-dashoffset: 300; filter: drop-shadow(0 6px 10px var(--los-accent-glow)); }
+.focus-ring .inner { width: 218px; height: 218px; border-radius: 50%; background: var(--los-sheet); box-shadow: var(--los-shadow-lifted), inset 0 -2px 0 rgba(27,31,42,.03); display: grid; place-items: center; gap: 2px; align-content: center; }
+.focus-ring .clock { font-size: 3.4rem; font-weight: 600; letter-spacing: -.04em; line-height: 1; }
+.focus-ring .sub { font-size: .8rem; color: var(--los-ink-3); font-weight: 600; }
+.focus-screen .title { max-width: 620px; }
+.focus-screen .done { color: var(--los-ink-2); }
+.focus-screen .done b { color: var(--los-ink); font-weight: 600; }
+.focus-capture { display: flex; gap: 10px; width: min(520px, 100%); padding: 6px 6px 6px 18px; border-radius: 999px; background: var(--los-sheet); box-shadow: var(--los-shadow-sheet); align-items: center; }
+.focus-capture input { flex: 1; border: 0; background: transparent; font: inherit; color: var(--los-ink); outline: none; }
+.focus-capture .los-btn { min-height: 40px; border-radius: 999px; padding-inline: 16px; }
+.focus-screen .bottom { display: flex; justify-content: center; gap: 8px; }
+.los-mobile .focus-screen { padding: 60px 22px 36px; }
+.los-mobile .focus-ring { width: 240px; height: 240px; }
+.los-mobile .focus-ring .inner { width: 196px; height: 196px; }
+.los-mobile .focus-ring .clock { font-size: 2.7rem; }
+
+/* =====================================================================
+   6. DIRECTION / EXECUTE / REFLECT / ME (mobile compositions)
+   ===================================================================== */
+.section-head { display: flex; align-items: center; justify-content: space-between; margin: 26px 0 10px; }
+.section-head h3 { font-size: .98rem; font-weight: 600; }
+.section-head .los-label { font-weight: 500; }
+.list { display: grid; gap: 8px; }
+.list .item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 16px; background: var(--los-sheet); box-shadow: var(--los-shadow-sheet); border: 1px solid rgba(27,31,42,.04); }
+.list .item .t { flex: 1; min-width: 0; }
+.list .item .t b { display: block; font-weight: 500; color: var(--los-ink); line-height: 1.35; }
+.list .item .t small { color: var(--los-ink-3); font-size: .78rem; }
+.list .item .chk { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--los-line); background: var(--los-sheet-tint); flex: 0 0 auto; }
+.list .item.quiet { background: var(--los-sheet-tint); box-shadow: none; }
+.list .item.done .chk { background: var(--los-success); border-color: var(--los-success); position: relative; }
+.list .item.done .chk::after { content: ""; position: absolute; left: 7px; top: 3px; width: 5px; height: 10px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+
+.dest { display: grid; gap: 10px; }
+.dest .lane { padding: 16px 18px; border-radius: 18px; }
+.dest .lane.active { background: var(--los-active-tint); color: var(--los-active-ink); }
+.dest .lane.maintain { background: var(--los-maintain-tint); color: var(--los-maintain-ink); }
+.dest .lane.notnow { background: var(--los-notnow-tint); color: var(--los-notnow-ink); }
+.dest .lane .h { display: flex; justify-content: space-between; font-size: .8rem; font-weight: 600; margin-bottom: 8px; opacity: .85; }
+.dest .lane b { display: block; color: var(--los-ink); font-weight: 500; line-height: 1.4; }
+.dest .lane small { display: block; margin-top: 6px; font-size: .8rem; opacity: .9; }
+
+.season { padding: 22px; border-radius: 22px; }
+.season .k { font-size: .76rem; color: var(--los-ink-3); font-weight: 600; margin-bottom: 4px; }
+.season .facts { display: flex; gap: 18px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--los-line-soft); }
+.season .facts b { display: block; font-weight: 600; }
+.season .facts small { color: var(--los-ink-3); font-size: .76rem; }
+
+.reflect-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.reflect-strip .cell { padding: 14px; border-radius: 16px; background: var(--los-sheet); box-shadow: var(--los-shadow-sheet); text-align: center; }
+.reflect-strip .cell b { display: block; font-size: 1.6rem; font-weight: 600; letter-spacing: -.03em; }
+.reflect-strip .cell small { color: var(--los-ink-3); font-size: .74rem; }
+.question { margin-top: 26px; padding: 24px 22px; border-radius: 22px; background: var(--los-reflect-tint); }
+.question .k { font-size: .76rem; font-weight: 600; color: var(--los-reflect-ink); margin-bottom: 8px; }
+.question .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.question .chips span { padding: 9px 13px; border-radius: 999px; background: #fff; color: var(--los-ink-2); font-size: .84rem; font-weight: 500; box-shadow: 0 1px 2px rgba(27,31,42,.05); }
+
+.me-block { padding: 18px 20px; border-radius: 20px; }
+.me-block .k { font-size: .78rem; font-weight: 600; color: var(--los-ink-3); margin-bottom: 10px; }
+.me-block ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.me-block li { display: flex; gap: 10px; align-items: flex-start; color: var(--los-ink); line-height: 1.45; }
+.me-block li::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--los-accent); margin-top: 8px; flex: 0 0 auto; opacity: .7; }
+.me-block .learning { display: grid; gap: 10px; }
+.me-block .learning .actions { display: flex; gap: 8px; }
+.me-block .learning .actions .los-btn { min-height: 38px; padding-inline: 14px; font-size: .86rem; }
+
+/* Empty state */
+.los-empty { display: grid; justify-items: start; gap: 16px; padding: 32px 30px; border-radius: var(--los-r-sheet); }
+.los-empty .display.sm { max-width: 520px; }
+
+/* =====================================================================
+   7. Reduced motion
+   ===================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .now-hero { transform: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="board">
+  <header class="board-head">
+    <div class="kicker">LifeOS · docs/design/prototypes/ui-shell-v1.html · bản duyệt nhìn trước khi implement</div>
+    <h1>Một tờ giấy được nâng lên.<br/>Mọi thứ khác nằm yên bên dưới.</h1>
+    <p>Đây là hệ hình ảnh cho shell web LifeOS theo Meeting #019: sản phẩm lập kế hoạch đời sống ấm, tĩnh, chữ editorial, pastel ngữ nghĩa, AI vô hình. Lớp “3D nhẹ” được thêm bằng chiều sâu vật lý của giấy — ba tầng bóng, một tờ nổi lên, chuyển động có chủ đích — không WebGL, không glass, không neon.</p>
+    <nav class="board-toc" aria-label="Mục lục">
+      <a href="#tokens">Token &amp; depth</a>
+      <a href="#desktop">Desktop · NOW</a>
+      <a href="#mobile">Mobile · 5 khu</a>
+      <a href="#focus">Focus</a>
+      <a href="#states">Empty state</a>
+      <a href="#check">Approval test</a>
+    </nav>
+  </header>
+
+  <!-- ============================ TOKENS ============================ -->
+  <section class="board-section" id="tokens">
+    <h2>Token, chữ và ba tầng chiều sâu</h2>
+    <p class="lede">Một màu tương tác duy nhất (teal), nền giấy ấm, pastel chỉ để định hướng. Chiều sâu là hệ vật lý nhất quán: canvas phẳng → tờ giấy nâng nhẹ → bề mặt nổi (điều hướng, sheet).</p>
+
+    <div class="swatches" style="margin-bottom:28px">
+      <div class="sw" style="background:#FBFAF7"><b>canvas</b><span>#FBFAF7</span></div>
+      <div class="sw" style="background:#F3F1EB"><b>canvas-deep</b><span>#F3F1EB · Focus</span></div>
+      <div class="sw" style="background:#FFFFFF"><b>sheet</b><span>#FFFFFF</span></div>
+      <div class="sw" style="background:#1B1F2A;color:#fff"><b>ink</b><span>#1B1F2A</span></div>
+      <div class="sw" style="background:#0F6E6A;color:#fff"><b>accent</b><span>#0F6E6A · duy nhất</span></div>
+      <div class="sw" style="background:#DDF0EC;color:#0B5350"><b>accent-soft</b><span>#DDF0EC</span></div>
+      <div class="sw" style="background:#FFE9D9;color:#8B4B17"><b>Active</b><span>#FFE9D9 · Đang theo</span></div>
+      <div class="sw" style="background:#EEEDE7;color:#5D6070"><b>Maintain</b><span>#EEEDE7 · Giữ nhịp</span></div>
+      <div class="sw" style="background:#E4ECF5;color:#3E5A7E"><b>Not Now</b><span>#E4ECF5 · Để sau, an toàn</span></div>
+      <div class="sw" style="background:#ECE8F3;color:#5C4E80"><b>Reflect</b><span>#ECE8F3</span></div>
+      <div class="sw" style="background:#DFF1E8;color:#2E7D5B"><b>success</b><span>#2E7D5B</span></div>
+      <div class="sw" style="background:#F8E1DE;color:#B4463C"><b>danger</b><span>#B4463C · không đổ lỗi</span></div>
+    </div>
+
+    <div class="type-spec los" style="margin-bottom:28px">
+      <div class="row"><small>Display · Fraunces 500 · SOFT 60–70</small><div class="display lg">Thứ Ba, <em>15 tháng 9</em></div></div>
+      <div class="row"><small>H1 · Fraunces</small><div class="display">Một việc để bắt đầu</div></div>
+      <div class="row"><small>H2 · Fraunces SOFT 50</small><div class="display sm">Được giữ lại. Bạn không cần nghĩ về điều này lúc này.</div></div>
+      <div class="row"><small>Body · Be Vietnam Pro 400 · 15/1.55</small><p style="max-width:620px">Chữ thân bài chọn Be Vietnam Pro vì được vẽ cho tiếng Việt: dấu thanh rõ, không cắn nhau ở cỡ nhỏ. Hệ số tabular để thời gian không nhảy.</p></div>
+      <div class="row"><small>Label / Pill · 600 · .78rem</small><div style="display:flex;gap:8px;flex-wrap:wrap"><span class="los-pill accent"><i class="dot"></i>Mùa hiện tại</span><span class="los-pill active">Đang theo</span><span class="los-pill maintain">Giữ nhịp</span><span class="los-pill notnow">Để sau</span><span class="los-pill reflect">Khép ngày</span></div></div>
+      <div class="row"><small>Numeric / Timer · 600 · tabular</small><div class="num" style="font-size:2.6rem;font-weight:600;letter-spacing:-.04em">24:<span style="color:var(--los-ink-3)">37</span></div></div>
+    </div>
+
+    <div class="depth-demo los" style="margin-bottom:28px">
+      <div class="tier-0"><b>Tầng 0 · Canvas</b><span>Phẳng. Nhóm bằng tint và khoảng trắng, không viền.</span></div>
+      <div class="tier-1 los-sheet"><b>Tầng 1 · Sheet</b><span>Tờ giấy nâng nhẹ: highlight 1px trên, bóng ambient + bóng key 32px mờ.</span></div>
+      <div class="tier-2 los-sheet"><b>Tầng 2 · Lifted</b><span>Điều hướng nổi, bottom sheet, vòng Focus. Bóng 60px, blur nền nhẹ.</span></div>
+    </div>
+
+    <div class="note-grid">
+      <div class="note"><h4>Ngân sách chuyển động</h4><ul><li>Đổi route: nội dung trượt lên 8px + fade, 280ms, ease-out mềm.</li><li>Đổi state (accept, saved): spring 420ms, chỉ trên phần thay đổi.</li><li>Primary card NOW: tilt tối đa 2° theo con trỏ (desktop, pointer fine), bóng đổi theo.</li><li>Nút: nhấn = xuống 1px, scale .995; hover primary = nhô 1px.</li><li>Ambient duy nhất: chồng giấy trong empty state trôi 4px / 6s.</li><li>prefers-reduced-motion: tắt tất cả, giữ đúng layout.</li></ul></div>
+      <div class="note"><h4>Quy tắc dùng bóng</h4><ul><li>Tối đa một Tầng-2 hiển thị cùng lúc trên một màn.</li><li>Tầng-1 chỉ cho bề mặt là ranh giới tương tác/ý nghĩa thật. Danh sách phụ dùng tint, không bóng.</li><li>Không bóng màu, trừ glow teal rất nhẹ dưới CTA chính.</li></ul></div>
+      <div class="note"><h4>Điểm ký (signature)</h4><p>Motif <b>chồng giấy</b>: card việc duy nhất là tờ nâng lên; mép hai tờ mờ lộ bên dưới nói rằng “việc khác vẫn được giữ, không mất”. Đây là hình ảnh duy nhất được phép lặp lại xuyên sản phẩm.</p></div>
+    </div>
+  </section>
+
+  <!-- ============================ DESKTOP NOW ============================ -->
+  <section class="board-section" id="desktop">
+    <h2>Desktop shell · NOW (ready, đã chấp nhận)</h2>
+    <p class="lede">1280×820. Rail trái tiết chế, cột đọc 980px, heading ngày theo lối editorial, một tờ việc duy nhất. Di chuột lên tờ để thấy tilt 2°.</p>
+    <div class="frame-wrap" data-scale-w="1280" data-scale-h="820">
+      <div class="frame desktop los">
+        <div class="los-shell">
+          <aside class="los-rail">
+            <a class="los-brand" href="#"><span class="mark"></span>LifeOS</a>
+            <nav class="los-nav" aria-label="Điều hướng chính">
+              <a href="#" aria-current="page"><svg class="los-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>Now</a>
+              <a href="#"><svg class="los-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>Direction</a>
+              <a href="#"><svg class="los-icon" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m9 12 2 2 4-4"/></svg>Execute<small>3</small></a>
+              <a href="#"><svg class="los-icon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>Reflect</a>
+              <a href="#"><svg class="los-icon" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5a7 7 0 0 1 14 0"/></svg>Me</a>
+            </nav>
+            <div class="secondary">
+              <a href="#"><svg class="los-icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Ghi nhanh</a>
+              <a href="#"><svg class="los-icon" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></svg>Làm rõ lại (Clarity)</a>
+              <div class="status"><i></i>Đã đồng bộ · vừa xong</div>
+            </div>
+          </aside>
+          <main class="los-main">
+            <header class="los-context">
+              <div class="stamp">
+                <span class="date">Buổi chiều</span>
+                <h1 class="display lg">Thứ Ba, <em>15 tháng 9</em></h1>
+                <div><span class="los-pill accent"><i class="dot"></i>Mùa hiện tại · Ra mắt LifeOS bản thử</span></div>
+              </div>
+            </header>
+
+            <article class="los-sheet los-stack now-hero" data-tilt>
+              <div class="lead"><span class="los-label">Một việc để bắt đầu</span><span class="los-pill success">Đã chấp nhận</span></div>
+              <h2 class="display title">Viết bản mô tả 3 dòng cho trang chờ của LifeOS</h2>
+              <div class="facts">
+                <div><div class="k">Xong khi</div><div class="v">Có đúng 3 câu trong file landing.md, đọc to không vấp.</div></div>
+                <div class="time"><div class="k">Ước lượng</div><div class="v num">25 phút</div></div>
+              </div>
+              <div class="cta">
+                <button class="los-btn primary lg">Bắt đầu Focus</button>
+                <button class="los-btn secondary">Chỉnh sửa</button>
+                <span class="gap"></span>
+                <button class="los-btn text">Để sau</button>
+                <button class="los-btn text">Giả định sai</button>
+              </div>
+              <div class="why"><svg class="los-icon" viewBox="0 0 24 24" style="width:16px;height:16px"><circle cx="12" cy="12" r="9"/><path d="M12 8v.5M12 11v5"/></svg><a href="#">Vì sao việc này?</a><span>· Thuộc Outcome “Trang chờ chạy được” · có lịch hôm nay</span></div>
+            </article>
+
+            <div class="now-later">
+              <div class="section-head"><h3>Sau đó</h3><span class="los-label">Chỉ khi bạn xong việc trên</span></div>
+              <div class="row"><span>Gửi link trang chờ cho 3 người bạn</span><span class="num">≈ 10 phút</span></div>
+            </div>
+
+            <div class="now-protect">
+              <svg class="los-icon" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 4.5 3.5 8 8 9 4.5-1 8-4.5 8-9V6z"/></svg>
+              <span><strong>4 việc đang được giữ lại.</strong> Bạn không cần nghĩ về chúng lúc này.</span>
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ MOBILE 5 KHU ============================ -->
+  <section class="board-section" id="mobile">
+    <h2>Mobile 390×844 · năm khu điều hướng</h2>
+    <p class="lede">Bottom nav nổi (Tầng 2), heading editorial, một cột. EXECUTE / REFLECT / ME minh họa hình dạng đích theo PRODUCT_SURFACE_SPEC; phần implement vòng này chỉ có shell + empty state cho ba khu đó vì chưa có dữ liệu (B5+).</p>
+    <div class="phone-row">
+
+      <!-- NOW mobile -->
+      <div class="phone-col"><span class="cap">NOW · ready (shown)</span>
+      <div class="frame-wrap" data-scale-w="390" data-scale-h="844" data-phone>
+        <div class="frame phone los"><div class="los-mobile">
+          <div class="los-topbar"><span>13:21</span><span>Đã đồng bộ</span></div>
+          <main class="los-main">
+            <header class="los-context"><div class="stamp"><span class="date">Buổi chiều</span><h1 class="display lg">Thứ Ba, <em>15/9</em></h1><div><span class="los-pill accent"><i class="dot"></i>Ra mắt LifeOS bản thử</span></div></div></header>
+            <article class="los-sheet los-stack now-hero">
+              <div class="lead"><span class="los-label">Một việc để bắt đầu</span></div>
+              <h2 class="display title">Viết bản mô tả 3 dòng cho trang chờ</h2>
+              <div class="facts">
+                <div><div class="k">Xong khi</div><div class="v">Có đúng 3 câu trong landing.md</div></div>
+                <div class="time"><div class="k">Ước lượng</div><div class="v num">25 phút</div></div>
+              </div>
+              <div class="cta">
+                <button class="los-btn primary lg">Chấp nhận việc này</button>
+                <button class="los-btn secondary">Chỉnh sửa</button>
+                <button class="los-btn text">Để sau</button>
+              </div>
+              <div class="why"><a href="#">Vì sao việc này?</a></div>
+            </article>
+            <div class="now-protect" style="margin-top:34px"><svg class="los-icon" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 4.5 3.5 8 8 9 4.5-1 8-4.5 8-9V6z"/></svg><span><strong>4 việc được giữ lại.</strong> Không cần nghĩ tới lúc này.</span></div>
+          </main>
+          <nav class="los-tabbar" aria-label="Điều hướng chính">
+            <a href="#" aria-current="page"><svg class="los-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>Now</a>
+            <a href="#"><svg class="los-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>Direction</a>
+            <a href="#"><svg class="los-icon" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m9 12 2 2 4-4"/></svg>Execute</a>
+            <a href="#"><svg class="los-icon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>Reflect</a>
+            <a href="#"><svg class="los-icon" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5a7 7 0 0 1 14 0"/></svg>Me</a>
+          </nav>
+        </div></div>
+      </div></div>
+
+      <!-- DIRECTION mobile -->
+      <div class="phone-col"><span class="cap">DIRECTION · active season</span>
+      <div class="frame-wrap" data-scale-w="390" data-scale-h="844" data-phone>
+        <div class="frame phone los"><div class="los-mobile">
+          <div class="los-topbar"><span>13:21</span><span>Đã đồng bộ</span></div>
+          <main class="los-main">
+            <header class="los-context"><div class="stamp"><span class="date">Hướng hiện tại</span><h1 class="display">Đưa LifeOS tới tay 10 người dùng thật</h1></div></header>
+            <article class="los-sheet season">
+              <div class="k">Mùa hiện tại · tới 31/10</div>
+              <h2 class="display sm">Ra mắt LifeOS bản thử</h2>
+              <p style="margin-top:8px">Ưu tiên duy nhất: một vòng lặp dùng được mỗi ngày, không thêm tính năng.</p>
+              <div class="facts"><div><b>15/9</b><small>Bắt đầu</small></div><div><b>31/10</b><small>Mục tiêu kết</small></div><div><b>1</b><small>Outcome</small></div></div>
+            </article>
+            <div class="section-head"><h3>Ba nơi để đặt việc</h3></div>
+            <div class="dest">
+              <div class="lane active"><div class="h"><span>Đang theo</span><span>1</span></div><b>Trang chờ LifeOS chạy được</b></div>
+              <div class="lane maintain"><div class="h"><span>Giữ nhịp</span><span>2</span></div><b>Viết nhật ký sản phẩm mỗi tuần</b><small>Không cần đẩy nhanh, chỉ giữ đều.</small></div>
+              <div class="lane notnow"><div class="h"><span>Để sau</span><span>4</span></div><b>Khoá học vẽ · Podcast · Blog kỹ thuật · App theo dõi đọc</b><small>Được giữ lại. Bạn không cần nghĩ về điều này lúc này.</small></div>
+            </div>
+          </main>
+          <nav class="los-tabbar"><a href="#"><svg class="los-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>Now</a><a href="#" aria-current="page"><svg class="los-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>Direction</a><a href="#"><svg class="los-icon" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m9 12 2 2 4-4"/></svg>Execute</a><a href="#"><svg class="los-icon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>Reflect</a><a href="#"><svg class="los-icon" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5a7 7 0 0 1 14 0"/></svg>Me</a></nav>
+        </div></div>
+      </div></div>
+
+      <!-- EXECUTE mobile -->
+      <div class="phone-col"><span class="cap">EXECUTE · hình dạng đích (chưa có dữ liệu)</span>
+      <div class="frame-wrap" data-scale-w="390" data-scale-h="844" data-phone>
+        <div class="frame phone los"><div class="los-mobile">
+          <div class="los-topbar"><span>13:21</span><span>Đã đồng bộ</span></div>
+          <main class="los-main">
+            <header class="los-context"><div class="stamp"><span class="date">Trang chờ LifeOS chạy được</span><h1 class="display">Việc đang có</h1></div></header>
+            <div class="section-head"><h3>Sẵn sàng</h3><span class="los-label">2</span></div>
+            <div class="list">
+              <div class="item"><span class="chk"></span><div class="t"><b>Viết bản mô tả 3 dòng cho trang chờ</b><small>≈ 25 phút · đang ở NOW</small></div></div>
+              <div class="item"><span class="chk"></span><div class="t"><b>Gửi link trang chờ cho 3 người bạn</b><small>≈ 10 phút</small></div></div>
+            </div>
+            <div class="section-head"><h3>Cần bạn xác nhận</h3><span class="los-label">1</span></div>
+            <div class="list"><div class="item quiet"><svg class="los-icon" viewBox="0 0 24 24" style="color:var(--los-ink-3)"><path d="M12 8v5M12 16v.5"/><circle cx="12" cy="12" r="9"/></svg><div class="t"><b>Mua tên miền lifeos.vn</b><small>Gợi ý · chưa thành việc cho tới khi bạn đồng ý</small></div><button class="los-btn secondary" style="min-height:36px;padding-inline:12px;font-size:.82rem">Xem</button></div></div>
+            <div class="section-head"><h3>Đang bị chặn</h3><span class="los-label">1</span></div>
+            <div class="list"><div class="item quiet"><div class="t"><b>Cấu hình email chào mừng</b><small>Chờ tài khoản gửi mail · gỡ chặn?</small></div></div></div>
+            <div class="section-head"><h3>Vừa xong</h3></div>
+            <div class="list"><div class="item quiet done"><span class="chk"></span><div class="t"><b>Dựng khung trang chờ</b><small>Hôm qua · 40 phút Focus</small></div></div></div>
+          </main>
+          <nav class="los-tabbar"><a href="#"><svg class="los-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>Now</a><a href="#"><svg class="los-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>Direction</a><a href="#" aria-current="page"><svg class="los-icon" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m9 12 2 2 4-4"/></svg>Execute</a><a href="#"><svg class="los-icon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>Reflect</a><a href="#"><svg class="los-icon" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5a7 7 0 0 1 14 0"/></svg>Me</a></nav>
+        </div></div>
+      </div></div>
+
+      <!-- REFLECT mobile -->
+      <div class="phone-col"><span class="cap">REFLECT · Khép ngày (B5, hình dạng đích)</span>
+      <div class="frame-wrap" data-scale-w="390" data-scale-h="844" data-phone>
+        <div class="frame phone los"><div class="los-mobile">
+          <div class="los-topbar"><span>21:40</span><span>Đã đồng bộ</span></div>
+          <main class="los-main">
+            <header class="los-context"><div class="stamp"><span class="date">Thứ Ba, 15/9</span><h1 class="display">Khép lại <em>hôm nay</em></h1><p style="margin-top:6px">Chỉ những gì đã thật sự xảy ra.</p></div></header>
+            <div class="reflect-strip">
+              <div class="cell"><b class="num">1</b><small>việc xong</small></div>
+              <div class="cell"><b class="num">25′</b><small>Focus</small></div>
+              <div class="cell"><b class="num">2</b><small>phân tâm đã ghi</small></div>
+            </div>
+            <div class="list" style="margin-top:12px"><div class="item quiet done"><span class="chk"></span><div class="t"><b>Viết bản mô tả 3 dòng cho trang chờ</b><small>Xong · 25 phút Focus</small></div></div></div>
+            <div class="question">
+              <div class="k">Một câu hỏi, tuỳ chọn</div>
+              <h2 class="display sm">Điều gì đã giúp bạn bắt đầu hôm nay?</h2>
+              <div class="chips"><span>Việc đủ nhỏ</span><span>Biết khi nào xong</span><span>Không có lựa chọn khác</span><span>Bỏ qua</span></div>
+            </div>
+            <div style="margin-top:22px;display:grid"><button class="los-btn primary lg">Khép ngày</button></div>
+          </main>
+          <nav class="los-tabbar"><a href="#"><svg class="los-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>Now</a><a href="#"><svg class="los-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>Direction</a><a href="#"><svg class="los-icon" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m9 12 2 2 4-4"/></svg>Execute</a><a href="#" aria-current="page"><svg class="los-icon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>Reflect</a><a href="#"><svg class="los-icon" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5a7 7 0 0 1 14 0"/></svg>Me</a></nav>
+        </div></div>
+      </div></div>
+
+      <!-- ME mobile -->
+      <div class="phone-col"><span class="cap">ME · hình dạng đích (Epic #4)</span>
+      <div class="frame-wrap" data-scale-w="390" data-scale-h="844" data-phone>
+        <div class="frame phone los"><div class="los-mobile">
+          <div class="los-topbar"><span>13:21</span><span>Đã đồng bộ</span></div>
+          <main class="los-main">
+            <header class="los-context"><div class="stamp"><span class="date">Bạn</span><h1 class="display">Cách bạn <em>thường làm việc tốt</em></h1></div></header>
+            <div class="los-sheet me-block">
+              <div class="k">Bạn đã xác nhận</div>
+              <ul><li>Bắt đầu dễ hơn khi việc dưới 30 phút.</li><li>Buổi sáng hợp việc viết, buổi chiều hợp việc trả lời.</li></ul>
+            </div>
+            <div class="los-sheet tint me-block" style="margin-top:10px">
+              <div class="k">Điều LifeOS đang học · có thể đúng, cần bạn kiểm tra</div>
+              <div class="learning"><b style="font-weight:500">Việc có “xong khi” rõ được bắt đầu sớm hơn 2 lần so với việc không có.</b><small class="muted">Dựa trên 6 việc gần đây.</small><div class="actions"><button class="los-btn secondary">Đúng vậy</button><button class="los-btn text">Chưa đúng</button></div></div>
+            </div>
+            <div class="section-head"><h3>Bộ nhớ &amp; cá nhân hoá</h3></div>
+            <div class="list"><div class="item quiet"><div class="t"><b>3 điều LifeOS đang nhớ về bạn</b><small>Xem, sửa hoặc xoá bất kỳ lúc nào</small></div><svg class="los-icon" viewBox="0 0 24 24" style="color:var(--los-ink-3)"><path d="m9 6 6 6-6 6"/></svg></div><div class="item quiet"><div class="t"><b>Nhắc nhở &amp; thông báo</b><small>Tối giản theo mặc định</small></div><svg class="los-icon" viewBox="0 0 24 24" style="color:var(--los-ink-3)"><path d="m9 6 6 6-6 6"/></svg></div></div>
+          </main>
+          <nav class="los-tabbar"><a href="#"><svg class="los-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>Now</a><a href="#"><svg class="los-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>Direction</a><a href="#"><svg class="los-icon" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m9 12 2 2 4-4"/></svg>Execute</a><a href="#"><svg class="los-icon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>Reflect</a><a href="#" aria-current="page"><svg class="los-icon" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5a7 7 0 0 1 14 0"/></svg>Me</a></nav>
+        </div></div>
+      </div></div>
+
+    </div>
+  </section>
+
+  <!-- ============================ FOCUS ============================ -->
+  <section class="board-section" id="focus">
+    <h2>Focus · màn tĩnh nhất</h2>
+    <p class="lede">Ẩn điều hướng. Canvas trầm hơn một bậc, vòng thời gian là bề mặt Tầng 2 duy nhất. Ghi phân tâm là một dòng, lưu xong quay lại ngay. Kết thúc Focus không đồng nghĩa hoàn thành việc (ranh giới B4/B5).</p>
+    <div class="phone-row" style="align-items:flex-start">
+      <div class="frame-wrap" data-scale-w="1280" data-scale-h="820" style="flex: 1 1 760px; min-width: 520px">
+        <div class="frame desktop los">
+          <div class="focus-screen">
+            <div class="top"><span>Đang Focus · bắt đầu 13:21</span><span class="los-pill accent"><i class="dot"></i>Ra mắt LifeOS bản thử</span></div>
+            <div class="center">
+              <div class="focus-ring">
+                <svg viewBox="0 0 300 300"><circle class="track" cx="150" cy="150" r="140"/><circle class="bar" cx="150" cy="150" r="140"/></svg>
+                <div class="inner"><div class="clock num">16:<span style="color:var(--los-ink-3)">22</span></div><div class="sub">còn lại · 25 phút dự kiến</div></div>
+              </div>
+              <h1 class="display title">Viết bản mô tả 3 dòng cho trang chờ của LifeOS</h1>
+              <p class="done">Xong khi: <b>có đúng 3 câu trong landing.md, đọc to không vấp.</b></p>
+              <div class="focus-capture"><input placeholder="Vừa nghĩ ra gì? Ghi lại rồi quay về…" /><button class="los-btn secondary">Ghi lại</button></div>
+            </div>
+            <div class="bottom"><button class="los-btn primary">Hoàn thành Focus</button><button class="los-btn secondary">Bị gián đoạn</button><button class="los-btn text">Bỏ dở</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="phone-col"><span class="cap">Focus · mobile</span>
+      <div class="frame-wrap" data-scale-w="390" data-scale-h="844" data-phone>
+        <div class="frame phone los"><div class="los-mobile">
+          <div class="focus-screen">
+            <div class="top"><span>Đang Focus</span><span>13:21</span></div>
+            <div class="center">
+              <div class="focus-ring"><svg viewBox="0 0 300 300"><circle class="track" cx="150" cy="150" r="140"/><circle class="bar" cx="150" cy="150" r="140"/></svg><div class="inner"><div class="clock num">16:<span style="color:var(--los-ink-3)">22</span></div><div class="sub">còn lại</div></div></div>
+              <h1 class="display sm title">Viết bản mô tả 3 dòng cho trang chờ</h1>
+              <p class="done" style="font-size:.9rem">Xong khi: <b>có đúng 3 câu trong landing.md</b></p>
+              <div class="focus-capture"><input placeholder="Vừa nghĩ ra gì?" /><button class="los-btn secondary">Ghi</button></div>
+            </div>
+            <div class="bottom" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%"><button class="los-btn primary" style="grid-column:1/-1">Hoàn thành Focus</button><button class="los-btn secondary">Bị gián đoạn</button><button class="los-btn text">Bỏ dở</button></div>
+          </div>
+        </div></div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ============================ EMPTY STATES ============================ -->
+  <section class="board-section" id="states">
+    <h2>Empty / recovery state</h2>
+    <p class="lede">Chồng giấy là micro-illustration duy nhất, trôi 4px mỗi 6 giây. Copy nói việc gì làm tiếp, không nói tâm trạng.</p>
+    <div class="phone-row" style="gap:24px">
+      <div class="los" style="flex:1 1 380px;border-radius:22px;padding:28px"><div class="los-sheet los-empty"><div class="los-illo"><i></i><i></i><i></i></div><span class="los-pill notnow">Chưa có hướng</span><h2 class="display sm">Chưa cần ép mình chọn một việc.</h2><p>Hãy làm rõ điều đang quan trọng trước. Hai phút là đủ để bắt đầu.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="los-btn primary">Làm rõ trong 2 phút</button><button class="los-btn text">Tự chọn hướng</button></div></div></div>
+      <div class="los" style="flex:1 1 380px;border-radius:22px;padding:28px"><div class="los-sheet los-empty"><div class="los-illo"><i></i><i></i><i></i></div><span class="los-pill maintain">Execute</span><h2 class="display sm">Khu này mở khi bạn có việc đầu tiên.</h2><p>Việc được tạo từ hướng đã xác nhận, không tự sinh ra từ Brain Dump.</p><button class="los-btn secondary">Về NOW</button></div></div>
+      <div class="los" style="flex:1 1 380px;border-radius:22px;padding:28px"><div class="los-sheet los-empty"><div class="los-illo"><i></i><i></i><i></i></div><span class="los-pill" style="background:var(--los-caution-tint);color:var(--los-caution);border-color:transparent">Chưa phân tích được</span><h2 class="display sm">Tôi chưa xong phần này. Nội dung của bạn đã được lưu.</h2><p>Bạn có thể thử lại hoặc tiếp tục tự sắp xếp.</p><div style="display:flex;gap:8px"><button class="los-btn primary">Thử lại</button><button class="los-btn secondary">Tiếp tục thủ công</button></div></div></div>
+    </div>
+  </section>
+
+  <!-- ============================ CHECK ============================ -->
+  <section class="board-section" id="check">
+    <h2>Approval test (theo Addendum V1)</h2>
+    <div class="note-grid">
+      <div class="note"><h4>Nếu bỏ hết chữ “AI / agent / confidence / evidence”</h4><p>Mọi màn vẫn nguyên nghĩa: không có badge độ tin cậy, không orb, không sparkles. “Vì sao việc này?” là disclosure nhẹ.</p></div>
+      <div class="note"><h4>Ấn tượng đầu tiên</h4><p>Sổ kế hoạch ngày đẹp, tĩnh — không phải dashboard, không phải chatbot. Một việc lớn, phần còn lại lùi xuống.</p></div>
+      <div class="note"><h4>Điều đã cắt so với bản hiện tại</h4><ul><li>Nền navy + gradient → giấy ấm.</li><li>Eyebrow in hoa tracking rộng → pill sentence case.</li><li>Card lồng card → một tờ + tint.</li><li>Guardrail kỹ thuật (“không có client-side ranking”) → “4 việc đang được giữ lại”.</li></ul></div>
+      <div class="note"><h4>Điều KHÔNG đổi</h4><ul><li>Route keys và APP_ROUTES.</li><li>Toàn bộ logic Accept / Edit / Not Now / Wrong assumption / Focus.</li><li>Không thêm màn hình hay hành vi ngoài spec.</li></ul></div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  // Scale frames to fit their container width (design canvases are fixed-size).
+  var wraps = document.querySelectorAll('.frame-wrap');
+  function fit() {
+    wraps.forEach(function (w) {
+      var W = +w.dataset.scaleW, H = +w.dataset.scaleH;
+      var isPhone = w.hasAttribute('data-phone');
+      var avail = isPhone ? Math.min(W, 300) : w.clientWidth;
+      var s = Math.min(1, avail / W);
+      var f = w.firstElementChild;
+      f.style.transform = 'scale(' + s + ')';
+      w.style.height = (H * s) + 'px';
+      w.style.width = isPhone ? (W * s) + 'px' : '';
+    });
+  }
+  fit(); window.addEventListener('resize', fit);
+
+  // Subtle 3D tilt on the primary NOW sheet — desktop, fine pointer, no reduced motion.
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var fine = window.matchMedia('(pointer: fine)').matches;
+  if (!reduce && fine) {
+    document.querySelectorAll('[data-tilt]').forEach(function (el) {
+      el.addEventListener('pointermove', function (e) {
+        var r = el.getBoundingClientRect();
+        var x = (e.clientX - r.left) / r.width - .5;
+        var y = (e.clientY - r.top) / r.height - .5;
+        el.style.transition = 'transform 80ms linear, box-shadow 160ms ease';
+        el.style.transform = 'perspective(1200px) rotateX(' + (-y * 2) + 'deg) rotateY(' + (x * 2) + 'deg) translateY(-2px)';
+        el.style.boxShadow = 'var(--los-shadow-sheet-hover)';
+      });
+      el.addEventListener('pointerleave', function () {
+        el.style.transition = 'transform 420ms cubic-bezier(.34,1.3,.5,1), box-shadow 280ms ease';
+        el.style.transform = '';
+        el.style.boxShadow = '';
+      });
+    });
+  }
+})();
+</script>
+</body>
+</html>
