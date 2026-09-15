@@ -132,3 +132,7 @@
   .incubator-lane { min-width: calc(50% - 4px); }
   .inbox-item-cta { display: none; }
 }
+
+/* Shared section head (used by Inbox / Incubator lists) */
+.section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.section-head h3 { font-size: .98rem; font-weight: 600; }
