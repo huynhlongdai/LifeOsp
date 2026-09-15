@@ -350,6 +350,73 @@ export const lifeEvents = pgTable(
   ]
 );
 
+// B5 — one row per recorded Action result. Append-only: a new result on a
+// re-opened Action is a new row, never an edit.
+export const actionResults = pgTable(
+  "action_results",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    actionId: uuid("action_id")
+      .notNull()
+      .references(() => actions.id, { onDelete: "cascade" }),
+    focusSessionId: uuid("focus_session_id").references(() => focusSessions.id, { onDelete: "set null" }),
+    recommendationId: uuid("recommendation_id").references(() => recommendations.id, { onDelete: "set null" }),
+    result: text("result").notNull(),
+    note: text("note"),
+    blockedReason: text("blocked_reason"),
+    remainingText: text("remaining_text"),
+    postponeUntil: date("postpone_until", { mode: "string" }),
+    plannedMinutes: integer("planned_minutes"),
+    actualFocusMinutes: integer("actual_focus_minutes").default(0).notNull(),
+    focusSessionCount: integer("focus_session_count").default(0).notNull(),
+    recordedAt: timestamp("recorded_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    index("action_results_user_recorded_idx").on(table.userId, table.recordedAt),
+    index("action_results_user_action_idx").on(table.userId, table.actionId),
+    check(
+      "action_results_result_check",
+      sql`${table.result} in ('completed', 'partial', 'postponed', 'blocked', 'dropped')`
+    ),
+    check(
+      "action_results_blocked_reason_check",
+      sql`${table.result} <> 'blocked' or length(btrim(coalesce(${table.blockedReason}, ''))) > 0`
+    ),
+    check("action_results_actual_focus_minutes_check", sql`${table.actualFocusMinutes} >= 0`),
+    check("action_results_focus_session_count_check", sql`${table.focusSessionCount} >= 0`)
+  ]
+);
+
+// B5 — lightweight Daily Close: one row per user per local date, all fields optional.
+export const dailyCloses = pgTable(
+  "daily_closes",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    date: date("date", { mode: "string" }).notNull(),
+    offsetMinutes: integer("offset_minutes").notNull(),
+    meaningfulProgressText: text("meaningful_progress_text"),
+    frictionCode: text("friction_code"),
+    frictionNote: text("friction_note"),
+    note: text("note"),
+    closedAt: timestamp("closed_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [
+    uniqueIndex("daily_closes_user_date_uidx").on(table.userId, table.date),
+    check("daily_closes_offset_check", sql`${table.offsetMinutes} between -840 and 840`),
+    check(
+      "daily_closes_friction_code_check",
+      sql`${table.frictionCode} is null or ${table.frictionCode} in ('unclear', 'too_big', 'low_energy', 'interrupted', 'waiting_on_others', 'new_idea_pulled', 'none', 'other')`
+    )
+  ]
+);
+
 export type UserRow = typeof users.$inferSelect;
 export type NewUserRow = typeof users.$inferInsert;
 export type SessionRow = typeof sessions.$inferSelect;
@@ -378,3 +445,7 @@ export type RecommendationEvidenceRow = typeof recommendationEvidence.$inferSele
 export type NewRecommendationEvidenceRow = typeof recommendationEvidence.$inferInsert;
 export type LifeEventRow = typeof lifeEvents.$inferSelect;
 export type NewLifeEventRow = typeof lifeEvents.$inferInsert;
+export type ActionResultRow = typeof actionResults.$inferSelect;
+export type NewActionResultRow = typeof actionResults.$inferInsert;
+export type DailyCloseRow = typeof dailyCloses.$inferSelect;
+export type NewDailyCloseRow = typeof dailyCloses.$inferInsert;

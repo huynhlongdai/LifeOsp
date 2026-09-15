@@ -17,3 +17,5 @@ export type FocusSessionId = Brand<string, "FocusSessionId">;
 export type IncubatorItemId = Brand<string, "IncubatorItemId">;
 export type RecommendationId = Brand<string, "RecommendationId">;
 export type RecommendationEvidenceId = Brand<string, "RecommendationEvidenceId">;
+export type ActionResultId = Brand<string, "ActionResultId">;
+export type DailyCloseId = Brand<string, "DailyCloseId">;
